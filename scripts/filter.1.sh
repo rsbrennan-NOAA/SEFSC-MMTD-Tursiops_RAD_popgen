@@ -8,7 +8,7 @@
 #SBATCH -n 1
 #SBATCH --mem=16G
 #SBATCH --partition=standard
-#SBATCH --time=7:00:00
+#SBATCH --time=16:00:00
 
 source ~/.bashrc
 
@@ -21,17 +21,17 @@ INDIR=~/Tursiops-NC-PopulationAssignment-RAD/analysis/variants
 
 echo "starting first missingness filter"
 
-bcftools view -i 'INFO/DP/N_SAMPLES >= 3 && F_MISSING < 0.4' -Oz -o ${INDIR}/filtered.1.vcf.gz ${INDIR}/variants_raw_merged.vcf.gz
+#bcftools view -i 'INFO/DP/N_SAMPLES >= 3 && F_MISSING < 0.4' -Oz -o ${INDIR}/filtered.1.vcf.gz ${INDIR}/variants_raw_merged.vcf.gz
 
 # Index the output
-bcftools index -t ${INDIR}/filtered.1.vcf.gz
+#bcftools index -t ${INDIR}/filtered.1.vcf.gz
 
 
 #tabix -p vcf -f ${INDIR}/filtered.1.vcf.gz
 
 echo "done with first missingness filter"
 
-NUM_VARIANTS1=$(zcat ${INDIR}/filtered.1.vcf.gz | grep -v '^#' | wc -l)
+#NUM_VARIANTS1=$(zcat ${INDIR}/filtered.1.vcf.gz | grep -v '^#' | wc -l)
 echo "Number of variants after first missingness filter: ${NUM_VARIANTS1}"
 
 echo "running vcfallelicprimitives"
