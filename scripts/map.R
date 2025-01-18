@@ -15,7 +15,7 @@ library(RColorBrewer)
 world <- ne_countries(scale = "medium", returnclass = "sf")
 
 # read in locations
-dat <- read.csv("Tursiops_RADseq_Metadata.csv")
+dat <- read.csv("Tursiops_RADseq_Metadata_new.csv")
 
 head(dat)
 
@@ -98,71 +98,6 @@ ggsave("figures/map_library.pdf", p, h=4, w=5)
 ggsave("figures/map_library.png", p, h=4, w=5)
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# !!!!!!!!!!!!!!!!!!! not done below here
-
-#---------------
-# add pop colors:
-
-# read in the pop labels.
-
-dat$Pop <- as.factor(dat$Pop)
-
-Colorsdf <-
-  with(dat,
-       data.frame(population = levels(dat$Pop),
-                  color = I(brewer.pal(nlevels(Pop), name = 'Set1'))))
-cols <- Colorsdf$color[match(dat$Pop, Colorsdf$population)]
-dat$colors <- cols
-
-
-# 
-p <- ggplot() +
-  geom_sf(data = world, fill = "grey90", color = "grey70") +
-  geom_sf(data = usa, fill = NA, color = "grey70") +
-  geom_point(data = dat, aes(x = long, y = lat, fill=Pop),
-             shape= 21, color="black", size = 2.5,
-             alpha=0.5) +
-  coord_sf() +
-  theme_bw() +
-  theme(
-    #panel.background = element_rect(fill = "white"),
-    panel.grid = element_blank(),
-    #axis.text = element_blank(),
-    #axis.ticks = element_blank()
-    legend.position = "top",
-    legend.title=element_blank()) +
-  xlab("Longitude") + 
-  ylab("Latitude") +   
-  coord_sf(xlim = c(-100, -78), ylim = c(23, 32), expand = FALSE)+
-  annotation_scale() +
-  scale_fill_manual(values = Colorsdf$color,guide = guide_legend(override.aes = list(alpha = 1, size = 2.5))) 
-
-p
-
-
-ggsave("figures/map_pops.pdf", p, h=4, w=5)
-ggsave("figures/map_pops.png", p, h=4, w=5)
-
-
-write.csv(Colorsdf, file="analysis/popColors.csv", row.names=F)
-
-
-
 #--------------#
 #
 # Calculate least-cost distances to shore
@@ -173,22 +108,290 @@ write.csv(Colorsdf, file="analysis/popColors.csv", row.names=F)
 
 # Import coordinates of sites
 
-coords.gps = dplyr::select(dat, long , lat)
+coords.gps = dplyr::select(dat, Long , Lat)
 
 str(coords.gps)
 
 # Get bathymetry data from NOAA using marmap 
-bathydata = getNOAA.bathy(lon1 = min(coords.gps$long) -1,
-                          lon2 = max(coords.gps$long)+1,
-                          lat1 = min(coords.gps$lat)-1,
-                          lat2 = max(coords.gps$lat) +1,
-                          resolution = 2)
+bathydata = getNOAA.bathy(lon1 = min(coords.gps$Long) -1,
+                          lon2 = max(coords.gps$Long)+1,
+                          lat1 = min(coords.gps$Lat)-1,
+                          lat2 = max(coords.gps$Lat) +1,
+                          resolution = 1)
+
+# try GEBCO, higher resolution
+
+bathydata <- readGEBCO.bathy("analysis/gebco_2024_n53.8066_s20.4785_w-99.4219_e-44.4375.nc")
+
 
 # Get depth of coordinates
 
-depths = cbind(site = dat$Sample,
+depths = cbind(site = dat$Lab.ID,
                get.depth(bathydata, coords.gps, locator = FALSE))
-depths
+hist(depths$depth, breaks=50)
+hist(depths$depth, breaks=300, xlim=c(-100, (max(depths$depth)+10)))
+max(depths$depth)
+
+sum(depths$depth >= 0)
+# 25
+
+datmerge <- merge(depths, dat, by.x="site", by.y="Lab.ID")
+
+dat_err <- datmerge[(depths$depth > 0),]
+
+# figure out whats going on with these ones that are > 0
+coords.gps2 = dplyr::select(dat_err, Long , Lat)
+
+
+# map and check values:
+#plot(bathydata, image = TRUE, deep = TRUE, shallow = TRUE)
+
+#plot.bathy(bathydata, image= TRUE, land = TRUE, n = 0,
+#           bpal = list(c(0, max(depths$depth), "grey"),
+#                       c(min(depths$depth), 0, "royalblue")))
+#points(coords.gps2$Long, coords.gps2$Lat, pch = 21, 
+#       bg ="orange", col = "black", cex = 2)
+
+
+
+#bathy_df <- fortify.bathy(bathydata)
+
+#ggplot(bathy_df, aes(x=x, y=y)) + coord_quickmap() +
+#  geom_raster(aes(fill=z), data=bathy_df[bathy_df$z <= 0,]) +
+#  scale_x_continuous(expand=c(0,0)) +
+#  scale_y_continuous(expand=c(0,0))
+
+coords.gps2
+
+
+library(raster)
+library(terra)
+clim <- rast("analysis/gebco_2024_n53.8066_s20.4785_w-99.4219_e-44.4375.nc")
+plot(clim)
+
+points(coords.gps, pch=16)
+points(coords.gps2, pch=16, col="orange")
+
+coords.gps
+
+#make df to store output:
+dfout <- as.data.frame(matrix(ncol=4, nrow=nrow(coords.gps)))
+colnames(dfout) <- c("id", "lon", "lat", "depth_gebco")
+dfout$id <- dat$Lab.ID
+dfout$lon <- coords.gps$Long
+dfout$lat <- coords.gps$Lat
+
+for(i in 1:nrow(coords.gps)){
+  val<-terra::extract(x=clim, y=coords.gps[i,])
+  dfout$depth_gebco[i] <- val[1,2]
+}
+
+
+head(dfout)
+
+hist(dfout$depth_gebco)
+
+sum(dfout$depth_gebco >= 0)
+#33
+
+plot(dfout$depth_gebco, depths$depth)
+# they agree
+
+missing_index <- which(dfout$depth_gebco >= 0)
+length(missing_index)
+missingdat <- data.frame(lon = coords.gps$Long[missing_index],
+                         lat = coords.gps$Lat[missing_index])
+
+buffer <- 0.02
+i=1
+plot(clim, xlim=c((missingdat$lon[i] - buffer),
+                  (missingdat$lon[i] + buffer)), 
+            ylim=c((missingdat$lat[i] - buffer),
+                  (missingdat$lat[i] + buffer)))
+points(missingdat[i,], pch=21, lwd=2, col="red")
+
+
+# they're all mistakes. right next to shore for some, so in wrong grid. 
+# or others are in marshes/estuaries where the smaller channels aren't in the data 
+clim_wgs84 <- project(clim, "EPSG:4326")
+
+dfout_corrected <- dfout
+
+skip_index <- c(28) 
+
+for(i in 1:length(missing_index)){
+  if (i %in% skip_index) {
+    cat("Skipping index and doing manual", i, "\n")
+    start_val <- 130 # for index 28, closest is 130. this is super slow, so I do it manually here
+    sample_vect <- vect(missingdat[i,1:2], geom = c("lon", "lat"),
+                        crs="EPSG:4326")
+    sample_ext <- distance(x=clim_wgs84, y=sample_vect)
+    df_ext <- values(sample_ext)
+    minrast_index <- match(sort(df_ext[,1], decreasing=FALSE)[start_val],df_ext[,1])
+    # get these coordinates:
+    close_coords <- as.data.frame((crds(sample_ext)[minrast_index,]))
+    close_coords_vect <- vect(t(close_coords), 
+                              crs="EPSG:4326") 
+    val<-terra::extract(x=clim_wgs84, y=close_coords_vect)
+    
+    
+    dfout_corrected$depth_gebco[missing_index[i]] <- val[1,2]
+    dfout_corrected$lon[missing_index[i]] <- close_coords[1,1]
+    dfout_corrected$lat[missing_index[i]] <- close_coords[2,1]
+    next
+  }
+  
+  cat("Starting index", i, "\n")
+  # first, convert to SpatVector, then do the extraction
+  sample_vect <- vect(missingdat[i,1:2], geom = c("lon", "lat"),
+                      crs="EPSG:4326")
+  sample_ext <- distance(x=clim_wgs84, y=sample_vect)
+  df_ext <- values(sample_ext)
+  
+  # returns distance in meters
+  # the problem is that it identifies those even with NA. so get next closest
+  minrast_index <- match(sort(df_ext[,1], decreasing=FALSE)[2],df_ext[,1])
+  # get these coordinates:
+  close_coords <- as.data.frame((crds(sample_ext)[minrast_index,]))
+  close_coords_vect <- vect(t(close_coords), 
+                            crs="EPSG:4326") 
+  # get the depth
+  val<-terra::extract(x=clim_wgs84, y=close_coords_vect)
+  # some move to another empty cell. if this happens, go to 2nd match
+  start_val <- 3
+  while(val[1,2] >= 0){
+    cat("Depth still 0, starting start_val:",(start_val), "\n")
+    minrast_index <- match(sort(df_ext[,1], decreasing=FALSE)[start_val],df_ext[,1])
+    # get these coordinates:
+    close_coords <- as.data.frame((crds(sample_ext)[minrast_index,]))
+    close_coords_vect <- vect(t(close_coords), 
+                              crs="EPSG:4326") 
+    val<-terra::extract(x=clim_wgs84, y=close_coords_vect)
+    start_val <- start_val + 1
+  }
+  
+  dfout_corrected$depth_gebco[missing_index[i]] <- val[1,2]
+  dfout_corrected$lon[missing_index[i]] <- close_coords[1,1]
+  dfout_corrected$lat[missing_index[i]] <- close_coords[2,1]
+  cat("done with index", i, "\n")
+  cat("\n")
+}
+
+# for index 28, closest is 130. this is super slow, so I do it manually here
+
+
+# 33 needs to move south to stay in the same river:
+i = 33
+sample_vect <- vect(data.frame(lon=c(-79.964),lat=c(32.787 )), geom = c("lon", "lat"),
+                    crs="EPSG:4326")
+
+sample_ext <- distance(x=clim_wgs84, y=sample_vect)
+df_ext <- values(sample_ext)
+minrast_index <- match(sort(df_ext[,1], decreasing=FALSE)[1],df_ext[,1])
+# get these coordinates:
+close_coords <- as.data.frame((crds(sample_ext)[minrast_index,]))
+close_coords_vect <- vect(t(close_coords), 
+                          crs="EPSG:4326") 
+val<-terra::extract(x=clim_wgs84, y=close_coords_vect)
+dfout_corrected$depth_gebco[missing_index[i]] <- val[1,2]
+dfout_corrected$lon[missing_index[i]] <- close_coords[1,1]
+dfout_corrected$lat[missing_index[i]] <- close_coords[2,1]
+
+points(dfout_corrected[missing_index[i],c(2,3)], pch=21, lwd=2, col="purple")
+
+
+
+#check all manually, because sometimes wacky things happen. 
+
+buffer <- 0.05
+i=33
+plot(clim, xlim=c((dfout$lon[missing_index[i]] - buffer),
+                  (dfout$lon[missing_index[i]] + buffer)), 
+     ylim=c((dfout$lat[missing_index[i]] - buffer),
+            (dfout$lat[missing_index[i]] + buffer)))
+points(dfout[missing_index[i],c(2,3)], pch=21, lwd=2, col="red")
+points(dfout_corrected[missing_index[i],c(2,3)], pch=21, lwd=2, col="orange")
+dfout[missing_index[i],]
+dfout_corrected[missing_index[i],]
+
+#
+#
+colnames(dfout_corrected) <- c("id", "lon_corrected", "lat_corrected", "corrected_depth")
+alldat <- merge(dfout, dfout_corrected, by="id")
+
+sum(alldat$depth_gebco == alldat$corrected_depth)
+nrow(alldat)
+
+write.csv(alldat, file="depths.csv", row.names = F)
+
+# Add bathymetry raster
+  geom_raster(data = bathy_df,
+              aes(x = x, y = y, fill = z)) +
+  scale_fill_gradient2(low = "lightblue", 
+                       mid = "white",
+                       high = "brown",
+                       midpoint = 0) 
+
+
+
+
+
+
+
+
+
+
+
+# Get the range
+lon_range <- range(coords.gps2$Long)
+lat_range <- range(coords.gps2$Lat)
+
+# Add a buffer 
+buffer <- 0.5
+lon_limits <- c(lon_range[1] - buffer, lon_range[2] + buffer)
+lat_limits <- c(lat_range[1] - buffer, lat_range[2] + buffer)
+
+# Plot with these limits
+plot.bathy(bathydata, image = TRUE, land = TRUE, n = 0,
+           bpal = list(c(0, max(depths$depth), "grey"),
+                       c(min(depths$depth), 0, "royalblue")),
+           xlim = lon_limits,
+           ylim = lat_limits)
+
+points(coords.gps2$Long, coords.gps2$Lat, pch = 21, 
+       bg = "orange", col = "black", cex = 2)
+
+
+
+
+
+
+
+# Creating a custom palette of blues
+blues <- c("lightsteelblue4", "lightsteelblue3",
+           "lightsteelblue2", "lightsteelblue1")
+# Plotting the bathymetry with different colors for land and sea
+plot(bathydata, image = TRUE, land = TRUE, lwd = 0.1,
+     bpal = list(c(0, max(bathydata), "grey"),
+                 c(min(bathydata),0,blues)))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 # one is > 0, so move it slightly. This is a bug bc of the grid
 # this also causes problems with distance calcs
 coords.gps$long[depths$depth>0] <- -82.58 # from -82.56
@@ -196,6 +399,9 @@ coords.gps$long[depths$depth>0] <- -82.58 # from -82.56
 depths = cbind(site = dat$Sample,
                get.depth(bathydata, coords.gps, locator = FALSE))
 depths
+
+
+
 # depths in meters
 
 # Plot bathymetry data and coordinates
