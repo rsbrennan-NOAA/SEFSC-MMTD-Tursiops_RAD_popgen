@@ -324,59 +324,6 @@ nrow(alldat)
 
 write.csv(alldat, file="depths.csv", row.names = F)
 
-# Add bathymetry raster
-  geom_raster(data = bathy_df,
-              aes(x = x, y = y, fill = z)) +
-  scale_fill_gradient2(low = "lightblue", 
-                       mid = "white",
-                       high = "brown",
-                       midpoint = 0) 
-
-
-
-
-
-
-
-
-
-
-
-# Get the range
-lon_range <- range(coords.gps2$Long)
-lat_range <- range(coords.gps2$Lat)
-
-# Add a buffer 
-buffer <- 0.5
-lon_limits <- c(lon_range[1] - buffer, lon_range[2] + buffer)
-lat_limits <- c(lat_range[1] - buffer, lat_range[2] + buffer)
-
-# Plot with these limits
-plot.bathy(bathydata, image = TRUE, land = TRUE, n = 0,
-           bpal = list(c(0, max(depths$depth), "grey"),
-                       c(min(depths$depth), 0, "royalblue")),
-           xlim = lon_limits,
-           ylim = lat_limits)
-
-points(coords.gps2$Long, coords.gps2$Lat, pch = 21, 
-       bg = "orange", col = "black", cex = 2)
-
-
-
-
-
-
-
-# Creating a custom palette of blues
-blues <- c("lightsteelblue4", "lightsteelblue3",
-           "lightsteelblue2", "lightsteelblue1")
-# Plotting the bathymetry with different colors for land and sea
-plot(bathydata, image = TRUE, land = TRUE, lwd = 0.1,
-     bpal = list(c(0, max(bathydata), "grey"),
-                 c(min(bathydata),0,blues)))
-
-
-
 
 
 
