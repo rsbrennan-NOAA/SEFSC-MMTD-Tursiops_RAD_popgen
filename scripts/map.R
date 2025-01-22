@@ -326,6 +326,209 @@ write.csv(alldat, file="depths.csv", row.names = F)
 
 
 
+####----------------------------------------------------------------------------
+####----------------------------------------------------------------------------
+# distance to shore
+####----------------------------------------------------------------------------
+####----------------------------------------------------------------------------
+library(marmap)
+dat <- read.csv("depths.csv")
+
+coords.gps = dplyr::select(dat, lon_corrected  , lat_corrected)
+
+str(coords.gps)
+
+# Get bathymetry data from NOAA using marmap 
+bathydata = getNOAA.bathy(lon1 = min(coords.gps$lon_corrected) -1,
+                          lon2 = max(coords.gps$lon_corrected)+1,
+                          lat1 = min(coords.gps$lat_corrected)-1,
+                          lat2 = max(coords.gps$lat_corrected) +1,
+                          resolution = 2)
+#clim <- rast("analysis/gebco_2024_n53.8066_s20.4785_w-99.4219_e-44.4375.nc")
+bathydata2 <- readGEBCO.bathy("analysis/gebco_2024_n53.8066_s20.4785_w-99.4219_e-44.4375.nc", resolution = 1, sid = FALSE)
+# Get depth of coordinates
+
+depths = data.frame(site = dat$id,
+               depth = (dat$corrected_depth))
+depths
+
+# Create coordinate grids from dimnames
+x <- as.numeric(dimnames(bathydata)[[1]])
+y <- as.numeric(dimnames(bathydata)[[2]])
+coords <- expand.grid(x = x, y = y)
+
+# Convert matrix to vector and combine with coordinates
+bathy_df <- data.frame(
+  coords,
+  depth = as.vector(bathydata)
+)
+
+
+library(sf)
+library(rnaturalearth)
+library(rnaturalearthdata)
+library(ggspatial)
+
+# Get the world map data
+world <- ne_countries(scale = "medium", returnclass = "sf")
+
+usa <- st_as_sf(maps::map("state", fill=TRUE, plot =FALSE))
+
+
+
+# calculate the distance to nearest shoreline:
+time1 <- system.time(
+  d <- dist2isobath(bathydata2, x=dat$lon_corrected[1:5], y=dat$lat_corrected[1:5], isobath = 0)
+)
+
+d <- dist2isobath(bathydata, x=dat$lon_corrected, y=dat$lat_corrected, isobath = 0)
+
+
+# isobath=0 means find coastline.
+# output distance is in meters
+
+head(d)
+
+pdf(file="figures/distance_to_shore.pdf", h=6, w=8)
+# Visualize the great circle distances
+blues <- c("lightsteelblue4","lightsteelblue3","lightsteelblue2","lightsteelblue1")
+plot.bathy(bathydata, image=TRUE, lwd=0.1, land=TRUE, 
+     bpal = list(c(0,max(bathydata),"grey"), 
+            c(min(bathydata),0,blues)))
+plot(bathydata2, deep=-200, shallow=-200, step=0, lwd=0.6, add=TRUE)
+points(dat$lon_corrected,dat$lat_corrected, pch=21, col="orange4", bg="orange2", cex=1.5)
+linesGC(d[2:3],d[4:5])
+
+dev.off()
+
+# make df of depth and distance to shore and write
+
+dfout <- data.frame(
+  id = dat$id,
+  distance_to_shore = d$distance
+)
+
+df_all <- merge(dat, dfout, by="id")
+
+write.csv(dfout, file="analysis/depth_distance.csv", 
+          row.names=F, quote=F)
+
+
+
+
+
+
+
+#-------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
+# get pairwise distances between indivs
+#-------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
+
+# min depth -1 stops them from crossing land
+
+# correct, "2Tt646" # move to 33.875, -78.023. it gives huge values bc hitting land and can't find ocean path.
+# it moves it to the mouth of the cape fear river
+coords.gps.corrected <- coords.gps
+coords.gps.corrected$lon_corrected[dat$id == "2Tt646"] <- -78.023
+coords.gps.corrected$lat_corrected [dat$id == "2Tt646"] <- 33.875
+# these are slow to run, especially lc.dist
+trans1 <- trans.mat(bathydata, min.depth = -1, max.depth = NULL)
+lc_paths <- lc.dist(trans1, coords.gps.corrected, res = "path")
+# Compute least-cost distances (km) matrix
+lc_dist <- lc.dist(trans1, coords.gps.corrected, res = "dist")
+save(lc_paths, file = "least_cost_paths.RData")
+save(lc_dist, file = "least_cost_paths_dist.RData")
+
+load("least_cost_paths.RData")
+load("least_cost_paths_dist.RData")
+
+plot.bathy(bathydata, image= TRUE, land = TRUE, n = 0,
+           bpal = list(c(0, max(bathydata), "grey"),
+                       c(min(bathydata), 0, "royalblue")))
+lapply(lc_paths, lines, col = "orange", lwd = 2, lty = 1)
+
+# Compute least-cost distances (km) matrix
+
+# Convert to matrix, rename columns and rows, and export as csv file
+lc_mat <- as.matrix(lc_dist)
+colnames(lc_mat) = as.vector(dat$id)
+rownames(lc_mat) = as.vector(dat$id)
+lc_mat
+
+# calculate geographic straight line distances directly. to resolve the close together samples that are called 0.
+
+library(geodist)
+distmat <- geodist (coords.gps, measure = "geodesic")
+distmat_km <- distmat/1000
+colnames(distmat_km) = as.vector(dat$id)
+rownames(distmat_km) = as.vector(dat$id)
+
+library(tidyr)
+library(dplyr)
+
+dist_long<- as_tibble(distmat_km, rownames = "Indiv1") %>%
+  pivot_longer(-Indiv1, names_to = "Indiv2", values_to = "geo_dist")%>%
+  mutate(pair = paste(pmin(Indiv1, Indiv2), pmax(Indiv1, Indiv2), sep = "_")) %>%
+  subset(Indiv1 != Indiv2) %>%
+  distinct(pair, .keep_all = TRUE)
+
+dist_long <- subset(dist_long, (Indiv1 != Indiv2))
+nrow(dist_long)
+
+lc_long <- as_tibble(lc_mat, rownames = "Indiv1") %>%
+  pivot_longer(-Indiv1, names_to = "Indiv2", values_to = "lc_dist") %>%
+  mutate(pair = paste(pmin(Indiv1, Indiv2), pmax(Indiv1, Indiv2), sep = "_")) %>%
+  subset(Indiv1 != Indiv2) %>%
+  distinct(pair, .keep_all = TRUE)
+lc_long <- subset(lc_long, (Indiv1 != Indiv2))
+nrow(lc_long)
+
+# merge
+comparison_df <- merge(lc_long, dist_long, by="pair")
+
+library(ggplot2)
+ggplot(comparison_df, aes(x = geo_dist, y = lc_dist)) +
+  geom_point(alpha = 0.4) + 
+  geom_smooth(method = "lm", se = FALSE, color = "red") +
+  theme_minimal() +
+  labs(
+    x = "Geographic Distance",
+    y = "LC Distance"
+  ) +
+  ylim(0, 5000)
+
+comparison_df[which.max(comparison_df$geo_dist),]
+
+dat[dat$id == "8Tt363",]
+dat[dat$id == "9Tt003",]
+
+
+max(comparison_df$lc_dist)
+
+probs.ind <- comparison_df[which(comparison_df$lc_dist > 1000000),]
+
+t1 <- table(probs.ind$Indiv1.x)
+t2 <- table(probs.ind$Indiv2.x)
+
+t1[t1 > 1]
+t2[t2 > 1]
+
+# 2Tt646 
+dat[dat$id == "2Tt646",] # move to 33.965, -77.947
+
+nrow(probs.ind)
+
+
+lc_mat[lc_mat == 0] <- distmat_km[lc_mat == 0]
+
+lc_mat[1:10,1:10]
+
+str(lc_mat)                                        
+
+write.csv(lc_mat, file="analysis/environmental_variables/lc_distances_km.csv")
+
+
 
 
 
