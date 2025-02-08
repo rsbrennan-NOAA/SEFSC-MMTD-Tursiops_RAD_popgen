@@ -522,3 +522,67 @@ sout <- data.frame(
 )
 
 write.csv(sout, file="analysis/lc_distances.csv")
+
+
+
+# -------------------------------------------------------------------------------
+# assign regions:
+
+dat$region <- ifelse(dat$Long > -81.7, "Atlantic",
+                      ifelse(dat$Long > 80, "Gulf", NA))
+
+dat$region <- ifelse(dat$Long < -81.7, "Gulf", dat$region)
+
+
+# nearshore, offshore:
+depth <- read.csv("analysis/depth_distance.csv", header=T)
+all <- merge(dat, depth, by.x="Lab.ID", by.y="id")
+all$shore <- ifelse(all$distance_to_shore < 10000, "coastal", "offshore")
+
+
+
+
+p <- ggplot() +
+  geom_sf(data = world, fill = "grey90", color = "grey70") +
+  geom_sf(data = usa, fill = NA, color = "grey70") +
+  geom_point(data = dat, aes(x = Long, y = Lat, fill=region),
+                          shape= 21, color="black", size = 2.5,
+             alpha=0.8) +
+  coord_sf() +
+  theme_bw() +
+  theme(
+    #panel.background = element_rect(fill = "white"),
+    panel.grid = element_blank(),
+    #axis.text = element_blank(),
+    #axis.ticks = element_blank()
+    legend.position = "top",
+    legend.title=element_blank()) +
+  xlab("Longitude")+
+  ylab("Latitude") +
+  coord_sf(xlim = c(-100, -60), ylim = c(23, 47), expand = FALSE)+
+  annotation_scale()
+
+p
+
+p <- ggplot() +
+  geom_sf(data = world, fill = "grey90", color = "grey70") +
+  geom_sf(data = usa, fill = NA, color = "grey70") +
+  geom_point(data = all, aes(x = Long, y = Lat, shape=region, fill=shore),
+             color="black", size = 2.5,
+             alpha=0.8) +
+  scale_shape_manual(values=c(21,22)) +
+  coord_sf() +
+  theme_bw() +
+  theme(
+    #panel.background = element_rect(fill = "white"),
+    panel.grid = element_blank(),
+    #axis.text = element_blank(),
+    #axis.ticks = element_blank()
+    legend.position = "top",
+    legend.title=element_blank()) +
+  xlab("Longitude")+
+  ylab("Latitude") +
+  coord_sf(xlim = c(-100, -60), ylim = c(23, 47), expand = FALSE)+
+  annotation_scale()
+p
+
