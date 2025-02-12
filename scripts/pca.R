@@ -179,9 +179,7 @@ positions <- SeqArray::seqGetData(gdsin, "position")
 SnpLoad <- snpgdsPCASNPLoading(pca.out, gdsin)
 dim(SnpLoad$snploading)
 
-pc<-2
-hist(sort(abs(SnpLoad$snploading[pc,]),decreasing=T,index.return=T)[[1]],breaks = 30,main="PC loadings: PC1",)
-
+pc<-1
 
 # make df
 plot_data <- data.frame(
@@ -204,16 +202,56 @@ for(i in unique(plot_data$CHR)){
 }
 
 
-#png("manhattan_plot_pc2.png", width=1200, height=600)
+png(filename = paste0("figures/manhattan_plot_pc",pc,".png"), width=8, height=4, units="in", res=200)
 par(mar=c(5,5,4,2))
 
 plot(plot_data$cumpos, plot_data$P,
      xaxt="n",
      xlab="Chromosome",
-     ylab=expression(-log[10](abs("PC Loading"))),
+     ylab="PC Loading",
      main=paste("Manhattan Plot of PC", pc, "Loadings"),
      pch=20,
      col=ifelse(plot_data$CHR %% 2 == 0, "navy", "grey45"),
      cex=0.8)
 
-#dev.off()
+dev.off()
+
+
+
+pc<-2
+
+# make df
+plot_data <- data.frame(
+  CHR = as.numeric(chromosomes),
+  BP = positions,
+  P = abs(SnpLoad$snploading[pc,])  # Using absolute values of loadings
+)
+
+# Order by chromosome and position
+plot_data <- plot_data[order(plot_data$CHR, plot_data$BP),]
+
+# Calculate cumulative position for x-axis
+plot_data$cumpos <- NA
+lastbase <- 0
+nbp <- c()
+for(i in unique(plot_data$CHR)){
+  nbp[i] <- max(plot_data[plot_data$CHR == i,]$BP)
+  plot_data[plot_data$CHR == i,"cumpos"] <- plot_data[plot_data$CHR == i,"BP"] + lastbase
+  lastbase <- lastbase + nbp[i]
+}
+
+
+png(filename = paste0("figures/manhattan_plot_pc",pc,".png"), width=8, height=4, units="in", res=200)
+par(mar=c(5,5,4,2))
+
+plot(plot_data$cumpos, plot_data$P,
+     xaxt="n",
+     xlab="Chromosome",
+     ylab="PC Loading",
+     main=paste("Manhattan Plot of PC", pc, "Loadings"),
+     pch=20,
+     col=ifelse(plot_data$CHR %% 2 == 0, "navy", "grey45"),
+     cex=0.8)
+
+dev.off()
+
