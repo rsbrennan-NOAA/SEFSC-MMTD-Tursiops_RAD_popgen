@@ -377,9 +377,9 @@ usa <- st_as_sf(maps::map("state", fill=TRUE, plot =FALSE))
 
 
 # calculate the distance to nearest shoreline:
-time1 <- system.time(
-  d <- dist2isobath(bathydata2, x=dat$lon_corrected[1:5], y=dat$lat_corrected[1:5], isobath = 0)
-)
+#time1 <- system.time(
+#  d <- dist2isobath(bathydata2, x=dat$lon_corrected[1:5], y=dat$lat_corrected[1:5], isobath = 0)
+#)
 
 d <- dist2isobath(bathydata, x=dat$lon_corrected, y=dat$lat_corrected, isobath = 0)
 
@@ -406,11 +406,11 @@ dev.off()
 dfout <- data.frame(
   id = dat$id,
   distance_to_shore = d$distance
-)
+  )
 
 df_all <- merge(dat, dfout, by="id")
 
-write.csv(dfout, file="analysis/depth_distance.csv", 
+write.csv(dfout, file="analysis/distance.csv", 
           row.names=F, quote=F)
 
 

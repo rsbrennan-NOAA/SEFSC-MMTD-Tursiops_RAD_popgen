@@ -67,6 +67,10 @@ d <- ggplot(dat, aes(PC1, PC2, label=Population, color=Population)) +
   ggtitle('All individuals: PC1, PC2')
 d
 
+ggsave("figures/pca_popIds.png", d, h=4, w=5)
+
+
+
 # color by gulf or atlantic
 
 pops$region <- ifelse(pops$Long > -81.7, "Atlantic",
@@ -74,6 +78,7 @@ pops$region <- ifelse(pops$Long > -81.7, "Atlantic",
 pops$region <- ifelse(pops$Long < -81.7, "Gulf", pops$region)
 
 df <- merge(dat, pops, by.x="IDs", by.y="Lab.ID")
+
 
 # with ids
 d <- ggplot(df, aes(PC1, PC2, label=Population, color=region)) +
@@ -84,12 +89,56 @@ d <- ggplot(df, aes(PC1, PC2, label=Population, color=region)) +
   ggtitle('All individuals: PC1, PC2')
 d
 
+ggsave("figures/pca_popIds_region.png", d, h=4, w=5)
 
-dat$region <- ifelse(dat$Long < -81.7, "Gulf", dat$region)
-pops$Lat
-pops$Long
+
+
+# with shapes
+d <- ggplot(df, aes(PC1, PC2, label=Population, fill=region, shape=region)) +
+  geom_point(size =3) +
+  xlab(paste0("PC1: ",round(eig[1], 2),"% variance")) +
+  ylab(paste0("PC2: ",round(eig[2], 2),"% variance")) +
+  theme_bw() +
+  ggtitle('PCA: PC1, PC2')+
+  scale_shape_manual(values=c(21, 24))
+d
+
+ggsave("figures/pca_region.png", d, h=4, w=5)
+
+
+
 
 # color by depth
+depth <- read.csv("depths.csv", header=T)
+
+df <- merge(df, depth, by.x="IDs", by.y="id")
+df$log_corrected_depth <- log10(df$corrected_depth*-1)
+
+d <- ggplot(df, aes(PC1, PC2, label=Population, fill=corrected_depth, shape=region)) +
+  geom_point(size =3) +
+  xlab(paste0("PC1: ",round(eig[1], 2),"% variance")) +
+  ylab(paste0("PC2: ",round(eig[2], 2),"% variance")) +
+  theme_bw() +
+  ggtitle('All individuals: PC1, PC2') +
+  scale_fill_distiller(
+    palette = "Blues",
+    #breaks = c(seq(0, 500, by = 100), 4000)*-1,
+    labels = function(x) ifelse(x == -200, " < -200", x),
+    name = "Depth",
+    limits = c(-200, 0),  
+    oob = scales::squish, # anything below -800 will be the yellow
+    direction = -1  # reverse direction if needed
+  ) +
+  scale_shape_manual(values=c(21, 24))
+
+d
+
+ggsave("figures/pca_depth.png", d, h=4, w=5)
+
+
+
+
+# color by distance from shore
 depth <- read.csv("analysis/depth_distance.csv", header=T)
 
 df <- merge(df, depth, by.x="IDs", by.y="id")
@@ -100,13 +149,71 @@ d <- ggplot(df, aes(PC1, PC2, label=Population, fill=distance_to_shore/1000, sha
   ylab(paste0("PC2: ",round(eig[2], 2),"% variance")) +
   theme_bw() +
   ggtitle('All individuals: PC1, PC2') +
-  scale_fill_gradient(low = "blue", high = "red", na.value = NA ,
-                      breaks = seq(0, 300, by = 50),  # Now in km instead of meters
-                      labels = scales::comma,  # This will add commas for thousands
-                      name = "Distance to \nshore (km)"
-      ) +
-                      scale_shape_manual(values=c(21, 24))
+  scale_fill_distiller(
+    palette = "Blues",
+    #breaks = c(seq(0, 500, by = 100), 4000)*-1,
+    labels = function(x) ifelse(x == 200, " > 200", x),
+    name = "Distance to \nshore (km)",
+    limits = c(0,200),  
+    oob = scales::squish,
+    direction = 1
+  ) +
+  scale_shape_manual(values=c(21, 24))
 d
 
-ggsave("figures/pca_depth.png", d, h=4, w=5)
+ggsave("figures/pca_distance.png", d, h=4, w=5)
 
+
+
+#-------------------------------------------------------------------------------
+# look at loadings:
+snp_ids <- SeqArray::seqGetData(gdsin, "annotation/id")
+chromosomes <- sub("_[^_]*$", "", snp_ids)
+table(chromosomes)
+chromosomes <- sub(".1$", "", chromosomes)      # Remove .1 suffix
+chromosome_ids <- sapply(strsplit(chromosomes, "_"), `[`, 2)
+chromosomes <- as.numeric(chromosome_ids)
+
+positions <- SeqArray::seqGetData(gdsin, "position")
+
+SnpLoad <- snpgdsPCASNPLoading(pca.out, gdsin)
+dim(SnpLoad$snploading)
+
+pc<-2
+hist(sort(abs(SnpLoad$snploading[pc,]),decreasing=T,index.return=T)[[1]],breaks = 30,main="PC loadings: PC1",)
+
+
+# make df
+plot_data <- data.frame(
+  CHR = as.numeric(chromosomes),
+  BP = positions,
+  P = abs(SnpLoad$snploading[pc,])  # Using absolute values of loadings
+)
+
+# Order by chromosome and position
+plot_data <- plot_data[order(plot_data$CHR, plot_data$BP),]
+
+# Calculate cumulative position for x-axis
+plot_data$cumpos <- NA
+lastbase <- 0
+nbp <- c()
+for(i in unique(plot_data$CHR)){
+  nbp[i] <- max(plot_data[plot_data$CHR == i,]$BP)
+  plot_data[plot_data$CHR == i,"cumpos"] <- plot_data[plot_data$CHR == i,"BP"] + lastbase
+  lastbase <- lastbase + nbp[i]
+}
+
+
+#png("manhattan_plot_pc2.png", width=1200, height=600)
+par(mar=c(5,5,4,2))
+
+plot(plot_data$cumpos, plot_data$P,
+     xaxt="n",
+     xlab="Chromosome",
+     ylab=expression(-log[10](abs("PC Loading"))),
+     main=paste("Manhattan Plot of PC", pc, "Loadings"),
+     pch=20,
+     col=ifelse(plot_data$CHR %% 2 == 0, "navy", "grey45"),
+     cex=0.8)
+
+#dev.off()
