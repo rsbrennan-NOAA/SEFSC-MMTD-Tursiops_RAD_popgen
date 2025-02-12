@@ -1,0 +1,6 @@
+.nextflow.*
+data/
+.nextflow/
+work/
+logout/
+analysis/
