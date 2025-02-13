@@ -63,7 +63,8 @@ all_data <- result
 #pop_sub <- pops[pops$Lab.ID.. %in% result$IDs,]
 
 # order samples by population:
-sampleorder <- df$Lab.ID[order(df$region, df$corrected_depth)]
+sampleorder <- df$Lab.ID[order(df$region, (df$corrected_depth*-1))]
+df$corrected_depth[order((df$corrected_depth*-1))]
 all_data$IDs <- as.factor(all_data$sample)
 all_data$IDs <- factor(all_data$IDs, levels=sampleorder)
 all_data$sample <- all_data$IDs
@@ -81,13 +82,13 @@ all_data %>%
                     labels=c("1","2"))
 
 # within each population, order indivs by q val
-new_dat<- all_data[all_data$k == 2 & all_data$Q == "Q1",]
+#new_dat<- all_data[all_data$k == 2 & all_data$Q == "Q1",]
 
-new_dat2 <- new_dat %>%
-  mutate(sample = fct_reorder2(sample, region, value)) %>%
-  arrange(region, value)
+#new_dat2 <- new_dat %>%
+#  mutate(sample = fct_reorder2(sample, region, value)) %>%
+#  arrange(region, value)
 
-all_data$sample <- factor(all_data$sample, levels=c(new_dat2$sample))
+#all_data$sample <- factor(all_data$sample, levels=c(new_dat2$sample))
 all_data$k <- as.numeric(all_data$k)
 
 p2 <-  
@@ -119,8 +120,7 @@ ggsave("figures/Admixture_plot.png", combined_plot, width = 7, height = 8, units
 
 #-----------------------------------------------------
 #-----------------------------------------------------
-# how to best summarize these populations?
-# most likely k is 4, lets try to assign indivs based on this.
+#subset indivs
 k <- 4
 data <- read_delim(paste0("analysis/pop_structure/LDthin_numCorrect.",k,".Q"),
                    col_names = paste0("Q",seq(1:k)),
@@ -136,11 +136,52 @@ length(idxq2)
 length(idxq3)
 length(idxq4)
 
-sub_id <- data$sample[sample(idxq3, size=60, replace=F)]
+sub_id <- data$sample[sample(idxq2, size=80, replace=F)]
 rest_id <- data$sample[which(data$Q2 < 0.7)]
 
 write.table(file= "subset.txt", data.frame(V1= c(sub_id, rest_id), V2= c(sub_id, rest_id)),
             col.names=F, row.names=F, quote=F, sep="\t")
+
+
+#-------------------------------------------------------------------------------
+# how to best summarize these populations?
+# most likely k is 4, lets try to assign indivs based on this.
+
+k <- 4
+data <- read_delim(paste0("analysis/pop_structure/LDthin_numCorrect.",k,".Q"),
+                   col_names = paste0("Q",seq(1:k)),
+                   delim=" ")
+data$sample <- samplelist$individual
+
+head(data)
+q_cols <- c("Q1", "Q2", "Q3", "Q4")
+
+# assign highest Q
+data$highest_Q <- q_cols[max.col(data[,q_cols])]
+data$highest_Q[data$highest_Q == "Q1"] <- "Intermediate"
+data$highest_Q[data$highest_Q == "Q2"] <- "Coastal_Atl"
+data$highest_Q[data$highest_Q == "Q3"] <- "Offshore"
+data$highest_Q[data$highest_Q == "Q4"] <- "Coastal_Gulf"
+
+data[which(data$sample == "37Tt023"),]
+
+head(as.data.frame(data), n=30)
+
+dout <- data.frame(Lab.ID = data$sample, 
+                   admixture_population = data$highest_Q)
+
+
+write.table(file="analysis/populations_admixture.txt", dout, sep="\t", quote = F, row.names=F)
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -206,8 +247,9 @@ result <- all_data %>%
 all_data <- result
 #pop_sub <- pops[pops$Lab.ID.. %in% result$IDs,]
 
-# order samples by population:
-sampleorder <- df$Lab.ID[order(df$region, df$corrected_depth)]
+# order samples by population and then shallow to deep
+sampleorder <- df$Lab.ID[order(df$region, (df$corrected_depth*-1))]
+df$corrected_depth[order((df$corrected_depth*-1))]
 
 df$corrected_depth[order(df$corrected_depth)]
 all_data$IDs <- as.factor(all_data$sample)

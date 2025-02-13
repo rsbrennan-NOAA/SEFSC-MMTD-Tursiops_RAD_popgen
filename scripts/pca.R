@@ -255,3 +255,128 @@ plot(plot_data$cumpos, plot_data$P,
 
 dev.off()
 
+
+
+
+
+#-------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
+# color by admixture populations
+
+admixPop <- read.table("analysis/populations_admixture.txt", header=T)
+
+ndat <- merge(df, admixPop, by.x="IDs", by.y="Lab.ID")
+# with shapes
+d <- ggplot(ndat, aes(PC1, PC2, label=Population, fill=admixture_population, shape=region)) +
+  geom_point(size=3, color="black", aes(fill=admixture_population)) +
+  xlab(paste0("PC1: ",round(eig[1], 2),"% variance")) +
+  ylab(paste0("PC2: ",round(eig[2], 2),"% variance")) +
+  theme_bw() +
+  ggtitle('PCA: admixture populations')+
+  scale_shape_manual(values=c(21,24))+
+  guides(fill=guide_legend(override.aes=list(shape=21)))
+
+d
+
+ggsave("figures/pca_admixturePops.png", d, h=4, w=5)
+
+
+
+
+misid <- data.frame(IDs= c("37Tt023","13Tt073","8Tt144","10Tt007","7Tt312","10Tt059"))
+
+misall <- merge(misid, ndat, by="IDs")
+
+d <- ggplot(ndat, aes(PC1, PC2, label=Population, fill=admixture_population, shape=region)) +
+  geom_point(size=3, color="black", aes(fill=admixture_population)) +
+  xlab(paste0("PC1: ",round(eig[1], 2),"% variance")) +
+  ylab(paste0("PC2: ",round(eig[2], 2),"% variance")) +
+  theme_bw() +
+  ggtitle('PCA: admixture populations')+
+  scale_shape_manual(values=c(21,24))+
+  guides(fill=guide_legend(override.aes=list(shape=21))) +
+  geom_point(data=misall, size=6, fill=NA, color="black", shape=21, aes(PC1, PC2, fill=admixture_population, shape=region))
+
+d
+
+
+e#-----------------------------------------------------------
+# write out files for treemix:
+# need to have relatively equal sample sizes
+
+# 1: 4 pops from admixture
+# 2: separate gulf and atlantic for intermeidate and offshore.
+
+# 1: 4 pops from admixture
+table(ndat$admixture_population)
+sum(table(ndat$admixture_population))
+# select 70 indivs from Coastal_Atl
+# Subset Coastal_Atl IDs, keep all others
+coastal_atl_subset_idx <- sample(ndat$IDs[ndat$admixture_population == "Coastal_Atl"], 70)
+coastal_atl_subset <-  ndat[ndat$IDs %in% coastal_atl_subset_idx,]
+
+
+other_dat <- ndat[ndat$admixture_population != "Coastal_Atl",]
+
+combodat <- rbind(coastal_atl_subset, other_dat)
+
+# Verify new counts
+table(combodat$admixture_population)
+#Coastal_Atl Coastal_Gulf Intermediate     Offshore 
+#70           47           54           74 
+sum(table(combodat$admixture_population))
+# 245
+
+write.table(file="analysis/pop_structure/fourpop.clust", 
+            data.frame(samp1 = combodat$IDs,
+                       group = combodat$admixture_population),
+            sep="\t", quote=F, col.names=F, row.names=F)
+
+
+###----------------------------------------------------------------------------
+# 2: separate gulf and atlantic for intermeidate and offshore.
+
+# add region to the pops
+
+ndat$admixture_population_region <- ndat$admixture_population
+
+ndat <- ndat %>%
+  mutate(admixture_population_region = ifelse(admixture_population %in% c("Intermediate", "Offshore"),
+                                              paste(admixture_population, region, sep="_"),
+                                              admixture_population_region))
+head(ndat)
+table(ndat$admixture_population_region)
+#Coastal_Atl          Coastal_Gulf Intermediate_Atlantic     Intermediate_Gulf 
+#162                    47                    42                    12 
+#Offshore_Atlantic         Offshore_Gulf 
+#35                    39 
+# Subset Coastal_Atl IDs, keep all others
+coastal_atl_subset_idx <- sample(ndat$IDs[ndat$admixture_population_region == "Coastal_Atl"], 35)
+coastal_atl_subset <-  ndat[ndat$IDs %in% coastal_atl_subset_idx,]
+
+
+other_dat <- ndat[ndat$admixture_population_region != "Coastal_Atl",]
+
+combodat <- rbind(coastal_atl_subset, other_dat)
+
+# Verify new counts
+table(combodat$admixture_population_region)
+#          Coastal_Atl          Coastal_Gulf Intermediate_Atlantic     Intermediate_Gulf 
+#35                    47                    42                    12 
+#Offshore_Atlantic         Offshore_Gulf 
+#35                    39 
+sum(table(combodat$admixture_population_region))
+# 210
+
+write.table(file="analysis/pop_structure/sixpop.clust", 
+            data.frame(samp1 = combodat$IDs,
+                       group = combodat$admixture_population_region),
+            sep="\t", quote=F, col.names=F, row.names=F)
+
+
+
+
+
+
+
