@@ -11,6 +11,8 @@
 #SBATCH --partition=standard
 #SBATCH --time=8:00:00
 
+source ~/.bashrc
+
 module load bio/sratoolkit/3.0.7 
 mamba activate vcflib-1.0.9
 
