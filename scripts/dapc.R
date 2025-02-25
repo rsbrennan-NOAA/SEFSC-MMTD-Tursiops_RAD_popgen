@@ -74,8 +74,9 @@ dev.off()
 
 # Calculate optimal number of PCs 
 dapcTemp <- dapc(genl, grp$grp, 
-                 n.pca=40, n.da = 20)   # n.da = 4(species) - 1 = 3
-ascores <- optim.a.score(dapcTemp, smart = FALSE, n.sim = 50)   # Optimal number of PCs: 3
+                 n.pca=70, n.da = 20)   # n.da = 4(species) - 1 = 3
+ascores <- optim.a.score(dapcTemp, smart = FALSE, n.sim = 50)   
+# Optimal number of PCs: 4
 
 dapc4 <- dapc(genl, genl@pop, 
               n.pca=17, n.da = 3)
