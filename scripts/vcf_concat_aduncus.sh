@@ -1,11 +1,10 @@
-
 #!/bin/bash
 #SBATCH --job-name=vcf_concat
 #SBATCH --mail-user=reid.brennan@noaa.gov
 #SBATCH --mail-type=END
 #SBATCH -o %x_%j.out
 #SBATCH -e %x_%j.err
-#SBATCH -D /home/rbrennan/Tursiops-NC-PopulationAssignment-RAD/logout
+#SBATCH -D /home/rbrennan/Tursiops-RAD-popgen/logout
 #SBATCH -c 8
 #SBATCH --mem=32G
 #SBATCH --partition=standard
@@ -20,11 +19,15 @@ INDIR=~/Tursiops-RAD-popgen/analysis/variants/aduncus/chromosomes
 # make list of VCF files
 ls $INDIR/variants_raw_*.vcf.gz > $OUTDIR/vcf_list.txt
 
+echo "start merge"
+
 # merge vcfs
-bcftools concat -f $OUTDIR/vcf_list.txt -O z -o $OUTDIR/variants_raw_merged.vcf.gz
+#bcftools concat -f $OUTDIR/vcf_list.txt -O z -o $OUTDIR/variants_raw_merged.vcf.gz
 
 # index
 tabix -p vcf $OUTDIR/variants_raw_merged.vcf.gz
+
+echo "done with merge"
 
 #
 # filter -----------------------------------------
@@ -40,7 +43,7 @@ INDIR=~/Tursiops-RAD-popgen/analysis/variants/aduncus/
 
 echo "starting first missingness filter"
 
-bcftools view -i 'INFO/DP/N_SAMPLES == 3 && F_MISSING = 0 && FMT/DP >= 10' -Oz -o ${INDIR}/filtered.1.vcf.gz ${INDIR}/variants_raw_merged.vcf.gz
+bcftools view -i 'F_MISSING = 0 && FMT/DP >= 10' -Oz -o ${INDIR}/filtered.1.vcf.gz ${INDIR}/variants_raw_merged.vcf.gz
 
 # Index the output
 bcftools index -t ${INDIR}/filtered.1.vcf.gz

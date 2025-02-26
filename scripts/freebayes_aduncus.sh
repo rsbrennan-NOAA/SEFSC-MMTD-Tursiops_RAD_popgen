@@ -20,7 +20,7 @@ source ~/.bashrc
 mamba activate freebayes-1.3.6 
 
 #input, output files, directories--------------------------------------------
-INDIR=~/Tursiops-RAD-popgen/analysis/pop_structure/treemix/aduncus/aligned
+INDIR=~/Tursiops-RAD-popgen/analysis/pop_structure/treemix/aduncus/aligned/mkdup
 OUTDIR=~/Tursiops-RAD-popgen/analysis/variants/aduncus/chromosomes
 
 #reference genome
@@ -42,9 +42,9 @@ fb_parallel=~/bin/freebayes-1.3.8/scripts/freebayes-parallel
 bash $fb_parallel \
 	$REG 20 \
 	-f ${GEN} \
-        $INDIR/SRR5357655.bam \
-        $INDIR/SRR5357656.bam \
-        $INDIR/SRR5357657.bam \
+        $INDIR/SRR5357655_mkdup.bam \
+        $INDIR/SRR5357656_mkdup.bam \
+        $INDIR/SRR5357657_mkdup.bam \
     	-m 30 \
 	-q 20 \
     --use-best-n-alleles 4 \
