@@ -1,14 +1,21 @@
-install.packages("devtools")
-# install BiocManager (if necessary)
-if (!require("BiocManager", quietly = TRUE))
-  install.packages("BiocManager")
 
-# install SNPRelate using BiocManager
-BiocManager::install("SNPRelate")
+### REMEMBER THAT PLOTTING IS MESSED UP FOR THE BOOTSTRAPPING!!!!!!!!
+# as of 3/3/25. I still need to fix it. 
 
 
-install.packages("OptM")
 
+source("analysis/pop_structure/treemix/plotting_funcs.R")
+
+setwd("analysis/pop_structure/treemix/")
+
+plot_tree("fourpop_nomigration")
+plot_tree("sixpop_nomigration")
+
+plot_resid(stem="fourpop_noroot",pop_order="fourpop.order")
+plot_resid(stem="sixpop_noroot",pop_order="sixpop.order")
+
+
+plot_tree("fourpop_constree.newick")
 
 
 # load devtools
@@ -18,87 +25,107 @@ library(BITEV2)
 library(OptM)
 library(plyr)
 
-source("scripts/TreeMix_functions.R") #path to required functions for this analysis
-
-
-install.packages("OUwie",repos="https://cloud.r-project.org")
-install.packages("phangorn",repos="https://cloud.r-project.org")
-install.packages("phytools",repos="https://cloud.r-project.org")
-
-install.packages("~/rstudio/nloptr-2.1.1.tar.gz", 
-                 lib = "/home/rbrennan/R/x86_64-pc-linux-gnu-library/4.2",
-                  CMAKE_BIN="/home/rbrennan/bin/cmake-4.0.0-rc2-linux-x86_64/bin/cmake",
-                 repos=NULL)
-
-paleotree
-#remotes::install_github("rlang", lib = "/home/rbrennan/R/x86_64-pc-linux-gnu-library/4.2")
-#pak::pkg_install("r-lib/plotly")
-
-
-#devtools::install_local("~/rstudio/BITEV2_2.1.2.tar.gz")
-devtools::install_local("~/rstudio/nloptr-2.1.1.tar.gz", CMAKE_BIN="~/bin/cmake-4.0.0-rc2-linux-x86_64/bin/cmake")
-
+source("~/projects/Tursiops_RAD_popgen/scripts/TreeMix_functions.R") #path to required functions for this analysis
+setwd("analysis/pop_structure/treemix/")
 
 ########################################################
 ############# (A) Test migration events ################
 ########################################################
 
-folder <- file.path(path="~/test_migrations")                     #path to files of TreeMix replicates with different migration edges (m) to test
-test.linear = optM(folder, method = "linear", tsv="linear.txt")   #test m: produces a list of which the $out dataframe suggests optimum m based on multiple linear models
-plot_optM(test.linear, method = "linear")                         #shows changes in log likelihood for different m, and suggests optimum m as 'change points'
+folder <- file.path(path="test_migrations_fourpop/")                     
+#path to files of TreeMix replicates with different migration edges (m) to test
+test.linear = optM(folder, method = "linear", tsv="linear.txt")   
+#test m: produces a list of which the $out dataframe suggests optimum m based on multiple linear models
+plot_optM(test.linear, method = "linear")                         
+#shows changes in log likelihood for different m, and suggests optimum m as 'change points'
 
-test.optM = optM(folder, tsv ="Evanno.variance.txt")              #another option is the Evanno method - see optM package description for detailed information on output
-#if data is robust and all runs have the same likelihoods, SD will be 0 and this function will give an error as it can't produce the ad hoc statistic. 
-#in this case you might want to increase variance by varying -k (SNP block size), change permutation methods etc.
-plot_optM(test.optM, method = "Evanno")                           #plot the proportion of variation explained by each migration event. Calculates deltaM, which is a second-order rate of change in likelihood weighted by the standard deviation
+test.optM = optM(folder, tsv ="Evanno.variance.txt", ignore=c(4,5))
+#another option is the Evanno method - see optM package description for detailed information on output
+#if data is robust and all runs have the same likelihoods, 
+#SD will be 0 and this function will give an error as it can't produce the ad hoc statistic. 
+#in this case you might want to increase variance by varying 
+    # -k (SNP block size), change permutation methods etc.
+plot_optM(test.optM, method = "Evanno") #plot the proportion of variation explained by each migration event. Calculates deltaM, which is a second-order rate of change in likelihood weighted by the standard deviation
 
 #Choose optimum number of m and continue with step 3 in the TreeMix pipeline
+# for 4 pop, defiitely 2
 
-########################################################
+#-------------------
+##### six pop
+
+folder <- file.path(path="test_migrations_sixpop/")                     
+test.linear = optM(folder, method = "linear", tsv="linear.txt")   
+plot_optM(test.linear, method = "linear")
+
+test.optM = optM(folder, tsv ="Evanno.variance.txt", ignore=c(0,1, 6,7,8,9,10))
+plot_optM(test.optM, method = "Evanno") #plot the proportion of variation explained by each migration event. Calculates deltaM, which is a second-order rate of change in likelihood weighted by the standard deviation
+
+
+# 4 migration events.
+
+
+
+######################################################## --------------------------
 ################## (B) Plot Tree #######################
 ########################################################
 
-## 1. From the final runs, compare tree likelihoods, select tree with highest likelihood, remove duplicates and retain tree(s) with unique topology. 
+## 1. From the final runs, compare tree likelihoods, 
+   # select tree with highest likelihood, 
+   # remove duplicates and retain tree(s) with unique topology. 
 #Adapted from R functions written by Zecca, Labra and Grassi (2019).
 
-setwd("~/final_runs")                                             #folder with all TreeMix outputs from the final runs
-maxLL("finalrun_", nt=30)                                         #first argument is stem of TreeMix output files, nt = number of runs
-#shows ML trees and highest likelihood, as well as tree(s) with unique topology. Outputs "TreeLLs.txt" into workign directory
+setwd("~/projects/Tursiops_RAD_popgen/analysis/pop_structure/treemix/final_runs_fourpop/final/")
+#folder with all TreeMix outputs from the final runs
+maxLL("fourpop_final__2mig_finalrun_", nt=100) 
+ #first argument is stem of TreeMix output files, 
+ # nt = number of runs
 
-#If n of unique trees = 1, continue with step #2, if n > 1, you might want to create a consensus tree. 
-#Note that bootstrap and migration values will not be available for consensus tree, thus you could also choose one ML tree 
+#If n of unique trees = 1, continue with step #2, 
+   # if n > 1, you might want to create a consensus tree. 
+#Note that bootstrap and migration values will not be available for consensus tree, 
+# thus you could also choose one ML tree 
 
-cfTrees("finalrun_", nt=30, p=1, m='PH85')                        #m is the method to calculate pairwise distances between unique trees (default is Robinson-Foulds distance)
+cfTrees("fourpop_final__2mig_finalrun_", nt=100, p=0.5, m='PH85')                        
+#m is the method to calculate pairwise distances between unique trees (default is Robinson-Foulds distance)
 #p (number from 0.5 to 1)-proportion for a clade to be represented in the consensus tree. Default (1) is strict tree, 0.5 for majority-rule
 #plots consensus tree and saves "Consensus.newick" into working directory
 
 ## 2. Now plot and save unique tree with highest likelihood:
 
-pdf("TreeMix_output.pdf")                                          
-treemix.bootstrap("finalrun_1", out.file = "tmp",                 #stem of TreeMix files (as above) + number of run with highest likelihood and unique topology
-                  phylip.file = "tree_constree.newick",           #consensus tree in newick format (from the bootstrap procedure generated with PHYLIP)    
-                  nboot = 500, fill = TRUE,                       #nboot is the number of bootstraps used
-                  pop.color.file = "col.txt",                     #specify colours with a tab delimited pop.color.file - first column is pop name, second the colour
-                  boot.legend.location = "topright")
-
-treemix.drift(in.file = "finalrun_1",                             #pairwise matrix for drift estimates with specified order of pops 
-              pop.order.color.file = "poporder.txt") + 
-  title("Drift")     
-
-plot_resid("finalrun_1",                                          #pairwise matrix for residuals
-           pop_order = "poporder.txt") +
-  title("Residuals")                         
+pdf("../../../figures/TreeMix_output.pdf", h=4, w=5)                                          
+treemix.bootstrap(in.file="fourpop_final__2mig_finalrun_2", #stem of TreeMix files (as above) + number of run with highest likelihood and unique topology
+                  out.file = "tmp", 
+                  phylip.file = "../../fourpop_final_finalconstree.newick", 
+                  #consensus tree in newick format (from the bootstrap procedure generated with PHYLIP)    
+                  nboot = 100, #nboot is the number of bootstraps used
+                  fill = TRUE,  
+                  #pop.color.file = "col.txt",#specify colours with a tab delimited pop.color.file - first column is pop name, second the colour
+                  boot.legend.location = "topleft")
 dev.off()
+
+treemix.drift(in.file = "final_runs_fourpop/final/fourpop_final__2mig_finalrun_2")
+              #pairwise matrix for drift estimates with specified order of pops 
+
+plot_resid("final_runs_fourpop/final/fourpop_final__2mig_finalrun_5",                                        #pairwise matrix for residuals
+           pop_order = "fourpop.order") 
+
+  #  title("Residuals")                         
+#dev.off()
 
 
 ########################################################
 ######### (C) Weights, Std. Err and p-values ###########
 ########################################################
 
-#Output reports mean weight of edge, the jackknife estimate of the weight and standard error (averaged over N independent runs), 
-#the least significant p-value recovered  over N runs for each migration event. Set working directory to the final_runs folder.
+#Output reports mean weight of edge, 
+  # the jackknife estimate of the weight and standard error 
+  #(averaged over N independent runs), 
+#the least significant p-value recovered  over N runs for each migration event. 
+  # Set working directory to the final_runs folder.
 
-GetMigrStats(input_stem="finalrun_", nt=30)                       #arguments as above, writes file "MS_and_stats.txt" into current directory
+GetMigrStats(input_stem="fourpop_final__2mig_finalrun_", 
+             nt=100) 
+    #arguments as above, writes file "MS_and_stats.txt" into current directory
 
 ########################################################
 #### Migration support and corrected MS (Optional) #####
@@ -110,11 +137,9 @@ GetMigrStats(input_stem="finalrun_", nt=30)                       #arguments as 
 #For the Extended MS (MSE), the number of counts is corrected for multiple matches to avoid over-counting.
 #Based on R funcions written by Zecca, Labra and Grassi, 2019.
 
-GetPairsOfSets(skipL=1)                                           #create pairs of sets of populations/taxa from TreeMix output (with treeout.gz extension) in /final_runs folder, writes "PairsOfSets.txt" file
-#if you used the flag -noss, set skipL=2 (default is 1) - the number of lines to skip before reading the tree
-
 #Now set working directory to folder with all bootstrap replicates generated with optimum number of m in Step 3.
-setwd("~/final_runs/bootstrap")
+setwd("setwd("~/projects/Tursiops_RAD_popgen/analysis/pop_structure/treemix/final_runs_fourpop/bootstrap/")
+")
 
 #Copy PairsOfSets.txt into directory
 GetMigrSupp(skipL=1)                                              #calculates MS over all bootstrap replicates, writes file "MigrSupp.txt" into current directory
@@ -126,5 +151,100 @@ GetMS_MSe(nmigr=2, min_n=2, fixed="To", skipL=1)                  #default input
 
 #Ouputs table with columns 'From' (subset of species below the origin of migration edges),
 #'To' (the subset of species below the destination of migration edges), Migration Support (MS) and corrected MS with respect to bootstraps (MSE).
+
+treemix.fit(in.file="fourpop_final__2mig_finalrun_2", 
+            out.file="fourpop_final__2mig_finalrun_2", m.start=2, m.end=2)
+
+
+
+
+
+
+#-------------------------------------------------------------------------------
+# six pop
+
+setwd("~/projects/Tursiops_RAD_popgen/analysis/pop_structure/treemix/final_runs_sixpop/final/")
+#folder with all TreeMix outputs from the final runs
+maxLL("sixpop_final_4mig_finalrun_", nt=100) 
+#first argument is stem of TreeMix output files, 
+# nt = number of runs
+
+#If n of unique trees = 1, continue with step #2, 
+# if n > 1, you might want to create a consensus tree. 
+#Note that bootstrap and migration values will not be available for consensus tree, 
+# thus you could also choose one ML tree 
+
+cfTrees("sixpop_final_4mig_finalrun_", nt=100, p=1, m='PH85')                        
+#m is the method to calculate pairwise distances between unique trees (default is Robinson-Foulds distance)
+#p (number from 0.5 to 1)-proportion for a clade to be represented in the consensus tree. Default (1) is strict tree, 0.5 for majority-rule
+#plots consensus tree and saves "Consensus.newick" into working directory
+
+## 2. Now plot and save unique tree with highest likelihood:
+
+pdf("../../../../../figures/TreeMix_output_fourpop.pdf", h=4, w=5)                                          
+treemix.bootstrap(in.file="sixpop_final_4mig_finalrun_25", #stem of TreeMix files (as above) + number of run with highest likelihood and unique topology
+                  out.file = "tmp", 
+                  phylip.file = "../../sixpop_final__finalconstree.newick", 
+                  #consensus tree in newick format (from the bootstrap procedure generated with PHYLIP)    
+                  nboot = 100, #nboot is the number of bootstraps used
+                  fill = TRUE, 
+                  plotboot=T,
+                  #pop.color.file = "col.txt",#specify colours with a tab delimited pop.color.file - first column is pop name, second the colour
+                  boot.legend.location = "topright")
+dev.off()
+
+treemix.drift(in.file = "final_runs_fourpop/final/fourpop_final__2mig_finalrun_1")
+#pairwise matrix for drift estimates with specified order of pops 
+
+plot_resid("final_runs_fourpop/final/fourpop_final__2mig_finalrun_5",                                        #pairwise matrix for residuals
+           pop_order = "fourpop.order") 
+
+#  title("Residuals")                         
+#dev.off()
+
+
+########################################################
+######### (C) Weights, Std. Err and p-values ###########
+########################################################
+
+#Output reports mean weight of edge, 
+# the jackknife estimate of the weight and standard error 
+#(averaged over N independent runs), 
+#the least significant p-value recovered  over N runs for each migration event. 
+# Set working directory to the final_runs folder.
+
+GetMigrStats(input_stem="fourpop_final__2mig_finalrun_", 
+             nt=100) 
+#arguments as above, writes file "MS_and_stats.txt" into current directory
+
+########################################################
+#### Migration support and corrected MS (Optional) #####
+########################################################
+
+#From bootstrap replicates, few other support statistic might be calculated.
+#The MS is the percentage of times each pair of label sets is present among n bootstrap replicates.
+#Calculated as: (number of matches / number of bootstrap replicates)*100 from all independent runs in the current working directory.
+#For the Extended MS (MSE), the number of counts is corrected for multiple matches to avoid over-counting.
+#Based on R funcions written by Zecca, Labra and Grassi, 2019.
+
+#Now set working directory to folder with all bootstrap replicates generated with optimum number of m in Step 3.
+setwd("setwd("~/projects/Tursiops_RAD_popgen/analysis/pop_structure/treemix/final_runs_fourpop/bootstrap/")
+")
+
+#Copy PairsOfSets.txt into directory
+GetMigrSupp(skipL=1)                                              #calculates MS over all bootstrap replicates, writes file "MigrSupp.txt" into current directory
+
+GetMS_MSe(nmigr=2, min_n=2, fixed="To", skipL=1)                  #default input file is "MigrSupp.txt" created with GetMigrSupp(), writes file "MS_MSE.txt" into working directory
+#nmigr = number of migrations, fixed = specifies which taxa/species label set of each pair is kept fixed
+#fixed = "From" fixes the origin of m; fixed = "To" (default) fixes the destination of the same m 
+#min_n = minimum number of taxa/species labels to be included within the unfixed set(s)
+
+#Ouputs table with columns 'From' (subset of species below the origin of migration edges),
+#'To' (the subset of species below the destination of migration edges), Migration Support (MS) and corrected MS with respect to bootstraps (MSE).
+
+
+treemix.fit(in.file="fourpop_final__2mig_finalrun_2", 
+            out.file="fourpop_final__2mig_finalrun_2", m.start=2, m.end=2)
+
 
 

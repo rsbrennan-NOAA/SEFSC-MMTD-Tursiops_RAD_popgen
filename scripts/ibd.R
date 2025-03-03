@@ -3,6 +3,7 @@
 library(vcfR)
 library(algatr)
 library(ade4)
+library(dplyr)
 
 vcf <- read.vcfR( "analysis/filtered.final_ids_LDthin.vcf.gz", verbose = FALSE )
 #genin <- vcfR2genind(vcf)
@@ -48,7 +49,7 @@ gen_dist_corr(dist_x = pc_plink, dist_y = str_dist,
 
 # Gather data
 plot <- gen_dist_corr(dist_x = pc_plink, dist_y = str_dist, 
-                      metric_name_x = "pc_plink", metric_name_y = "str_dist")
+                      metric_name_x = "pc_plink", metric_name_y = "euclidian")
 
 # Now, build plot
 ggplot(plot$data, aes(x = pc_plink, y = str_dist) ) +
@@ -60,13 +61,12 @@ ggplot(plot$data, aes(x = pc_plink, y = str_dist) ) +
 
 # TREE --------------------
 library(ggtree)
+library(ggplot2)
 library(ape)
-out_tree <- nj(as.matrix(pc_dists))
 out_tree <- nj(as.matrix(pc_plink))
-out <- as_tibble(nj(as.matrix(pc_plink)))
-out$label <- gsub("X", "", out$label)
-dm <- left_join(out, all, by=c("label" ="indiv"))
-
+out_tree <- nj(as.matrix(pc_dists))
+out <- as_tibble(nj(as.matrix(pc_dists)))
+#out$label <- gsub("X", "", out$label)
 ggtree(out_tree) + 
   theme_tree()
 
@@ -78,4 +78,16 @@ p
 # shirk paper says use 64 pc model when we have sub structure
 # only a need a few for initial structure, but these others increase ability
  # to detect futher structure. 
-#
+# I think we have substantial sub structure, so we want to use 64
+
+# color the plot
+
+
+
+
+
+
+
+
+
+
