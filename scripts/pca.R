@@ -265,6 +265,11 @@ dev.off()
 # color by admixture populations
 
 admixPop <- read.table("analysis/populations_admixture.txt", header=T)
+pops$region <- ifelse(pops$Long > -81.7, "Atlantic",
+                      ifelse(pops$Long > 80, "Gulf", NA))
+pops$region <- ifelse(pops$Long < -81.7, "Gulf", pops$region)
+
+df <- merge(dat, pops, by.x="IDs", by.y="Lab.ID")
 
 ndat <- merge(df, admixPop, by.x="IDs", by.y="Lab.ID")
 # with shapes
@@ -331,6 +336,14 @@ d
 # 1: 4 pops from admixture
 table(ndat$admixture_population)
 sum(table(ndat$admixture_population))
+
+write.table(file="analysis/pop_structure/fourpop_all.clust", 
+            data.frame(samp1 = ndat$IDs,
+                       group = ndat$admixture_population),
+            sep="\t", quote=F, col.names=F, row.names=F)
+
+
+
 # select 70 indivs from Coastal_Atl
 # Subset Coastal_Atl IDs, keep all others
 coastal_atl_subset_idx <- sample(ndat$IDs[ndat$admixture_population == "Coastal_Atl"], 70)
@@ -365,12 +378,24 @@ ndat <- ndat %>%
   mutate(admixture_population_region = ifelse(admixture_population %in% c("Intermediate", "Offshore"),
                                               paste(admixture_population, region, sep="_"),
                                               admixture_population_region))
+
 head(ndat)
 table(ndat$admixture_population_region)
 #Coastal_Atl          Coastal_Gulf Intermediate_Atlantic     Intermediate_Gulf 
 #162                    47                    42                    12 
 #Offshore_Atlantic         Offshore_Gulf 
 #35                    39 
+
+# write the output, 4 pops
+
+write.table(file="analysis/pop_structure/sixpop_all.clust", 
+            data.frame(samp1 = ndat$IDs,
+                       group = ndat$admixture_population_region),
+            sep="\t", quote=F, col.names=F, row.names=F)
+
+
+
+# for treemix:
 # Subset Coastal_Atl IDs, keep all others
 coastal_atl_subset_idx <- sample(ndat$IDs[ndat$admixture_population_region == "Coastal_Atl"], 35)
 coastal_atl_subset <-  ndat[ndat$IDs %in% coastal_atl_subset_idx,]
