@@ -228,11 +228,11 @@ GetMigrStats(input_stem="fourpop_final__2mig_finalrun_",
 #Based on R funcions written by Zecca, Labra and Grassi, 2019.
 
 #Now set working directory to folder with all bootstrap replicates generated with optimum number of m in Step 3.
-setwd("setwd("~/projects/Tursiops_RAD_popgen/analysis/pop_structure/treemix/final_runs_fourpop/bootstrap/")
-")
+#setwd("final_runs_fourpop/bootstrap/")
+setwd("~/projects/Tursiops_RAD_popgen/analysis/pop_structure/treemix/final_runs_fourpop/final/")
 
 #Copy PairsOfSets.txt into directory
-GetMigrSupp(skipL=1)                                              #calculates MS over all bootstrap replicates, writes file "MigrSupp.txt" into current directory
+GetMigrSupp(skipL=1)      #calculates MS over all bootstrap replicates, writes file "MigrSupp.txt" into current directory
 
 GetMS_MSe(nmigr=2, min_n=2, fixed="To", skipL=1)                  #default input file is "MigrSupp.txt" created with GetMigrSupp(), writes file "MS_MSE.txt" into working directory
 #nmigr = number of migrations, fixed = specifies which taxa/species label set of each pair is kept fixed
@@ -245,6 +245,19 @@ GetMS_MSe(nmigr=2, min_n=2, fixed="To", skipL=1)                  #default input
 
 treemix.fit(in.file="fourpop_final__2mig_finalrun_2", 
             out.file="fourpop_final__2mig_finalrun_2", m.start=2, m.end=2)
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

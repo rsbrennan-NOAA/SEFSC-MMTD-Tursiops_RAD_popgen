@@ -63,31 +63,207 @@ ggplot(plot$data, aes(x = pc_plink, y = str_dist) ) +
 library(ggtree)
 library(ggplot2)
 library(ape)
+library(dplyr)
+library(tidyr)
 out_tree <- nj(as.matrix(pc_plink))
 out_tree <- nj(as.matrix(pc_dists))
 out <- as_tibble(nj(as.matrix(pc_dists)))
+
+pops <- read.table("analysis/pop_structure/sixpop_all.clust", header=F)
+colnames(pops) <-c("ids", "population")
 #out$label <- gsub("X", "", out$label)
-ggtree(out_tree) + 
-  theme_tree()
+dm <- left_join(out, pops, by=c("label" ="ids"))
+dm <- dm %>%
+  separate(population, into = c("Population", "region"), sep = "_", remove = FALSE) %>%
+  mutate(region = ifelse(region == "Atl", "Atlantic", region))
 
-#p <- ggtree(out_tree,layout="daylight") + theme_tree()
-#p <- ggtree(out_tree, layout="unrooted") + theme_tree()
+
+my_colors <- c("#3f88c5", "#ef476f", "#ffd166")
 p <- ggtree(out_tree, layout="ape") + theme_tree()
-p
 
+pout <- 
+  p %<+% dm + 
+  #geom_tiplab(aes(color=newpop), size=0.9) +
+  theme(legend.position="right")+ 
+  #geom_text( show.legend  = F ) +
+  geom_tippoint(aes(fill=Population, shape=region), size=4, alpha=1) +
+  scale_shape_manual(values=c(21,24))+
+  scale_fill_manual(values=my_colors)+
+  guides(fill=guide_legend(override.aes=list(shape=21))) 
+pout
+
+ggsave("figures/nj_tree.pdf", pout, h=5, w=7)
+ggsave("figures/nj_tree.png", pout, h=5, w=7)
 # shirk paper says use 64 pc model when we have sub structure
 # only a need a few for initial structure, but these others increase ability
  # to detect futher structure. 
 # I think we have substantial sub structure, so we want to use 64
 
-# color the plot
+#-----------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------------
+# pull in pairwise distances
+
+lc_dist <- read.csv("analysis/lc_distances.csv", header=T)
+
+as.matrix(pc_dists)
+head(dm)
+
+# need to convert the pairwise genetic distances to long format:
+pc_dists_long <- as.data.frame(pc_dists)
+pc_dists_long$indiv_1 <- rownames(pc_dists)
+
+library(tidyr)
+pc_long <- pc_dists_long %>%
+  pivot_longer(cols = -indiv_1, 
+               names_to = "indiv_2", 
+               values_to = "pc_distance")
+
+lc_long <- lc_dist %>%
+  select(-X) 
+
+# Merge the datasets
+merged_distances <- merge(pc_long, lc_long, 
+                          by = c("indiv_1", "indiv_2"), 
+                          all = FALSE)
+
+# add the region and pop:
+pops <- read.table("analysis/pop_structure/sixpop_all.clust", header=F)
+colnames(pops) <-c("ids", "population")
+#out$label <- gsub("X", "", out$label)
+pops <- pops %>%
+  mutate(population = ifelse(population == "Coastal_Atl", "Coastal_Atlantic", population)) %>%
+  separate(population, into = c("Population", "region"), sep = "_", remove = FALSE) %>%
+  mutate(region = ifelse(region == "Atl", "Atlantic", region))
 
 
 
+id_to_pop <- setNames(pops$population, pops$ids)
+merged_distances$population_1 <- id_to_pop[merged_distances$indiv_1]
+merged_distances$population_2 <- id_to_pop[merged_distances$indiv_2]
+
+id_to_region <- setNames(pops$region, pops$ids)
+merged_distances$region_1 <- id_to_region[merged_distances$indiv_1]
+merged_distances$region_2 <- id_to_region[merged_distances$indiv_2]
 
 
+head(merged_distances)
+
+merged_distances <- merged_distances %>%
+  mutate(comparison = case_when(
+    population_1 == "Coastal_Atlantic" & population_2 == "Coastal_Atlantic" ~ "Coastal_Atlantic",
+    population_1 == "Coastal_Gulf" & population_2 == "Coastal_Gulf" ~ "Coastal_Gulf",
+    population_1 == "Intermediate_Atlantic" & population_2 == "Intermediate_Atlantic" ~ "Intermediate_Atlantic",
+    population_1 == "Intermediate_Gulf" & population_2 == "Intermediate_Gulf" ~ "Intermediate_Gulf",
+    population_1 == "Offshore_Atlantic" & population_2 == "Offshore_Atlantic" ~ "Offshore_Atlantic",
+    population_1 == "Offshore_Gulf" & population_2 == "Offshore_Gulf" ~ "Offshore_Gulf",
+    TRUE ~ "inter-population"
+  ))
 
 
+p1 <- ggplot(merged_distances, aes(x = leastcost_distance, y = pc_distance)) +
+  geom_point(alpha = 0.2) +
+  geom_smooth(method = "lm", se = TRUE) +
+  theme_bw(base_size = 14) +
+  labs(y = "Genetic Distance", 
+       x = "Geographic Distance",
+       title = "Isolation by distance: all populations")
+p1
 
+ggsave("figures/ibd_allpops.png", p1, h=5, w=7)
+
+
+p2 <- ggplot(merged_distances, aes(x = leastcost_distance, y = pc_distance)) +
+  geom_point(aes(color = comparison),alpha = 0.3) +
+  geom_smooth(method = "lm", se = TRUE, linewidth=2) +
+  theme_bw(base_size = 14) +
+  labs(y = "Genetic Distance", 
+       x = "Geographic Distance",
+       title = "Isolation by distance: within population") +
+  facet_wrap(~comparison, ncol=3) +
+  guides(color = guide_legend(override.aes = list(alpha = 1, size=5)))
+
+p2
+ggsave("figures/ibd_withinpops.png", p2, h=7, w=9)
+
+merged_distances[which(merged_distances$comparison == "Offshore_Atlantic"),]
+
+# 7Tt312 and 13Tt073 are divergent and causing that weird pattern in offshore atlantic
+
+
+#-----------------------------------------
+# split by Gulf and Atlantic:
+merged_distances <- merged_distances %>%
+  mutate(comparison_ocean = case_when(
+    str_detect(population_1, "Gulf") & str_detect(population_2, "Gulf") ~ "Gulf",
+    str_detect(population_1, "Atlantic") & str_detect(population_2, "Atlantic") ~ "Atlantic",
+    TRUE ~ "inter-ocean"
+  ))
+
+p2 <- ggplot(merged_distances, aes(x = leastcost_distance, y = pc_distance)) +
+  geom_point(aes(color = comparison),alpha = 0.3) +
+  geom_smooth(method = "lm", se = TRUE, linewidth=2) +
+  theme_bw(base_size = 14) +
+  labs(y = "Genetic Distance", 
+       x = "Geographic Distance",
+       title = "Isolation by distance: within region") +
+  facet_wrap(~comparison_ocean, ncol=2) +
+guides(color = guide_legend(override.aes = list(alpha = 1, size=5)))
+
+p2
+ggsave("figures/ibd_withinregion.png", p2, h=5, w=9)
+
+
+#-------------------------
+# split by coastal, intermediate, offshore
+
+merged_distances <- merged_distances %>%
+  mutate(comparison_depth = case_when(
+    str_detect(population_1, "Coastal") & str_detect(population_2, "Coastal") ~ "Coastal",
+    str_detect(population_1, "Intermediate") & str_detect(population_2, "Intermediate") ~ "Intermediate",
+    str_detect(population_1, "Offshore") & str_detect(population_2, "Offshore") ~ "Offshore",
+    TRUE ~ "inter-depth"
+  ))
+
+p3 <- ggplot(merged_distances, aes(x = leastcost_distance, y = pc_distance)) +
+  geom_point(aes(color = comparison),alpha = 0.3) +
+  geom_smooth(method = "lm", se = TRUE, linewidth=2) +
+  theme_bw(base_size = 14) +
+  labs(y = "Genetic Distance", 
+       x = "Geographic Distance",
+       title = "Isolation by distance: within depth") +
+  facet_wrap(~comparison_depth, ncol=2)+
+  guides(color = guide_legend(override.aes = list(alpha = 1, size=5)))
+
+p3
+ggsave("figures/ibd_withindepth.png", p3, h=5, w=7)
+
+
+#-------------------------
+
+# only keep inter pop comparisons:
+
+merged_distances <- merged_distances %>%
+  mutate(comparison_depth = case_when(
+    str_detect(population_1, "Coastal") & str_detect(population_2, "Coastal") ~ "Coastal",
+    str_detect(population_1, "Intermediate") & str_detect(population_2, "Intermediate") ~ "Intermediate",
+    str_detect(population_1, "Offshore") & str_detect(population_2, "Offshore") ~ "Offshore",
+    TRUE ~ "inter-depth"
+  ))
+
+merged_distances_dropped <- merged_distances[which(merged_distances$comparison == "inter-population"),]
+
+p3 <- ggplot(merged_distances_dropped, aes(x = leastcost_distance, y = pc_distance)) +
+  geom_point(aes(color = comparison),alpha = 0.3) +
+  geom_smooth(method = "lm", se = TRUE, linewidth=2) +
+  theme_bw(base_size = 14) +
+  labs(y = "Genetic Distance", 
+       x = "Geographic Distance",
+       title = "Isolation by distance: Only inter-population") +
+  facet_wrap(~comparison_depth, ncol=2)+
+  guides(color = guide_legend(override.aes = list(alpha = 1, size=5)))
+
+p3
+ggsave("figures/ibd_withindepth_interOnly.png", p3, h=5, w=7)
 
 

@@ -213,7 +213,13 @@ done
 ##### step 3 treemix:
 
 ```bash
+mamba activate vcflib-1.0.9
+module load bio/stacks/2.65 
+module load bio/vcftools
+module load lib64/gsl
 
+
+cd ~/Tursiops-RAD-popgen/analysis/pop_structure/treemix
 #####################################################
 ######### Step 3: Final runs with optimum m #########
 #####################################################

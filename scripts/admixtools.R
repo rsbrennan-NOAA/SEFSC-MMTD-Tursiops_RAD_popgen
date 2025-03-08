@@ -219,9 +219,11 @@ f3(f2_blocks, pop1, pop2, pop3)
 #8 Intermediate_Gulf     Coastal_Gulf Offshore_Gulf     -0.00322  0.000609 -5.29  1.25e- 7
 
 
-
-
-
+# basic equation to figure out how we get various values
+a=0.5
+b=0.8
+c=0.9 # potentially admixed population
+(c-a)*(c-b)
 
 
 
