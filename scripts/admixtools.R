@@ -130,7 +130,10 @@ pop1 = "Intermediate"
 pop2 = c("Coastal_Gulf", "Coastal_Atl")
 pop3 = c('Offshore')
 
-f3(f2_blocks, pop1, pop2, pop3)
+fout_foupop <- f3(f2_blocks, pop1, pop2, pop3)
+write.table(fout_foupop, file = "analysis/pop_structure/admixtools/f3_stats_fourpop.txt",
+            row.names=F, quote=F, sep="\t")
+
 
 #pop1         pop2         pop3           est       se      z             p
 #<chr>        <chr>        <chr>        <dbl>    <dbl>  <dbl>         <dbl>
@@ -153,7 +156,7 @@ pop1 = c("Intermediate_Atlantic", "Intermediate_Gulf")
 pop2 = c("Coastal_Gulf", "Coastal_Atl")
 pop3 = c('Offshore_Atlantic', "Offshore_Gulf")
 
-f3(f2_blocks, pop1, pop2, pop3)
+fout_sixpop <- f3(f2_blocks, pop1, pop2, pop3)
 #pop1                  pop2         pop3                    est       se      z        p
 #<chr>                 <chr>        <chr>                 <dbl>    <dbl>  <dbl>    <dbl>
 #1 Intermediate_Atlantic Coastal_Atl  Offshore_Atlantic  0.00580  0.000762  7.60  2.88e-14
@@ -164,6 +167,12 @@ f3(f2_blocks, pop1, pop2, pop3)
 #6 Intermediate_Gulf     Coastal_Atl  Offshore_Gulf      0.000283 0.000653  0.433 6.65e- 1
 #7 Intermediate_Gulf     Coastal_Gulf Offshore_Atlantic -0.00448  0.000695 -6.44  1.16e-10
 #8 Intermediate_Gulf     Coastal_Gulf Offshore_Gulf     -0.00322  0.000609 -5.29  1.25e- 7
+
+
+
+write.table(fout_sixpop, file = "analysis/pop_structure/admixtools/f3_stats_sixpop.txt",
+            row.names=F, quote=F, sep="\t")
+
 
 #----------------------------------------------
 # four popsubset:
