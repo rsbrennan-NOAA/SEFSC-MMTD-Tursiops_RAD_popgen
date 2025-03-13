@@ -267,3 +267,85 @@ p3
 ggsave("figures/ibd_withindepth_interOnly.png", p3, h=5, w=7)
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#------------------------------------------------------------------------
+# plot just the simple method, nj tree. 
+
+## Load packages
+library('vcfR')
+library('adegenet')
+
+#read the data
+vcf <- read.vcfR("Tt_mappedTt_SP1060_relax_all_7000_minQ25_GQ20_miss_pop5indMAF_paral_nomissSP1060.recode.vcf")
+
+vcf
+
+x <- vcfR2genlight(vcf)
+
+
+# Check the data
+gt <- extract.gt(vcf, element = "GT")
+gt[c(2,6,18), 1:3]
+
+# transpose the data
+t(as.matrix(x))[c(2,6,18), 1:3]
+
+# remove individual 7Tt182 as low coveerage
+x1 <- x[indNames(x) != "7Tt182"]
+
+# add population to samples
+pop(x1) <-as.factor(c(rep("ancient", 1),rep("NEAp", 10), rep("NWAp", 9), rep("NEPp", 11),rep("NEAc", 10), rep("NWAc", 7), rep("NEPc", 9)))
+
+popNames(x1)
+
+## Heat map of genotype
+pdf('paralle_all_ancient_noMiss_no7Tt182.pdf',width=17,height=6)
+
+glPlot(x1,col=c("blue","green","red"),legend=F,yaxt='n',las=1)
+
+# add population labels on the y axis
+axis(2, at=9, labels="NEPc", pos=1,las=2)
+axis(2, at=16, labels="NWAc", pos=1,las=2)
+axis(2, at=26, labels="NEAc", pos=1,las=2)
+axis(2, at=37, labels="NEPp", pos=1,las=2)
+axis(2, at=46, labels="NWAp", pos=1,las=2)
+axis(2, at=56, labels="NEAp", pos=1,las=2)
+axis(2, at=57, labels="ancient", pos=1,las=2)
+
+dev.off()
+
+# Stats
+
+# Plot a neighbour-joining (NJ) tree
+library(ape)
+
+tree <- nj(dist(as.matrix(x1)))
+plot(tre, typ="fan", cex=0.7)
+
+# run 100 bootstrap of the NJ tree
+tree_boot <- boot.phylo(tree,B=100, x1, FUN = function(xx) nj(dist(xx)))
+
+# Plot the tree with boostrap values
+plot(tre, typ="fan", show.tip=FALSE)
+nodelabels(tree_boot,frame = "n", cex = 0.8)
+
+library(scales)
+mycol<-c("black","#F4A582","#92C5DE","#B2182B","#2166AC","#D6604D","#4393C3")
+tiplabels(pch=20,col=alpha(mycol[pop(x1)],0.9), cex=4)
+
+
+
+

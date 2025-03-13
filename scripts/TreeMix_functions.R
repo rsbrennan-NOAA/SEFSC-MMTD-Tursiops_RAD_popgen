@@ -1,17 +1,17 @@
 ######################### R functions for the Treemix Pipeline ############################
 ###########################################################################################
-# from https://github.com/carolindahms/TreeMix/blob/main/TreeMix_functions.R
-# # Carolin Dahms, April 2021, adapted from Zecca et al. (2019)                             #
-
+# 
+# adapted from Carolin Dahms from https://github.com/carolindahms/TreeMix/blob/main/TreeMix_functions.R
+# CD originally adapted Zecca et al. (2019)
 
 
 pckgs <- c("ape","phytools");
 lapply(pckgs, library, character.only = TRUE)
 
-maxLL<-function (input_stem,nt,uel=TRUE){
+maxLL<-function (input_stem, nt, uel=FALSE){
   lliknames<-c(paste(input_stem,1:nt,'.llik',sep='')) 
   d<-unname(sapply(lliknames, function(x) rbind(read.table(x,header = F, sep = ":")[2,2])))
-  d<-as.data.frame(cbind(1:5,d)); names(d)[1:2]<- c('treeN','LL')
+  d<-as.data.frame(cbind(1:nt,d)); names(d)[1:2]<- c('treeN','LL')
   d<-d[order(-d$LL,d$treeN),]
   bestLL<-d[,"LL"] %in% d[1,"LL"]
   bestN<- d$treeN[bestLL]	
@@ -23,7 +23,7 @@ maxLL<-function (input_stem,nt,uel=TRUE){
     tree<-read.tree(file = bestnames[t],keep.multi = TRUE)				
     BKLTs[[t]]<-tree[[1]]												
     BKLTs[[t]][5]<- bestN[t]}
-  uniqueT<- unique(BKLTs, use.edge.length = uel, use.tip.label = TRUE)               
+  uniqueT<- unique.multiPhylo(BKLTs, use.edge.length = uel, use.tip.label = TRUE)               
   if(length(BKLTs)==1){
     keep<-sapply(uniqueT,'[[',5)
     UniNames<- c(paste0(input_stem,keep,'.treeout.gz'))
@@ -45,9 +45,94 @@ maxLL<-function (input_stem,nt,uel=TRUE){
         '\nNumber of unique ML tree(s): ',length(uniqueT),
         '\nRun of ML tree(s) with unique topology: ',UniNames)
   }
+  
+  # Load all trees to compare topologies
+  all_trees <- list()
+  class(all_trees) <- "multiPhylo"
+  for (t in 1:nt){
+    tree_file <- paste0(input_stem, t, '.treeout.gz')
+    if(file.exists(tree_file)) {
+      tree <- read.tree(file = tree_file, keep.multi = TRUE)
+      all_trees[[t]] <- tree[[1]]
+      all_trees[[t]][5] <- t  # Store the original tree number
+    }
+  }
+  
+  # Find unique topologies among all trees
+  uniqueT_all <- unique.multiPhylo(all_trees, use.edge.length = uel, use.tip.label = TRUE)
+  
+  # Create a dataframe to store results
+  result_df <- data.frame(
+    UniqueTopology = integer(length(uniqueT_all)),
+    Count = integer(length(uniqueT_all)),
+    FirstTree = integer(length(uniqueT_all)),
+    AllTrees = character(length(uniqueT_all)),
+    stringsAsFactors = FALSE
+  )
+  
+  # For each unique topology, find all trees with that topology
+  for (i in 1:length(uniqueT_all)) {
+    trees_in_group <- c()
+    
+    for (j in 1:length(all_trees)) {
+      if (!is.null(all_trees[[j]]) && 
+          identical(all.equal(uniqueT_all[[i]], all_trees[[j]], use.edge.length = uel, use.tip.label = TRUE), TRUE)) {
+        trees_in_group <- c(trees_in_group, j)
+      }
+    }
+    
+    result_df$UniqueTopology[i] <- i
+    result_df$Count[i] <- length(trees_in_group)
+    result_df$FirstTree[i] <- min(trees_in_group)
+    result_df$AllTrees[i] <- paste(trees_in_group, collapse = ",")
+  }
+  
+  # Identify which unique topology corresponds to the best likelihood trees
+  for (i in 1:length(uniqueT_all)) {
+    for (j in 1:length(bestN)) {
+      if (identical(all.equal(uniqueT_all[[i]], all_trees[[bestN[j]]], use.edge.length = uel, use.tip.label = TRUE), TRUE)) {
+        result_df$IsBestML[i] <- TRUE
+        break
+      } else {
+        result_df$IsBestML[i] <- FALSE
+      }
+    }
+  }
+  
+  # Sort by count in descending order
+  result_df <- result_df[order(-result_df$Count), ]
+  
+  # Find which unique tree corresponds to the best likelihood tree
+  best_tree_group <- NA
+  for (i in 1:length(uniqueT_all)) {
+    for (j in 1:length(bestN)) {
+      if (identical(all.equal(uniqueT_all[[i]], all_trees[[bestN[j]]], use.edge.length = uel, use.tip.label = TRUE), TRUE)) {
+        best_tree_group <- i
+        break
+      }
+    }
+    if (!is.na(best_tree_group)) break
+  }
+  # Get the top 10 (or fewer if nt < 10) trees by likelihood
+  top_trees <- d[1:min(10, nrow(d)), ]
+  
+  # Create the final result list containing both dataframes
+  final_result <- list(
+    unique_topologies = result_df,
+    top_likelihood_trees = top_trees
+  )
+  # Print summary information
+  cat('\nNumber of input trees: ', nt)
+  cat('\nNumber of unique tree topologies: ', length(uniqueT_all))
+  cat('\nUnique tree topology count summary:\n')
+  #print(result_df)
+  cat('\n Best', bestN[1], 'tree belongs to group: ', best_tree_group, '\n')
+  
+  # Return the dataframe
+  return(final_result)
 }
 
-cfTrees<-function (input_stem,nt,p=1, uel=TRUE, m='PH85'){
+cfTrees<-function (input_stem,nt,p=1, uel=FALSE, m='PH85'){
   lliknames<-c(paste(input_stem,1:nt,'.llik',sep='')) 
   d<-unname(sapply(lliknames, function(x) rbind(read.table(x,header = F, sep = ":")[2,2])))
   d<-as.data.frame(cbind(1:nt,d)); names(d)[1:2]<- c('treeN','LL')

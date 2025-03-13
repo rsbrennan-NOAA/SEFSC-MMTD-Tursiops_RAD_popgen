@@ -50,7 +50,143 @@ treemix -i sixpop.p.treemix.gz -o sixpop_nomigration -root Aduncus
 # first get consensus tree
 # https://github.com/carolindahms/TreeMix/blob/main/Step1_TreeMix.sh
 
+```
 
+
+```bash
+mamba activate vcflib-1.0.9
+module load bio/stacks/2.65 
+module load bio/vcftools
+module load lib64/gsl
+
+infile=fourpop.p.treemix.gz
+ncore=4
+blockk=75
+outgroup=Aduncus
+nboot=100		
+pathP=~/bin/phylip-3.697/exe/consense	
+outname=fourpop		
+minM=1 
+maxM=8
+migrep=10
+
+cd ~/Tursiops-RAD-popgen/analysis/pop_structure/treemix/fourpop
+
+sh ~/Tursiops-RAD-popgen/scripts/treemix_step1.sh $infile $ncore $blockk $outgroup $nboot $pathP $outname $minM $maxM $migrep
+
+
+infile=sixpop.p.treemix.gz
+ncore=4
+blockk=75
+outgroup=Aduncus
+nboot=500		
+pathP=~/bin/phylip-3.697/exe/consense	
+outname=sixpop
+minM=1 
+maxM=10
+migrep=10
+
+cd ~/Tursiops-RAD-popgen/analysis/pop_structure/treemix/sixpop
+
+sh ~/Tursiops-RAD-popgen/scripts/treemix_step1.sh $infile $ncore $blockk $outgroup $nboot $pathP $outname $minM $maxM $migrep
+
+```
+
+run R step 1
+
+
+```bash
+
+infile=fourpop.p.treemix.gz
+ncore=4
+blockk=75
+outgroup=Aduncus
+nboot=500		
+mig=2
+outname=fourpop
+runs=30
+tree=fourpop_constree.newick
+pathP=~/bin/phylip-3.697/exe/consense	
+
+sh ~/Tursiops-RAD-popgen/scripts/treemix_step3.sh $infile $ncore $blockk $outgroup $nboot $mig $outname $runs $tree $pathP
+
+```
+
+
+test script from bite R. 
+
+```bash
+
+cd ~/Tursiops-RAD-popgen/analysis/pop_structure/treemix/fourpop_new
+
+infile=fourpop.p.treemix.gz
+ncore=4
+blockk=75
+outgroup=Aduncus
+nboot=100		
+numk=2
+outname=fourpop
+pathP=~/bin/phylip-3.697/exe/consense	
+
+sh ~/Tursiops-RAD-popgen/scripts/treemix_bootstraps.sh $infile $numk $ncore $blockk $outgroup $nboot $pathP $outname
+
+cd ~/Tursiops-RAD-popgen/analysis/pop_structure/treemix/sixpop_new
+infile=sixpop.p.treemix.gz
+ncore=4
+blockk=75
+outgroup=Aduncus
+nboot=100		
+numk=4
+outname=sixpop
+pathP=~/bin/phylip-3.697/exe/consense	
+
+sh ~/Tursiops-RAD-popgen/scripts/treemix_bootstraps.sh $infile $numk $ncore $blockk $outgroup $nboot $pathP $outname
+
+
+cd /mnt/c/Users/Reid.Brennan/Documents/projects/Tursiops_RAD_popgen/analysis/pop_structure/
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+```bash
 
 #--------------------------------------------------------------------------------------------
 # four pop run

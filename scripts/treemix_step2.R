@@ -1,15 +1,17 @@
 
-### REMEMBER THAT PLOTTING IS MESSED UP FOR THE BOOTSTRAPPING!!!!!!!!
-# as of 3/3/25. I still need to fix it. 
-
-
-
 source("analysis/pop_structure/treemix/plotting_funcs.R")
+setwd("~/projects/Tursiops_RAD_popgen/analysis/pop_structure/treemix/")
+par(mfrow=c(1,1),   
+    mar=c(2, 2, 1, 1),
+    oma=c(0, 0, 0, 0))
 
-setwd("analysis/pop_structure/treemix/")
-
+pdf("../../../figures/TreeMix_noMigration_fourpop.pdf", h=4, w=5)                                          
 plot_tree("fourpop_nomigration")
+dev.off()
+
+pdf("../../../figures/TreeMix_noMigration_sixpop.pdf", h=4, w=5)                                          
 plot_tree("sixpop_nomigration")
+dev.off()
 
 plot_resid(stem="fourpop_noroot",pop_order="fourpop.order")
 plot_resid(stem="sixpop_noroot",pop_order="sixpop.order")
@@ -24,44 +26,43 @@ library(data.table)
 library(BITEV2)
 library(OptM)
 library(plyr)
-
 source("~/projects/Tursiops_RAD_popgen/scripts/TreeMix_functions.R") #path to required functions for this analysis
-setwd("analysis/pop_structure/treemix/")
 
 ########################################################
 ############# (A) Test migration events ################
 ########################################################
+setwd("~/projects/Tursiops_RAD_popgen/analysis/pop_structure/treemix/fourpop_new/")
 
-folder <- file.path(path="test_migrations_fourpop/")                     
-#path to files of TreeMix replicates with different migration edges (m) to test
-test.linear = optM(folder, method = "linear", tsv="linear.txt")   
-#test m: produces a list of which the $out dataframe suggests optimum m based on multiple linear models
-plot_optM(test.linear, method = "linear")                         
-#shows changes in log likelihood for different m, and suggests optimum m as 'change points'
+plot_tree("test_migrations/treemix.2.4")
 
-test.optM = optM(folder, tsv ="Evanno.variance.txt", ignore=c(4,5))
-#another option is the Evanno method - see optM package description for detailed information on output
-#if data is robust and all runs have the same likelihoods, 
-#SD will be 0 and this function will give an error as it can't produce the ad hoc statistic. 
-#in this case you might want to increase variance by varying 
-    # -k (SNP block size), change permutation methods etc.
-plot_optM(test.optM, method = "Evanno") #plot the proportion of variation explained by each migration event. Calculates deltaM, which is a second-order rate of change in likelihood weighted by the standard deviation
+folder <- file.path(path="test_migrations")                     #path to files of TreeMix replicates with different migration edges (m) to test
+test.linear = optM(folder, method = "linear", tsv="linear.txt")   #test m: produces a list of which the $out dataframe suggests optimum m based on multiple linear models
+plot_optM(test.linear, method = "linear")                         #shows changes in log likelihood for different m, and suggests optimum m as 'change points'
 
-#Choose optimum number of m and continue with step 3 in the TreeMix pipeline
-# for 4 pop, defiitely 2
+
+
 
 #-------------------
 ##### six pop
+setwd("~/projects/Tursiops_RAD_popgen/analysis/pop_structure/treemix/sixpop/")
 
-folder <- file.path(path="test_migrations_sixpop/")                     
-test.linear = optM(folder, method = "linear", tsv="linear.txt")   
-plot_optM(test.linear, method = "linear")
+plot_tree("test_migrations/treemix.2.4")
+plot_tree("bootstrap/sixpop.p.treemix.gz_constree_bootrep_323")
 
-test.optM = optM(folder, tsv ="Evanno.variance.txt", ignore=c(0,1, 6,7,8,9,10))
-plot_optM(test.optM, method = "Evanno") #plot the proportion of variation explained by each migration event. Calculates deltaM, which is a second-order rate of change in likelihood weighted by the standard deviation
 
+folder <- file.path(path="test_migrations")                     #path to files of TreeMix replicates with different migration edges (m) to test
+test.linear = optM(folder, method = "linear", tsv="linear.txt")   #test m: produces a list of which the $out dataframe suggests optimum m based on multiple linear models
+plot_optM(test.linear, method = "linear")                         #shows changes in log likelihood for different m, and suggests optimum m as 'change points'
 
 # 4 migration events.
+
+treemix.bootstrap(in.file = "HapMap3_chr2_subsample_treemix_bootstrap",
+                  out.file = "test",
+                  phylip.file = "HapMap3_chr2_subsample_treemix_bootstrap_outtree.newick",
+                  pop.color.file = "PopOrdCol.txt", nboot = 100,
+                  cex=0.5, xmin = -0.005, disp = 0.001,
+                  boot.legend.location = "top", xbar = 0.05)
+
 
 
 
@@ -74,28 +75,19 @@ plot_optM(test.optM, method = "Evanno") #plot the proportion of variation explai
    # remove duplicates and retain tree(s) with unique topology. 
 #Adapted from R functions written by Zecca, Labra and Grassi (2019).
 
-setwd("~/projects/Tursiops_RAD_popgen/analysis/pop_structure/treemix/final_runs_fourpop/final/")
+setwd("~/projects/Tursiops_RAD_popgen/analysis/pop_structure/treemix/fourpop_new/bootstrap")
 #folder with all TreeMix outputs from the final runs
-maxLL("fourpop_final__2mig_finalrun_", nt=100) 
- #first argument is stem of TreeMix output files, 
- # nt = number of runs
+source("~/projects/Tursiops_RAD_popgen/scripts/TreeMix_functions.R") #path to required functions for this analysis
 
-#If n of unique trees = 1, continue with step #2, 
-   # if n > 1, you might want to create a consensus tree. 
-#Note that bootstrap and migration values will not be available for consensus tree, 
-# thus you could also choose one ML tree 
-
-cfTrees("fourpop_final__2mig_finalrun_", nt=100, p=0.5, m='PH85')                        
-#m is the method to calculate pairwise distances between unique trees (default is Robinson-Foulds distance)
-#p (number from 0.5 to 1)-proportion for a clade to be represented in the consensus tree. Default (1) is strict tree, 0.5 for majority-rule
-#plots consensus tree and saves "Consensus.newick" into working directory
+maxLL("fourpop_treemix_bootrep_", nt=100, uel=FALSE)
+#cfTrees("fourpop_treemix_bootrep_", nt=100, p=1, m='PH85')                        
 
 ## 2. Now plot and save unique tree with highest likelihood:
 
-pdf("../../../figures/TreeMix_output.pdf", h=4, w=5)                                          
-treemix.bootstrap(in.file="fourpop_final__2mig_finalrun_2", #stem of TreeMix files (as above) + number of run with highest likelihood and unique topology
+pdf("../../../../../figures/TreeMix_output_fourpop.pdf", h=4, w=5)                                          
+treemix.bootstrap(in.file="fourpop_treemix_bootrep_6", #stem of TreeMix files (as above) + number of run with highest likelihood and unique topology
                   out.file = "tmp", 
-                  phylip.file = "../../fourpop_final_finalconstree.newick", 
+                  phylip.file = "../fourpop_outtree.newick", 
                   #consensus tree in newick format (from the bootstrap procedure generated with PHYLIP)    
                   nboot = 100, #nboot is the number of bootstraps used
                   fill = TRUE,  
@@ -103,14 +95,86 @@ treemix.bootstrap(in.file="fourpop_final__2mig_finalrun_2", #stem of TreeMix fil
                   boot.legend.location = "topleft")
 dev.off()
 
-treemix.drift(in.file = "final_runs_fourpop/final/fourpop_final__2mig_finalrun_2")
+treemix.drift(in.file = "fourpop_treemix_bootrep_68")
               #pairwise matrix for drift estimates with specified order of pops 
 
-plot_resid("final_runs_fourpop/final/fourpop_final__2mig_finalrun_5",                                        #pairwise matrix for residuals
+write.table(file="fourpop.order", data.frame(pops= c("Aduncus", "Off", "CAtl", "Int", "CGulf")),
+            quote = F, row.names=F, col.names = F)
+
+plot_resid("fourpop_treemix_bootrep_68",                                        #pairwise matrix for residuals
            pop_order = "fourpop.order") 
 
   #  title("Residuals")                         
 #dev.off()
+
+
+
+
+#-----------------------------
+# six pop
+setwd("~/projects/Tursiops_RAD_popgen/analysis/pop_structure/treemix/sixpop_new/bootstrap")
+#folder with all TreeMix outputs from the final runs
+source("~/projects/Tursiops_RAD_popgen/scripts/TreeMix_functions.R") #path to required functions for this analysis
+
+result <- maxLL("sixpop_treemix_bootrep_", nt=100, uel=FALSE)
+cfTrees("sixpop_treemix_bootrep_", nt=100, p=1, m='PH85')                        
+
+## 2. Now plot and save unique tree with highest likelihood:
+
+pdf("../../../../../figures/TreeMix_output_sixpop_maxLL.pdf", h=4, w=5)                                          
+treemix.bootstrap(in.file="sixpop_treemix_bootrep_78", #stem of TreeMix files (as above) + number of run with highest likelihood and unique topology
+                  out.file = "tmp", 
+                  phylip.file = "../sixpop_outtree.newick", 
+                  #consensus tree in newick format (from the bootstrap procedure generated with PHYLIP)    
+                  nboot = 200, #nboot is the number of bootstraps used
+                  fill = FALSE,  
+                  #pop.color.file = "col.txt",#specify colours with a tab delimited pop.color.file - first column is pop name, second the colour
+                  boot.legend.location = "topright")
+dev.off()
+
+for(i in 2:5){
+
+pdf(paste0("../../../../../figures/TreeMix_output_sixpop_LL_",i,".pdf"), h=4, w=5)                                          
+plot_tree(paste0("sixpop_treemix_bootrep_",result$top_likelihood_trees$treeN[i]))
+
+dev.off()
+}
+
+
+pdf("../../../../../figures/TreeMix_output_sixpop_top6_LL.pdf", h=5, w=8)                                          
+par(mfrow=c(3,3),   
+    mar=c(2, 2, 1, 1),
+    oma=c(0, 0, 0, 0))
+for(i in 1:6){
+  
+  plot_tree(paste0("sixpop_treemix_bootrep_",result$top_likelihood_trees$treeN[i]))
+  
+}
+dev.off()
+
+png("../../../../../figures/TreeMix_output_sixpop_top6_LL.png", h=5, w=8, units="in", res=200)                                          
+par(mfrow=c(3,3),   
+    mar=c(2, 2, 1, 1),
+    oma=c(0, 0, 0, 0))
+for(i in 1:6){
+  
+  plot_tree(paste0("sixpop_treemix_bootrep_",result$top_likelihood_trees$treeN[i]))
+  
+}
+dev.off()
+
+
+treemix.drift(in.file = "fourpop_treemix_bootrep_78")
+#pairwise matrix for drift estimates with specified order of pops 
+
+write.table(file="fourpop.order", data.frame(pops= c("Aduncus", 
+                                                     "OGulf", "OAtl",  
+                                                     "CGulf", "CAtl", 
+                                                     "IntGulf", "IntAtl")),
+            quote = F, row.names=F, col.names = F)
+
+plot_resid("sixpop_treemix_bootrep_42",                                        #pairwise matrix for residuals
+           pop_order = "fourpop.order") 
 
 
 ########################################################
@@ -192,6 +256,11 @@ treemix.bootstrap(in.file="sixpop_final_4mig_finalrun_25", #stem of TreeMix file
                   #pop.color.file = "col.txt",#specify colours with a tab delimited pop.color.file - first column is pop name, second the colour
                   boot.legend.location = "topright")
 dev.off()
+
+tree.text <- readLines("../../sixpop_final__finalconstree.newick")
+print(tree.text)
+result <- newick.split("../../sixpop_final__finalconstree.newick")
+
 
 treemix.drift(in.file = "final_runs_fourpop/final/fourpop_final__2mig_finalrun_1")
 #pairwise matrix for drift estimates with specified order of pops 
