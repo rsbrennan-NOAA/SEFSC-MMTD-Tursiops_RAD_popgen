@@ -3,7 +3,17 @@ title: "Tursiops RADseq summary"
 output:
   html_document:
     df_print: default
+  pdf_document: default
 ---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+library(knitr)
+library(kableExtra)
+```
+
+
 4356
 
 337 samples and 7577 SNPs from across the northern gulf and western Atlantic. 4356 SNPs after LD thinning
@@ -108,25 +118,68 @@ The f3-statistic explicitly tests whether a taxon of interest C results from adm
 
 First, I calculated these statistics with the four populations assignments:
 
-|pop1         | pop2         | pop3      | f3 estimate | se       | z-score     | p-value |
-|-------------|--------------|----------|-----------|----------|--------|----------------|
-| Intermediate| Coastal_Atl  | Offshore | 0.00379   | 0.000649 | 5.85   | < 0.00001  |
-| Intermediate| Coastal_Gulf | Offshore | -0.000549 | 0.000577 | -0.951 | 0.342          |
+
+```{r four-pop-table}
+# First table data
+table1 <- data.frame(
+  pop1 = c("Intermediate", "Intermediate"),
+  pop2 = c("Coastal_Atl", "Coastal_Gulf"),
+  pop3 = c("Offshore", "Offshore"),
+  f3_estimate = c(0.00379, -0.000549),
+  se = c(0.000649, 0.000577),
+  z_score = c(5.85, -0.951),
+  p_value = c("< 0.00001", "0.342")
+)
+
+kable(table1, 
+      format = "html", 
+      caption = "F3-Statistics with Four Population Assignments",
+      col.names = c("Population 1", "Population 2", "Population 3", "F3 Estimate", 
+                    "SE", "Z-Score", "P-Value"),
+      align = c('l', 'l', 'l', 'r', 'r', 'r', 'r')) %>%
+  kable_styling(bootstrap_options = c("striped", "hover"), 
+                full_width = FALSE) %>%
+  row_spec(2, background = "#f8e2e2")  # Highlight the row with negative F3
+```
+
 
 Remember, positive values are not informative, negative values indicate a population resulting from admixture. No significance here. 
 
 Next, I split into 6 populations:
 
-| pop1                  | pop2         | pop3                | f3 estimate| se       | z-score | p-value|
-|-----------------------|--------------|---------------------|-----------|----------|--------|----------|
-| Intermediate_Atlantic | Coastal_Atl  | Offshore_Atlantic   | 0.00580   | 0.000762 | 7.60   | 2.88e-14 |
-| Intermediate_Atlantic | Coastal_Atl  | Offshore_Gulf       | 0.00576   | 0.000679 | 8.49   | 2.14e-17 |
-| Intermediate_Atlantic | Coastal_Gulf | Offshore_Atlantic   | 0.000660  | 0.000667 | 0.989  | 3.23e-1  |
-| Intermediate_Atlantic | Coastal_Gulf | Offshore_Gulf       | 0.00200   | 0.000596 | 3.36   | 7.90e-4  |
-| Intermediate_Gulf     | Coastal_Atl  | Offshore_Atlantic   | 0.000401  | 0.000749 | 0.535  | 5.92e-1  |
-| Intermediate_Gulf     | Coastal_Atl  | Offshore_Gulf       | 0.000283  | 0.000653 | 0.433  | 6.65e-1  |
-| Intermediate_Gulf     | Coastal_Gulf | Offshore_Atlantic   | -0.00448  | 0.000695 | -6.44  | 1.16e-10 |
-| Intermediate_Gulf     | Coastal_Gulf | Offshore_Gulf       | -0.00322  | 0.000609 | -5.29  | 1.25e-7  |
+
+```{r six-pop-table}
+# Second table data
+table2 <- data.frame(
+  pop1 = c(rep("Intermediate_Atlantic", 4), rep("Intermediate_Gulf", 4)),
+  pop2 = c("Coastal_Atl", "Coastal_Atl", "Coastal_Gulf", "Coastal_Gulf", 
+           "Coastal_Atl", "Coastal_Atl", "Coastal_Gulf", "Coastal_Gulf"),
+  pop3 = c("Offshore_Atlantic", "Offshore_Gulf", "Offshore_Atlantic", "Offshore_Gulf",
+           "Offshore_Atlantic", "Offshore_Gulf", "Offshore_Atlantic", "Offshore_Gulf"),
+  f3_estimate = c(0.00580, 0.00576, 0.000660, 0.00200, 
+                  0.000401, 0.000283, -0.00448, -0.00322),
+  se = c(0.000762, 0.000679, 0.000667, 0.000596, 
+         0.000749, 0.000653, 0.000695, 0.000609),
+  z_score = c(7.60, 8.49, 0.989, 3.36, 
+              0.535, 0.433, -6.44, -5.29),
+  p_value = c("2.88e-14", "2.14e-17", "3.23e-1", "7.90e-4", 
+              "5.92e-1", "6.65e-1", "1.16e-10", "1.25e-7")
+)
+
+# Create and display the table directly
+kable(table2, 
+      format = "html", 
+      caption = "F3-Statistics with Six Population Assignments",
+      col.names = c("Population 1", "Population 2", "Population 3", "F3 Estimate", 
+                    "SE", "Z-Score", "P-Value"),
+      align = c('l', 'l', 'l', 'r', 'r', 'r', 'r')) %>%
+  kable_styling(bootstrap_options = c("striped", "hover"), 
+                full_width = FALSE) %>%
+  row_spec(c(7, 8), background = "#f8e2e2") %>%  # Highlight rows with negative F3
+  pack_rows("Intermediate Atlantic Tests", 1, 4) %>%
+  pack_rows("Intermediate Gulf Tests", 5, 8)
+
+```
 
 
 This indicates that the intermediate Gulf population is a result of admixture between the coastal gulf and both the Offshore Atlantic and Gulf populations. There is no evidence in the Atlantic Intermediate population. 
