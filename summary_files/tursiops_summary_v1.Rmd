@@ -1,0 +1,171 @@
+---
+title: "Tursiops RADseq summary"
+output:
+  html_document:
+    df_print: default
+---
+4356
+
+337 samples and 7577 SNPs from across the northern gulf and western Atlantic. 4356 SNPs after LD thinning
+
+![](../figures/map.png){width=70%}
+
+---
+
+## population structure
+
+First, just run a basic PCA:
+
+![](../figures/pca_popIds_region.png){width=70%}
+
+
+![](../figures/pca_depth.png){width=70%}
+
+![](../figures/pca_distance.png){width=70%}
+
+We get clustering by shallow and deep/ nearshore and offshore, rather than Atlantic vs. Gulf. Suggesting that nearshore in the Atlantic and Gulf are more similar that geographic promixmate animals nearshore and offshore.
+
+---
+
+The patterns above maybe look like an inversion or something, but the PCA loadings don't indicate this:
+![](../figures/manhattan_plot_pc1.png){width=90%}
+
+![](../figures/manhattan_plot_pc2.png){width=90%}
+
+
+---
+
+## admixture
+
+Sorting the plot below by Atlantic on the left, Gulf on the right. Then shallow to deep by collection location 
+
+Note that the left group in the Atlantic are the nearshore individuals, the bottom left in the PCAs above. 
+
+
+![](../figures/Admixture_plot.png)
+
+### ordered shallow to deep, following subset for unequal sample sizes:
+
+![](../figures/Admixture_plot_subset.png)
+
+
+
+## PCA admixture populations
+
+![](../figures/pca_admixturePops.png){width=70%}
+
+
+### NJ tree of pairwise genetic distances 
+
+![](../figures/nj_tree.png){width=70%}
+
+
+
+#### Population assignment conclusion
+
+Both Admixture and DAPC (not shown) indicate 4 populations as the most likely. They also agree with their individual assignments for all but ~5 individuals, who are all fairly admixed. 
+
+
+## Isolation by distance:
+
+Next, testing if there is isolation by distance at various scales. 
+
+Across all individuals, there is an IBD signal. But I think this is likely driven by underlying comparisons. 
+
+![](../figures/ibd_allpops.png){width=70%}
+
+
+Split this out into each individual population across both regions. Within a population we generally see IBD, except for Atlantic Offshore. Inter-population comparisons have no signal. 
+
+![](../figures/ibd_withinpops.png){width=70%}
+
+Can also split into just the Atlantic of Gulf:
+
+![](../figures/ibd_withinregion.png){width=70%}
+
+And split into Coastal, Intermediate, and Offshore:
+
+![](../figures/ibd_withindepth.png){width=70%}
+
+![](../figures/ibd_withindepth_interOnly.png){width=70%}
+
+This shows that the IBD pattern when all individuals are compared is driven primarily by within population comparisons and IDB is not really, or perhaps only weakly, present between the gulf and the atlantic.
+
+---
+
+# Introgression and hybrids
+
+The Intermediate individuals are possibly hybrids, given the results above they're intermediate in genetic distance for nearly all analyses. Here, I'll test this using:
+1. f3 statistics
+2. treemix
+3. triangle plots
+4. new hybrids
+
+
+### f3 statistics:
+
+The f3-statistic explicitly tests whether a taxon of interest C results from admixture between two others (A and B): A significantly negative f3-statistic supports the admixture hypothesis, while a positive value is not informative. In our case, our taxon of interest C is `Intermediate` while A and B are `Coastal` and `Offshore`. 
+
+First, I calculated these statistics with the four populations assignments:
+
+|pop1         | pop2         | pop3      | f3 estimate | se       | z-score     | p-value |
+|-------------|--------------|----------|-----------|----------|--------|----------------|
+| Intermediate| Coastal_Atl  | Offshore | 0.00379   | 0.000649 | 5.85   | < 0.00001  |
+| Intermediate| Coastal_Gulf | Offshore | -0.000549 | 0.000577 | -0.951 | 0.342          |
+
+Remember, positive values are not informative, negative values indicate a population resulting from admixture. No significance here. 
+
+Next, I split into 6 populations:
+
+| pop1                  | pop2         | pop3                | f3 estimate| se       | z-score | p-value|
+|-----------------------|--------------|---------------------|-----------|----------|--------|----------|
+| Intermediate_Atlantic | Coastal_Atl  | Offshore_Atlantic   | 0.00580   | 0.000762 | 7.60   | 2.88e-14 |
+| Intermediate_Atlantic | Coastal_Atl  | Offshore_Gulf       | 0.00576   | 0.000679 | 8.49   | 2.14e-17 |
+| Intermediate_Atlantic | Coastal_Gulf | Offshore_Atlantic   | 0.000660  | 0.000667 | 0.989  | 3.23e-1  |
+| Intermediate_Atlantic | Coastal_Gulf | Offshore_Gulf       | 0.00200   | 0.000596 | 3.36   | 7.90e-4  |
+| Intermediate_Gulf     | Coastal_Atl  | Offshore_Atlantic   | 0.000401  | 0.000749 | 0.535  | 5.92e-1  |
+| Intermediate_Gulf     | Coastal_Atl  | Offshore_Gulf       | 0.000283  | 0.000653 | 0.433  | 6.65e-1  |
+| Intermediate_Gulf     | Coastal_Gulf | Offshore_Atlantic   | -0.00448  | 0.000695 | -6.44  | 1.16e-10 |
+| Intermediate_Gulf     | Coastal_Gulf | Offshore_Gulf       | -0.00322  | 0.000609 | -5.29  | 1.25e-7  |
+
+
+This indicates that the intermediate Gulf population is a result of admixture between the coastal gulf and both the Offshore Atlantic and Gulf populations. There is no evidence in the Atlantic Intermediate population. 
+
+
+### f4 statistics:
+
+NOT DONE YET!!!!!! use admixtools to do this. or treemix. 
+
+
+### Treemix
+
+Maximum likelihood tree estimating drift among populations. Migration edges are fit to the tree to improve populations that are a poor fit to the model. Migration gets addes stepwise. You can estimate the number of migration events that improves the model fit best, similar to structure evanno type approaches. 
+
+#### no migration
+
+First fit the trees with 0 migration events:
+
+![Four populations, no migration events](../figures/TreeMix_noMigration_fourpop.png){width=50%}![Six populations, no migration events](../figures/TreeMix_noMigration_sixpop.png){width=50%}
+
+#### Adding migration events:
+
+Best number of migrations events:
+
+- Four populations: 2 migrations events
+- Six populations: 4 migration events
+
+The four population result is consistent and clear. There are two migration edges, between intermediate and offshore and the node of intermediate/Coastal Gulf and offshore. This tree is well supported and consistent across runs (100 runs, nearly all show this exact tree, below). 
+
+
+![](../figures/TreeMix_output_fourpop.png){width=50%}
+
+In contrast, with 6 populations, things are much more uncertain/unstable. For the most likely tree (top left, in figure below) there are migration edges between the intermediate pops and the branch leading to coastal populations. There is also migration from the node of coastal Gulf/intermediate with both offshore populations. The next 5 most likely trees show similar variations on these migration events. Note that the position of the coastal and intermediate populations are unstable across runs. This maybe isn't shocking given that these populations aren't well supported in the other analyses. 
+
+Results that are consistent:
+
+- Offshore Gulf and Offshore Atl are always sister
+- There is no migration with the coastal Atlantic population. 
+- there is ample migration between Intermediate and offshore populations. 
+
+![](../figures/TreeMix_output_sixpop_top6_LL.png){width=100%}
+
