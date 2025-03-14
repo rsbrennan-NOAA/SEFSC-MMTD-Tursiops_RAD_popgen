@@ -105,7 +105,9 @@ This shows that the IBD pattern when all individuals are compared is driven prim
 # Introgression and hybrids
 
 The Intermediate individuals are possibly hybrids, given the results above they're intermediate in genetic distance for nearly all analyses. Here, I'll test this using:
+
 1. f3 statistics
+2. D-/f4 statistics
 2. treemix
 3. triangle plots
 4. new hybrids
@@ -162,10 +164,68 @@ kable(table2,
 
 This indicates that the intermediate Gulf population is a result of admixture between the coastal gulf and both the Offshore Atlantic and Gulf populations. There is no evidence in the Atlantic Intermediate population. 
 
+<br>
+<br>
 
-### f4 statistics:
+### D-/f4 statistics:
 
-NOT DONE YET!!!!!! use admixtools to do this. or treemix. 
+D-statistics, or ABBA-BABA tests, test for introgression by looking for violations of incomplete lineage sorting. In short, if we have a tree with an ancestral "A" allele and derived "B" allele in the tree (((P1,P2),P3),O) where O is the outgroup, we should see an "ABBA" or "BABA" pattern at equal frequencies when there is incomplete lineage sorting and no gene flow. If there is an over representation of either ABBA or BABA, this suggests gene flow (see figure below, from the Dsuite tutorial). 
+<br>
+
+![Example of ABBA BABA test](../figures/DstatIllustration2.png){width=70%}
+<br>
+<br>
+I ran this test with [Dsuite](https://github.com/millanek/Dsuite), with Aduncus as the outgroup. For the output below, P1 and P2 will always be arranged so that D is positive and indicates geneflow between P2 and P3. P1 and P2 could be flipped which would just flip the sign of D to negative and indicate gene flow between P1 and P3. 
+
+
+```{r four-pop-dstats}
+# Second table data
+table2 <- read.table("../analysis/pop_structure/dstats/dstats_fourpop.txt", header=T)
+
+kable(table2, 
+      format = "html", 
+      caption = "D-Statistics with four Populations",
+      #col.names = c("pop1", "pop2", "pop3", "est", 
+      #              "se", "z", "p"),
+      align = "c") %>%
+  kable_styling(bootstrap_options = c("striped", "hover"), 
+                full_width = FALSE) %>%
+  row_spec(which(table2$p.value_multTesting < 0.05), background = "salmon") #%>%  # Highlight rows with negative F3
+  #pack_rows("Intermediate Atlantic", 1, 4) %>%
+  #pack_rows("Intermediate Gulf", 5, 8)
+
+```
+
+- There is the strongest evidence for gene flow between the coastal gulf and intermediate population (line 1). 
+- There is also gene flow between Coastal Gulf and Offshore
+<br>
+
+
+```{r six-pop-dstats}
+# Second table data
+table2 <- read.table("../analysis/pop_structure/dstats/dstats_sixpop.txt", header=T)
+
+kable(table2, 
+      format = "html", 
+      caption = "D-Statistics with six Populations",
+      #col.names = c("pop1", "pop2", "pop3", "est", 
+      #              "se", "z", "p"),
+      align = "c") %>%
+  kable_styling(bootstrap_options = c("striped", "hover"), 
+                full_width = FALSE) %>%
+  row_spec(which(table2$p.value_multTesting < 0.05), background = "salmon") #%>%  # Highlight rows with negative F3
+  #pack_rows("Intermediate Atlantic", 1, 4) %>%
+  #pack_rows("Intermediate Gulf", 5, 8)
+
+```
+
+- There is geneflow between both Intermediate Atlantic and Intermediate Gulf with Coastal Gulf. 
+- Gene flow between Coastal gulf and both offshore populations
+- No signal for intermediate and offshore populations
+
+
+<br><br>
+
 
 
 ### Treemix

@@ -57,6 +57,8 @@ write.table(file="analysis/pop_structure/admixtools/tursiops_aduncus_fourpop.ind
 write.table(file="analysis/pop_structure/admixtools/tursiops_aduncus_fourpop.fam", dat, 
             col.names=F, quote=FALSE, sep="\t", row.names=F)
 
+###################
+# six pops
 
 dat <- read.table("analysis/pop_structure/admixtools/tursiops_aduncus_sixpop.fam")
 
@@ -68,9 +70,9 @@ indiv_to_pop <- setNames(pops$pop, pops$indiv)
 dat$V1 <- indiv_to_pop[dat$V2]
 dat$V1[1:3] <- "Aduncus"
 
-write.table(file="analysis/pop_structure/admixtools/tursiops_aduncus.ind", dat, 
+write.table(file="analysis/pop_structure/admixtools/tursiops_aduncus_sixpop.ind", dat, 
             col.names=F, quote=FALSE, sep="\t", row.names=F)
-write.table(file="analysis/pop_structure/admixtools/tursiops_aduncus.fam", dat, 
+write.table(file="analysis/pop_structure/admixtools/tursiops_aduncus_sixpop.fam", dat, 
             col.names=F, quote=FALSE, sep="\t", row.names=F)
 
 
@@ -233,6 +235,194 @@ a=0.5
 b=0.8
 c=0.9 # potentially admixed population
 (c-a)*(c-b)
+
+
+
+
+
+
+
+
+
+
+
+
+#----------------------------------------------------------------------------------
+#----------------------------------------------------------------------------------
+#d stats
+#----------------------------------------------------------------------------------
+#----------------------------------------------------------------------------------
+
+dstat_four <- read.table("analysis/pop_structure/dstats/fourpop_all_BBAA.txt", header=T)
+dstat_four
+
+dstat_four$p.value_multTesting <- p.adjust(dstat_four$p.value,method="bonferroni")
+
+write.table(dstat_four,"analysis/pop_structure/dstats/dstats_fourpop.txt",
+            sep="\t", quote=F, row.names=F)
+# remember, always arranged to be positive. 
+# p1 and p2 can be flipped, would make negative.
+# as is, indicates gene flow between p2 and p3. 
+# so 
+dstat_six <- read.table("analysis/pop_structure/dstats/sixpop_all_BBAA.txt", header=T)
+dstat_six$p.value_multTesting <- p.adjust(dstat_six$p.value,method="bonferroni")
+
+dstat_six[dstat_six$p.value_multTesting < 0.05,]
+write.table(dstat_six,"analysis/pop_structure/dstats/dstats_sixpop.txt",
+            sep="\t", quote=F, row.names=F)
+#
+
+
+
+
+
+
+#----------------------------------------------------------------------------------
+#----------------------------------------------------------------------------------
+#F4 stats
+#----------------------------------------------------------------------------------
+#----------------------------------------------------------------------------------
+# https://compvar-workshop.readthedocs.io/en/latest/contents/03_f3stats/f3stats.html
+# use aduncus outgroup. 
+
+# F4(A,B;C,D)=⟨(a−b)(c−d)⟩.
+
+prefix = 'analysis/pop_structure/admixtools/tursiops_aduncus_fourpop'
+my_f2_dir = 'analysis/pop_structure/admixtools/f2_tursiops_aduncus_fourpop/'
+#extract_f2(prefix, my_f2_dir,auto_only = FALSE,
+#           maxmiss =0.3, overwrite=T)
+
+f2_blocks = f2_from_precomp(my_f2_dir,afprod = TRUE) #(afprod helps avoid bias)
+
+
+f4_result <- f4(f2_blocks,
+                pop1 = "Aduncus",  # Outgroup
+                pop2 = "Coastal_Gulf",  # P1 in your DSuite output
+                pop3 = "Coastal_Atl",  # P2 in your DSuite output
+                pop4 = "Intermediate")  # P3 in your DSuite output
+
+f4_result <- f4(f2_blocks,
+                pop1 = "Aduncus",  # Outgroup
+                pop2 = "Coastal_Gulf",  # P1 in your DSuite output
+                pop3 = "Offshore",  # P2 in your DSuite output
+                pop4 = "Intermediate")  # P3 in your DSuite output
+
+f4_result
+print(f4_result)
+
+
+# This indicates excess allele sharing between Coastal_Gulf and Intermediate,
+#For f4(A,B;C,D), it calculates the average of (a-b)*(c-d) 
+# so (aduncus - coastal Gulf) * (coastal Atl - Intermediate)
+# A negative f4 value means that when the allele frequencies 
+   # of Aduncus and Coastal_Gulf differ in one direction, 
+   # the frequencies of Coastal_Atl and Intermediate tend to differ in 
+   # the opposite direction. This creates two possible explanations
+# Excess allele sharing between Aduncus and Coastal_Atl
+# Excess allele sharing between Coastal_Gulf and Intermediate
+# but aduncus the outgroup, so it isn't this. 
+
+# When the allele frequency difference (aduncus - coastal_gulf) is positive, 
+     # the difference (coastal_atl - intermediate) tends to be negative
+# OR when (aduncus - coastal_gulf) is negative, (coastal_atl - intermediate) 
+    # tends to be positive
+# This negative correlation suggests that coastal_gulf and intermediate share alleles 
+   # that are not shared between aduncus and coastal_atl.
+
+
+# Test 1: Testing gene flow between Intermediate and Coastal populations
+f4_results <- f4(f2_blocks,
+                 pop1 = "Aduncus",
+                 pop2 = "Offshore", 
+                 pop3 = c("Intermediate", "Coastal_Gulf", "Coastal_Atl"),
+                 pop4 = c("Intermediate", "Coastal_Gulf", "Coastal_Atl"))
+f4(f2_blocks, pop1, pop2, pop3, pop4)
+
+f4_filtered <- f4_results[f4_results$pop3 != f4_results$pop4,]
+f4_intermediate_coastal <- f4(f2_blocks,
+                              pop1 = "Aduncus",  # outgroup
+                              pop2 = "Coastal_Atl",  # reference population
+                              pop3 = "Intermediate",
+                              pop4 = "Coastal_Gulf")
+
+# sig gene flow between the Intermediate population and the coastal population.
+
+pop1 = 'Aduncus'
+pop2 = 'Offshore'
+pop3 = "Intermediate"
+pop4 = c("Coastal_Gulf", "Coastal_Atl")
+f4(f2_blocks, pop1, pop2, pop3, pop4)
+
+
+
+# Test 2: Alternative arrangement to test gene flow between Intermediate and Offshore
+pop1 = 'Aduncus'
+pop2 = c("Coastal_Gulf", "Coastal_Atl")
+pop3 = 'Offshore'
+pop4 = "Intermediate"
+f4(f2_blocks, pop1, pop2, pop3, pop4)
+
+f4(f2_blocks, pop1, pop2, pop3, pop4, f4mode=FALSE)
+
+f4_fourpops <- f4(f2_blocks)
+#
+
+#--------------------
+# six pops
+
+
+prefix = 'analysis/pop_structure/admixtools/tursiops_aduncus_sixpop'
+my_f2_dir = 'analysis/pop_structure/admixtools/f2_tursiops_aduncus_sixpop/'
+extract_f2(prefix, my_f2_dir,auto_only = FALSE,
+           maxmiss =0.3, overwrite=T)
+
+f2_blocks = f2_from_precomp(my_f2_dir,afprod = TRUE) #(afprod helps avoid bias)
+
+# Test 1: Testing gene flow between Intermediate and Coastal populations
+pop1 = 'Aduncus'
+pop2 = c("Intermediate_Atlantic", "Intermediate_Gulf")
+pop3 = c("Coastal_Gulf", "Coastal_Atl")
+pop4 = c('Offshore_Gulf', "Offshore_Atlantic")
+f4(f2_blocks, pop1, pop2, pop3, pop4)
+
+# sig gene flow between the Intermediate population and the coastal population.
+
+f4_sixpops <- f4(f2_blocks)
+
+f4_sixpops <- f4_sixpops[which(f4_sixpops$pop1 == "Aduncus"),]
+
+as.data.frame(f4_sixpops[order(f4_sixpops$pop2, f4_sixpops$pop3),])
+as.data.frame((f4_sixpops))
+#
+
+
+
+
+
+#-----------------------------------------------------------------------
+#-----------------------------------------------------------------------
+#-----------------------------------------------------------------------
+#-----------------------------------------------------------------------
+# admixr
+library(admixr)
+
+snp_data <- eigenstrat(download_data())
+
+result <- d(
+  W = c("French", "Sardinian"), X = "Yoruba", Y = "Vindija", Z = "Chimp",
+  data = snp_data
+)
+
+result
+#
+
+
+
+
+
+
+
+
 
 
 
