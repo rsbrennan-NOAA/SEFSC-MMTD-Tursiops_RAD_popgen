@@ -124,7 +124,7 @@ The Intermediate individuals are possibly hybrids, given the results above they'
 
 ### f3 statistics:
 
-The f3-statistic explicitly tests whether a taxon of interest C results from admixture between two others (A and B): A significantly negative f3-statistic supports the admixture hypothesis, while a positive value is not informative. In our case, our taxon of interest C is `Intermediate` while A and B are `Coastal` and `Offshore`. 
+The f3-statistic explicitly tests whether a taxon of interest results from admixture between two others: A significantly negative f3-statistic supports the admixture hypothesis, while a positive value is not informative. In our case, our taxon of interest (pop1) is `Intermediate` while pop1 and pop2 are `Coastal` and `Offshore`. 
 
 First, I calculated these statistics with the four populations assignments:
 
@@ -178,7 +178,7 @@ This indicates that the intermediate Gulf population is a result of admixture be
 
 ### D-/f4 statistics:
 
-D-statistics, or ABBA-BABA tests, test for introgression by looking for violations of incomplete lineage sorting. In short, if we have a tree with an ancestral "A" allele and derived "B" allele in the tree (((P1,P2),P3),O) where O is the outgroup, we should see an "ABBA" or "BABA" pattern at equal frequencies when there is incomplete lineage sorting and no gene flow. If there is an over representation of either ABBA or BABA, this suggests gene flow (see figure below, from the Dsuite tutorial). 
+D-statistics, or ABBA-BABA tests, test for introgression by looking for deviations from incomplete lineage sorting. In short, if we have a tree with an ancestral "A" allele and derived "B" allele in the tree (((P1,P2),P3),O) where O is the outgroup, we should see an "ABBA" or "BABA" pattern at equal frequencies when there is incomplete lineage sorting and no gene flow. If there is an over representation of either ABBA or BABA, this suggests gene flow (see figure below, from the Dsuite tutorial). 
 <br>
 
 ![Example of ABBA BABA test](../figures/DstatIllustration2.png){width=70%}
