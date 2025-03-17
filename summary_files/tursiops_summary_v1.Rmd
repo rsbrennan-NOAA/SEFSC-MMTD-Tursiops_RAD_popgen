@@ -1,9 +1,12 @@
 ---
 title: "Tursiops RADseq summary"
+author: Reid Brennan
 output:
   html_document:
-    df_print: default
-  pdf_document: default
+    theme: united
+    toc: true
+    toc_float: true
+    center: true
 ---
 
 
@@ -13,15 +16,13 @@ library(knitr)
 library(kableExtra)
 ```
 
-4356
-
 337 samples and 7577 SNPs from across the northern gulf and western Atlantic. 4356 SNPs after LD thinning
 
 ![](../figures/map.png){width=70%}
 
 ---
 
-## population structure
+# population structure
 
 First, just run a basic PCA:
 
@@ -57,9 +58,9 @@ Note that the left group in the Atlantic are the nearshore individuals, the bott
 
 ![](../figures/Admixture_plot_subset.png)
 
+<br>
 
-
-## PCA admixture populations
+## Population structure with admixture populations
 
 ![](../figures/pca_admixturePops.png){width=70%}
 
@@ -68,12 +69,15 @@ Note that the left group in the Atlantic are the nearshore individuals, the bott
 
 ![](../figures/nj_tree.png){width=70%}
 
+<br>
+<br>
 
 
 #### Population assignment conclusion
 
 Both Admixture and DAPC (not shown) indicate 4 populations as the most likely. They also agree with their individual assignments for all but ~5 individuals, who are all fairly admixed. 
 
+<br><br>
 
 ## Isolation by distance:
 
@@ -83,10 +87,15 @@ Across all individuals, there is an IBD signal. But I think this is likely drive
 
 ![](../figures/ibd_allpops.png){width=70%}
 
+<br>
 
 Split this out into each individual population across both regions. Within a population we generally see IBD, except for Atlantic Offshore. Inter-population comparisons have no signal. 
 
 ![](../figures/ibd_withinpops.png){width=70%}
+
+Tt312 and 13Tt073 are divergent and causing that weird pattern in offshore atlantic
+
+<br>
 
 Can also split into just the Atlantic of Gulf:
 
@@ -259,4 +268,32 @@ Results that are consistent:
 - there is ample migration between Intermediate and offshore populations. 
 
 ![](../figures/TreeMix_output_sixpop_top6_LL.png){width=100%}
+
+### Triangle plots
+
+The basic idea behind these is that we can idenfity early generation hybrids by both their ancestry and (interclass) heterozygosity. We consider highly divergent differences (> 0.7 frequency; 0.8 snf 0.9 give similar results) between parental populations Ancestry Informative Markers (AIMs). Then an F1 hybrid would have a hybrid index based on these AIMs of 0.5 (50% of alleles from either parent population). We calculate how many of AIMs in the putative hybrids are heterozygous for ancestry from either parent. For an F1, all loci would be heterozygous, so this value would be 1. With F2, this heterozygosity would drop to ~0.5. and continue to drop if there is backcrossing. 
+
+Here's a nice paper that shows expectations for different scenarios. In short, if we follow the expectation curve in the plot below, it is likely due to admixture and not isolation by distance or a similar process. In contrast, there should be no relationship between hybrid index and heterozygosity when admixture has not occurred and IBD is the main feature of the data  https://onlinelibrary.wiley.com/doi/10.1111/1755-0998.14039
+
+
+
+
+![Four population assignment](../figures/triangle_plot_fourpop.png){width=100%}
+
+<br><br>
+
+![Six population assignment](../figures/triangle_plot_sixpop.png){width=100%}
+
+<br><br>
+There are no F1 hybrids in these data, but the rest of the variation is likely due to admixture, not neutral IDB. 
+
+<br><br><br><br><br><br>
+
+# still to do
+
+1. Genomic cline analysis
+  - using introgress, bgc, or similar (from Gompert). 
+2. gene environment associations
+3. general selection scans within species. 
+
 

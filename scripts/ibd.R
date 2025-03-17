@@ -22,7 +22,12 @@ str_dist <- as.matrix(ecodist::distance(str_dos, method = "euclidean"))
 
 
 pc_dists <- gen_dist((str_dos), dist_type = "pc", 
-                     npc_selection = "manual") # use 3pcs, following k-1
+                     npc_selection = "manual") 
+          # shirk suggests using 64 axes
+
+# https://onlinelibrary.wiley.com/doi/abs/10.1111/1755-0998.12684
+
+
 pc_dists_auto <- gen_dist((str_dos), dist_type = "pc", 
                      npc_selection = "auto",criticalpoint = 2.0234)
 
@@ -34,15 +39,15 @@ pc_plink <- gen_dist(
 )
 
 gen_dist_corr(dist_x = pc_dists, dist_y = pc_plink, 
-              metric_name_x = "SNMF_PCA", metric_name_y = "plink")
+              metric_name_x = "pc_dists", metric_name_y = "plink")
 gen_dist_corr(dist_x = pc_dists, dist_y = str_dist, 
-              metric_name_x = "SNMF_PCA", metric_name_y = "euclidian")
+              metric_name_x = "pc_dists", metric_name_y = "euclidian")
 gen_dist_corr(dist_x = str_dist, dist_y = pc_plink, 
               metric_name_x = "euclidian", metric_name_y = "plink")
 gen_dist_corr(dist_x = pc_plink, dist_y = pc_dists_auto, 
               metric_name_x = "pc_plink", metric_name_y = "pc_dists_auto")
 gen_dist_corr(dist_x = pc_dists, dist_y = pc_dists_auto, 
-              metric_name_x = "SNMF_PCA", metric_name_y = "pc_dists_auto")
+              metric_name_x = "pc_dists", metric_name_y = "pc_dists_auto")
 
 gen_dist_corr(dist_x = pc_plink, dist_y = str_dist, 
               metric_name_x = "pc_plink", metric_name_y = "euclidian")
