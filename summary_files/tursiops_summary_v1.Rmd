@@ -153,9 +153,17 @@ Tt312 and 13Tt073 are divergent and causing that weird pattern in offshore atlan
 <br>
 <br>
 
+## Pairwise Fst
+
+
+!!!! still to do !!!!
+
+
+<br><br>
+
 # Introgression and hybrids
 
-The Intermediate individuals are possibly hybrids, given the results above they're intermediate in genetic distance for nearly all analyses. Here, I'll test this using:
+The Intermediate individuals are possibly hybrids, given the results above they're intermediate in genetic distance for nearly all analyses. Here, I'll test this more explicitly using:
 
 1. f3 statistics
 2. D-/f4 statistics
@@ -206,7 +214,7 @@ kable(table2,
       align = c('c', 'c', 'c', 'c', 'c', 'c', 'c')) %>%
   kable_styling(bootstrap_options = c("striped", "hover"), 
                 full_width = FALSE) %>%
-  row_spec(c(7, 8), background = "salmon") %>%  # Highlight rows with negative F3
+  row_spec(c(7, 8), background = "#f8d0d8") %>%  # Highlight rows with negative F3
   pack_rows("Intermediate Atlantic", 1, 4) %>%
   pack_rows("Intermediate Gulf", 5, 8)
 
@@ -241,7 +249,7 @@ kable(table2,
       align = "c") %>%
   kable_styling(bootstrap_options = c("striped", "hover"), 
                 full_width = FALSE) %>%
-  row_spec(which(table2$p.value_multTesting < 0.05), background = "salmon") #%>%  # Highlight rows with negative F3
+  row_spec(which(table2$p.value_multTesting < 0.05), background = "#f8d0d8") #%>%  # Highlight rows with negative F3
   #pack_rows("Intermediate Atlantic", 1, 4) %>%
   #pack_rows("Intermediate Gulf", 5, 8)
 
@@ -264,7 +272,7 @@ kable(table2,
       align = "c") %>%
   kable_styling(bootstrap_options = c("striped", "hover"), 
                 full_width = FALSE) %>%
-  row_spec(which(table2$p.value_multTesting < 0.05), background = "salmon") #%>%  # Highlight rows with negative F3
+  row_spec(which(table2$p.value_multTesting < 0.05), background = "#f8d0d8") #%>%  # Highlight rows with negative F3
   #pack_rows("Intermediate Atlantic", 1, 4) %>%
   #pack_rows("Intermediate Gulf", 5, 8)
 
