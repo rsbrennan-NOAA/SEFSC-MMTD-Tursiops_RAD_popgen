@@ -136,6 +136,8 @@ merged_distances <- merge(pc_long, lc_long,
 pops <- read.table("analysis/pop_structure/sixpop_all.clust", header=F)
 colnames(pops) <-c("ids", "population")
 #out$label <- gsub("X", "", out$label)
+
+# this is changing coastal_Atl to Coastal_Atlantic
 pops <- pops %>%
   mutate(population = ifelse(population == "Coastal_Atl", "Coastal_Atlantic", population)) %>%
   separate(population, into = c("Population", "region"), sep = "_", remove = FALSE) %>%
@@ -184,16 +186,122 @@ p2 <- ggplot(merged_distances, aes(x = leastcost_distance, y = pc_distance)) +
   theme_bw(base_size = 14) +
   labs(y = "Genetic Distance", 
        x = "Geographic Distance",
-       title = "Isolation by distance: within population") +
+       title = "Isolation by distance: Six populations") +
   facet_wrap(~comparison, ncol=3) +
   guides(color = guide_legend(override.aes = list(alpha = 1, size=5)))
 
 p2
-ggsave("figures/ibd_withinpops.png", p2, h=7, w=9)
+ggsave("figures/ibd_sixpops.png", p2, h=7, w=9)
 
 merged_distances[which(merged_distances$comparison == "Offshore_Atlantic"),]
 
 # 7Tt312 and 13Tt073 are divergent and causing that weird pattern in offshore atlantic
+
+
+
+
+
+#-------------------------------------------------------------------------
+#-------------------------------------------------------------------------
+# idb four pop
+#-------------------------------------------------------------------------
+#-------------------------------------------------------------------------
+
+
+# add the region and pop:
+pops <- read.table("analysis/pop_structure/fourpop_all.clust", header=F)
+colnames(pops) <-c("ids", "population")
+#out$label <- gsub("X", "", out$label)
+pops <- pops %>%
+  mutate(population = ifelse(population == "Coastal_Atl", "Coastal_Atlantic", population)) 
+
+merged_distances <- merge(pc_long, lc_long, 
+                          by = c("indiv_1", "indiv_2"), 
+                          all = FALSE)
+
+id_to_pop <- setNames(pops$population, pops$ids)
+merged_distances$population_1 <- id_to_pop[merged_distances$indiv_1]
+merged_distances$population_2 <- id_to_pop[merged_distances$indiv_2]
+
+head(merged_distances)
+
+merged_distances <- merged_distances %>%
+  mutate(comparison = case_when(
+    population_1 == "Coastal_Atlantic" & population_2 == "Coastal_Atlantic" ~ "Coastal_Atlantic",
+    population_1 == "Coastal_Gulf" & population_2 == "Coastal_Gulf" ~ "Coastal_Gulf",
+    population_1 == "Intermediate" & population_2 == "Intermediate" ~ "Intermediate",
+    population_1 == "Offshore" & population_2 == "Offshore" ~ "Offshore",
+    TRUE ~ "inter-population"
+  ))
+head(merged_distances)
+
+p2 <- ggplot(merged_distances, aes(x = leastcost_distance, y = pc_distance)) +
+  geom_point(aes(color = comparison),alpha = 0.3) +
+  geom_smooth(method = "lm", se = TRUE, linewidth=2) +
+  theme_bw(base_size = 14) +
+  labs(y = "Genetic Distance", 
+       x = "Geographic Distance",
+       title = "Isolation by distance: four populations") +
+  facet_wrap(~comparison, ncol=3) +
+  guides(color = guide_legend(override.aes = list(alpha = 1, size=5)))
+
+p2
+ggsave("figures/ibd_fourpops.png", p2, h=7, w=9)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#-----------------------------------------
+# split by Gulf and Atlantic:
+merged_distances <- merged_distances %>%
+  mutate(comparison_ocean = case_when(
+    str_detect(population_1, "Gulf") & str_detect(population_2, "Gulf") ~ "Gulf",
+    str_detect(population_1, "Atlantic") & str_detect(population_2, "Atlantic") ~ "Atlantic",
+    TRUE ~ "inter-ocean"
+  ))
+
+p2 <- ggplot(merged_distances, aes(x = leastcost_distance, y = pc_distance)) +
+  geom_point(aes(color = comparison),alpha = 0.3) +
+  geom_smooth(method = "lm", se = TRUE, linewidth=2) +
+  theme_bw(base_size = 14) +
+  labs(y = "Genetic Distance", 
+       x = "Geographic Distance",
+       title = "Isolation by distance: within region") +
+  facet_wrap(~comparison_ocean, ncol=2) +
+  guides(color = guide_legend(override.aes = list(alpha = 1, size=5)))
+
+p2
+ggsave("figures/ibd_withinregion.png", p2, h=5, w=9)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 #-----------------------------------------

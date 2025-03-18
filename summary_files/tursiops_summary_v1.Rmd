@@ -22,14 +22,22 @@ library(kableExtra)
 
 ---
 
-# population structure
+# Population structure
 
-First, just run a basic PCA:
+## PCA
+
+First, just run a basic PCA with all samples, colored by region:
 
 ![](../figures/pca_popIds_region.png){width=70%}
 
 
+<br>
+
+### PCA colored by depth
+
 ![](../figures/pca_depth.png){width=70%}
+
+## PCA colored by distance from shore
 
 ![](../figures/pca_distance.png){width=70%}
 
@@ -37,7 +45,10 @@ We get clustering by shallow and deep/ nearshore and offshore, rather than Atlan
 
 ---
 
-The patterns above maybe look like an inversion or something, but the PCA loadings don't indicate this:
+### Checking for an inversion
+
+The patterns above maybe look like an inversion. If we saw this, we'd see the PCA loadings clustered in a single location in the genome, but the PCA loadings don't indicate this, instead we see the loadings distributed across the genome.
+
 ![](../figures/manhattan_plot_pc1.png){width=90%}
 
 ![](../figures/manhattan_plot_pc2.png){width=90%}
@@ -45,7 +56,11 @@ The patterns above maybe look like an inversion or something, but the PCA loadin
 
 ---
 
-## admixture
+<br><br>
+
+## Admixture
+
+Running multiple K's with the cross-validation error for each. Lowest error indicates the most likely K. It is basically withholding a subset of the genotypes then predicting their values and comparees this to the withheld data. 
 
 Sorting the plot below by Atlantic on the left, Gulf on the right. Then shallow to deep by collection location 
 
@@ -60,7 +75,7 @@ Note that the left group in the Atlantic are the nearshore individuals, the bott
 
 <br>
 
-## Population structure with admixture populations
+## Population structure with populations inferred from Admixture
 
 ![](../figures/pca_admixturePops.png){width=70%}
 
@@ -73,15 +88,25 @@ Note that the left group in the Atlantic are the nearshore individuals, the bott
 <br>
 
 
-#### Population assignment conclusion
+## Population assignment conclusion
 
-Both Admixture and DAPC (not shown) indicate 4 populations as the most likely. They also agree with their individual assignments for all but ~5 individuals, who are all fairly admixed. 
+- Both Admixture and DAPC (not shown) indicate 4 populations as the most likely. They also agree with their individual assignments for all but ~5 individuals, who are all fairly admixed. 
+- The four popoulations are:
+  - Coastal Gulf
+  - Coastal Atlantic
+  - Intermediate
+  - Offshore
+
+For the rest of the analyses, I'll run both the four population analysis as well as a six population analysis, splitting the intermediate and offshore into Gulf and Atlantic. I think this makes sense biologically and is justified given our hypotheses going into the analysis. 
+
 
 <br><br>
 
 ## Isolation by distance:
 
-Next, testing if there is isolation by distance at various scales. 
+Next, testing if there is isolation by distance at various scales. For all I'm using PCA-based genetic distance with 64 PCs (based on [Shirk et al.](https://onlinelibrary.wiley.com/doi/abs/10.1111/1755-0998.12684)), but these values are very similar to Plink and Euclidian values. 
+
+### IDB across all individuals
 
 Across all individuals, there is an IBD signal. But I think this is likely driven by underlying comparisons. 
 
@@ -89,27 +114,44 @@ Across all individuals, there is an IBD signal. But I think this is likely drive
 
 <br>
 
+### IBD: Four population analysis
+
+![](../figures/ibd_fourpops.png){width=70%}
+
+### IBD: Six population analysis
+
 Split this out into each individual population across both regions. Within a population we generally see IBD, except for Atlantic Offshore. Inter-population comparisons have no signal. 
 
-![](../figures/ibd_withinpops.png){width=70%}
+![](../figures/ibd_sixpops.png){width=70%}
 
-Tt312 and 13Tt073 are divergent and causing that weird pattern in offshore atlantic
+Tt312 and 13Tt073 are divergent and causing that weird pattern in offshore atlantic. I'm not sure why. Maybe there's an argument to drop them, but they don't appear weird in other analyses, I don't think. Need to double check missing data, etc for these individuals. 
 
 <br>
 
-Can also split into just the Atlantic of Gulf:
+### IBD: Atlantic and Gulf
 
 ![](../figures/ibd_withinregion.png){width=70%}
 
-And split into Coastal, Intermediate, and Offshore:
+### IBD: Combining Atlantic and Gulf
 
 ![](../figures/ibd_withindepth.png){width=70%}
 
+### IBD: Comparing only between populations
+
 ![](../figures/ibd_withindepth_interOnly.png){width=70%}
 
-This shows that the IBD pattern when all individuals are compared is driven primarily by within population comparisons and IDB is not really, or perhaps only weakly, present between the gulf and the atlantic.
+<br>
+
+### IBD conclusion
+
+- strong signal of IBD within both the four and six populations. 
+- Between the Gulf and Atlantic, there is relatively minimal IBD. 
+
 
 ---
+
+<br>
+<br>
 
 # Introgression and hybrids
 
