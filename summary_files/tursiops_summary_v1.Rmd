@@ -155,6 +155,10 @@ Tt312 and 13Tt073 are divergent and causing that weird pattern in offshore atlan
 
 ## Pairwise Fst
 
+Above diagonal, Fst, below, p-values from 500 bootstrap permutations. 
+
+![](../figures/fst.png){width=70%}
+
 
 !!!! still to do !!!!
 
