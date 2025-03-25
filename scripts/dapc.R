@@ -122,7 +122,7 @@ admix[which(admix$admixture_population != df$dapc_population),]
 # DAPC calls them all intermediate. which is reasonable honestly. But so are the admixture assigns. 
 
 # admixture scores:
-#IDs       Q1       Q2       Q3       Q4    highest_Q
+#IDs       Q1       Q2       Q3       Q4          highest_Q
 #1 10Tt007 0.487264 0.000010 0.010431 0.502294 Coastal_Gulf
 #2 10Tt059 0.455808 0.000010 0.000010 0.544172 Coastal_Gulf
 #3 13Tt073 0.358837 0.148496 0.462016 0.030651     Offshore
@@ -131,3 +131,5 @@ admix[which(admix$admixture_population != df$dapc_population),]
 #6  8Tt144 0.440412 0.000010 0.463625 0.095952     Offshore
 
 
+write.table(file="analysis/populations_dapc.txt", df, sep="\t", 
+            quote = F, row.names=F)

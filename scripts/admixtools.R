@@ -11,11 +11,10 @@ library(tidyverse)
 #reformat the fam files to have the four and 6 pops
 dat <- read.table("analysis/pop_structure/admixtools/tursiops_fourpop.fam")
 
-pops <- read.table("analysis/pop_structure/fourpop_all.clust")
-colnames(pops) <- c("indiv", "pop")
+pops <- read.table("analysis/population_assignments_summary.txt", header=T)
 
 # make map
-indiv_to_pop <- setNames(pops$pop, pops$indiv)
+indiv_to_pop <- setNames(pops$fourpop, pops$indiv)
 dat$V1 <- indiv_to_pop[dat$V2]
 
 write.table(file="analysis/pop_structure/admixtools/tursiops_fourpop.ind", dat, 
@@ -26,11 +25,9 @@ write.table(file="analysis/pop_structure/admixtools/tursiops_fourpop.fam", dat,
 
 dat <- read.table("analysis/pop_structure/admixtools/tursiops_sixpop.fam")
 
-pops <- read.table("analysis/pop_structure/sixpop_all.clust")
-colnames(pops) <- c("indiv", "pop")
 
 # make map
-indiv_to_pop <- setNames(pops$pop, pops$indiv)
+indiv_to_pop <- setNames(pops$sixpop, pops$indiv)
 dat$V1 <- indiv_to_pop[dat$V2]
 write.table(file="analysis/pop_structure/admixtools/tursiops_sixpop.ind", dat, 
             col.names=F, quote=FALSE, sep="\t", row.names=F)
@@ -41,11 +38,8 @@ write.table(file="analysis/pop_structure/admixtools/tursiops_sixpop.fam", dat,
 # with aduncus
 dat <- read.table("analysis/pop_structure/admixtools/tursiops_aduncus_fourpop.fam")
 
-pops <- read.table("analysis/pop_structure/fourpop_all.clust")
-colnames(pops) <- c("indiv", "pop")
-
 # make map
-indiv_to_pop <- setNames(pops$pop, pops$indiv)
+indiv_to_pop <- setNames(pops$fourpop, pops$indiv)
 dat$V1 <- indiv_to_pop[dat$V2]
 
 # add aduncus:
@@ -62,11 +56,9 @@ write.table(file="analysis/pop_structure/admixtools/tursiops_aduncus_fourpop.fam
 
 dat <- read.table("analysis/pop_structure/admixtools/tursiops_aduncus_sixpop.fam")
 
-pops <- read.table("analysis/pop_structure/sixpop_all.clust")
-colnames(pops) <- c("indiv", "pop")
 
 # make map
-indiv_to_pop <- setNames(pops$pop, pops$indiv)
+indiv_to_pop <- setNames(pops$sixpop, pops$indiv)
 dat$V1 <- indiv_to_pop[dat$V2]
 dat$V1[1:3] <- "Aduncus"
 
@@ -80,11 +72,9 @@ write.table(file="analysis/pop_structure/admixtools/tursiops_aduncus_sixpop.fam"
 # the subset pops
 dat <- read.table("analysis/pop_structure/admixtools/tursiops_subset_fourpop.fam")
 
-pops <- read.table("analysis/pop_structure/fourpop_all.clust")
-colnames(pops) <- c("indiv", "pop")
 
 # make map
-indiv_to_pop <- setNames(pops$pop, pops$indiv)
+indiv_to_pop <- setNames(pops$fourpop, pops$indiv)
 dat$V1 <- indiv_to_pop[dat$V2]
 
 write.table(file="analysis/pop_structure/admixtools/tursiops_subset_fourpop.ind", dat, 
@@ -95,11 +85,8 @@ write.table(file="analysis/pop_structure/admixtools/tursiops_subset_fourpop.fam"
 
 dat <- read.table("analysis/pop_structure/admixtools/tursiops_subset_sixpop.fam")
 
-pops <- read.table("analysis/pop_structure/sixpop_all.clust")
-colnames(pops) <- c("indiv", "pop")
-
 # make map
-indiv_to_pop <- setNames(pops$pop, pops$indiv)
+indiv_to_pop <- setNames(pops$sixpop, pops$indiv)
 dat$V1 <- indiv_to_pop[dat$V2]
 write.table(file="analysis/pop_structure/admixtools/tursiops_subset_sixpop.ind", dat, 
             col.names=F, quote=FALSE, sep="\t", row.names=F)
@@ -108,14 +95,12 @@ write.table(file="analysis/pop_structure/admixtools/tursiops_subset_sixpop.fam",
 
 
 
-
-
 ###----------------------------------------------------------------------------
 # run admixtools
 
 # first calc F2 stats, this is needed for downstream steps
 prefix = 'analysis/pop_structure/admixtools/tursiops_fourpop'
-my_f2_dir = 'analysis/pop_structure/admixtools/f2_tursiops_fourpop/'
+my_f2_dir = 'analysis/pop_structure/admixtools/f2_tursiops_fourpop'
 extract_f2(prefix, my_f2_dir,auto_only = FALSE,
            maxmiss =0.3, overwrite=T)
 
@@ -129,18 +114,13 @@ apply(f2_blocks, 1:2, mean)   # average across all blocks
 
 #dat <- read_plink("pop_structure/admixtools/fourpop",verbose = TRUE)
 pop1 = "Intermediate"
-pop2 = c("Coastal_Gulf", "Coastal_Atl")
+pop2 = c("Coastal_Gulf", "Coastal_Atlantic")
 pop3 = c('Offshore')
 
 fout_foupop <- f3(f2_blocks, pop1, pop2, pop3)
 write.table(fout_foupop, file = "analysis/pop_structure/admixtools/f3_stats_fourpop.txt",
             row.names=F, quote=F, sep="\t")
 
-
-#pop1         pop2         pop3           est       se      z             p
-#<chr>        <chr>        <chr>        <dbl>    <dbl>  <dbl>         <dbl>
-#1 Intermediate Coastal_Atl  Offshore  0.00379  0.000649  5.85  0.00000000503
-#2 Intermediate Coastal_Gulf Offshore -0.000549 0.000577 -0.951 0.342    
 
 #---------------------------------------------------------
 # six pop:
@@ -155,22 +135,10 @@ f2_blocks = f2_from_precomp(my_f2_dir)
 
 #dat <- read_plink("pop_structure/admixtools/fourpop",verbose = TRUE)
 pop1 = c("Intermediate_Atlantic", "Intermediate_Gulf")
-pop2 = c("Coastal_Gulf", "Coastal_Atl")
+pop2 = c("Coastal_Gulf", "Coastal_Atlantic")
 pop3 = c('Offshore_Atlantic', "Offshore_Gulf")
 
 fout_sixpop <- f3(f2_blocks, pop1, pop2, pop3)
-#pop1                  pop2         pop3                    est       se      z        p
-#<chr>                 <chr>        <chr>                 <dbl>    <dbl>  <dbl>    <dbl>
-#1 Intermediate_Atlantic Coastal_Atl  Offshore_Atlantic  0.00580  0.000762  7.60  2.88e-14
-#2 Intermediate_Atlantic Coastal_Atl  Offshore_Gulf      0.00576  0.000679  8.49  2.14e-17
-#3 Intermediate_Atlantic Coastal_Gulf Offshore_Atlantic  0.000660 0.000667  0.989 3.23e- 1
-#4 Intermediate_Atlantic Coastal_Gulf Offshore_Gulf      0.00200  0.000596  3.36  7.90e- 4
-#5 Intermediate_Gulf     Coastal_Atl  Offshore_Atlantic  0.000401 0.000749  0.535 5.92e- 1
-#6 Intermediate_Gulf     Coastal_Atl  Offshore_Gulf      0.000283 0.000653  0.433 6.65e- 1
-#7 Intermediate_Gulf     Coastal_Gulf Offshore_Atlantic -0.00448  0.000695 -6.44  1.16e-10
-#8 Intermediate_Gulf     Coastal_Gulf Offshore_Gulf     -0.00322  0.000609 -5.29  1.25e- 7
-
-
 
 write.table(fout_sixpop, file = "analysis/pop_structure/admixtools/f3_stats_sixpop.txt",
             row.names=F, quote=F, sep="\t")
@@ -192,14 +160,14 @@ f2_blocks[,,1]                # f2-statistics of the 1st SNP block
 apply(f2_blocks, 1:2, mean)   # average across all blocks
 
 pop1 = "Intermediate"
-pop2 = c("Coastal_Gulf", "Coastal_Atl")
+pop2 = c("Coastal_Gulf", "Coastal_Atlantic")
 pop3 = c('Offshore')
 
 f3(f2_blocks, pop1, pop2, pop3)
-#pop1         pop2         pop3           est       se      z            p
-#<chr>        <chr>        <chr>        <dbl>    <dbl>  <dbl>        <dbl>
-#1 Intermediate Coastal_Atl  Offshore  0.00361  0.000662  5.45  0.0000000499
-#2 Intermediate Coastal_Gulf Offshore -0.000549 0.000577 -0.951 0.342       
+#pop1         pop2             pop3          est       se     z         p
+#<chr>        <chr>            <chr>       <dbl>    <dbl> <dbl>     <dbl>
+#  1 Intermediate Coastal_Atlantic Offshore  0.00203 0.000641  3.16 0.00156  
+#2 Intermediate Coastal_Gulf     Offshore -0.00241 0.000581 -4.16 0.0000325   
 
 #---------------------------------------------------------
 # six pop subset
@@ -214,20 +182,20 @@ f2_blocks = f2_from_precomp(my_f2_dir)
 
 #dat <- read_plink("pop_structure/admixtools/fourpop",verbose = TRUE)
 pop1 = c("Intermediate_Atlantic", "Intermediate_Gulf")
-pop2 = c("Coastal_Gulf", "Coastal_Atl")
+pop2 = c("Coastal_Gulf", "Coastal_Atlantic")
 pop3 = c('Offshore_Atlantic', "Offshore_Gulf")
 
 f3(f2_blocks, pop1, pop2, pop3)
 #pop1                  pop2         pop3                    est       se      z        p
 #<chr>                 <chr>        <chr>                 <dbl>    <dbl>  <dbl>    <dbl>
-#1 Intermediate_Atlantic Coastal_Atl  Offshore_Atlantic  0.00617  0.000781  7.90  2.90e-15
-#2 Intermediate_Atlantic Coastal_Atl  Offshore_Gulf      0.00601  0.000695  8.65  5.37e-18
-#3 Intermediate_Atlantic Coastal_Gulf Offshore_Atlantic  0.000660 0.000667  0.989 3.23e- 1
-#4 Intermediate_Atlantic Coastal_Gulf Offshore_Gulf      0.00200  0.000596  3.36  7.90e- 4
-#5 Intermediate_Gulf     Coastal_Atl  Offshore_Atlantic  0.000753 0.000777  0.968 3.33e- 1
-#6 Intermediate_Gulf     Coastal_Atl  Offshore_Gulf      0.000511 0.000675  0.756 4.49e- 1
-#7 Intermediate_Gulf     Coastal_Gulf Offshore_Atlantic -0.00448  0.000695 -6.44  1.16e-10
-#8 Intermediate_Gulf     Coastal_Gulf Offshore_Gulf     -0.00322  0.000609 -5.29  1.25e- 7
+#1 Intermediate_Atlantic Coastal_Atlantic Offshore_Atlantic  0.00495  0.000777   6.37 1.84e-10
+#2 Intermediate_Atlantic Coastal_Atlantic Offshore_Gulf      0.00492  0.000676   7.29 3.11e-13
+#3 Intermediate_Atlantic Coastal_Gulf     Offshore_Atlantic -0.000804 0.000692  -1.16 2.45e- 1
+#4 Intermediate_Atlantic Coastal_Gulf     Offshore_Gulf      0.000799 0.000602   1.33 1.85e- 1
+#5 Intermediate_Gulf     Coastal_Atlantic Offshore_Atlantic -0.000972 0.000727  -1.34 1.81e- 1
+#6 Intermediate_Gulf     Coastal_Atlantic Offshore_Gulf     -0.00102  0.000617  -1.66 9.75e- 2
+#7 Intermediate_Gulf     Coastal_Gulf     Offshore_Atlantic -0.00699  0.000649 -10.8  4.47e-27
+#8 Intermediate_Gulf     Coastal_Gulf     Offshore_Gulf     -0.00541  0.000559  -9.68 3.60e-22
 
 
 # basic equation to figure out how we get various values
@@ -253,6 +221,28 @@ c=0.9 # potentially admixed population
 #----------------------------------------------------------------------------------
 #----------------------------------------------------------------------------------
 
+
+# write the population tables for dstats:
+
+# add aduncus:
+
+four.out <- rbind(data.frame(indiv = c("SRR5357657", "SRR5357656", "SRR5357655"),
+                 pop = c("Outgroup","Outgroup","Outgroup")),
+      data.frame(indiv=pops$indiv, 
+                 pop=pops$fourpop))
+six.out <- rbind(data.frame(indiv = c("SRR5357657", "SRR5357656", "SRR5357655"),
+                             pop = c("Outgroup","Outgroup","Outgroup")),
+                  data.frame(indiv=pops$indiv, 
+                             pop=pops$sixpop))
+
+write.table(four.out, file="analysis/pop_structure/dstats/fourpop_all_dstats.pop", 
+            quote=F, col.names=F, row.names = FALSE, sep="\t")
+write.table(six.out, file="analysis/pop_structure/dstats/sixpop_all_dstats.pop", 
+            quote=F, col.names=F, row.names = FALSE, sep="\t")
+
+
+# !!!!! then run dstats in bash
+
 dstat_four <- read.table("analysis/pop_structure/dstats/fourpop_all_BBAA.txt", header=T)
 dstat_four
 
@@ -271,6 +261,36 @@ dstat_six[dstat_six$p.value_multTesting < 0.05,]
 write.table(dstat_six,"analysis/pop_structure/dstats/dstats_sixpop.txt",
             sep="\t", quote=F, row.names=F)
 #
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -394,30 +414,6 @@ f4_sixpops <- f4_sixpops[which(f4_sixpops$pop1 == "Aduncus"),]
 as.data.frame(f4_sixpops[order(f4_sixpops$pop2, f4_sixpops$pop3),])
 as.data.frame((f4_sixpops))
 #
-
-
-
-
-
-#-----------------------------------------------------------------------
-#-----------------------------------------------------------------------
-#-----------------------------------------------------------------------
-#-----------------------------------------------------------------------
-# admixr
-library(admixr)
-
-snp_data <- eigenstrat(download_data())
-
-result <- d(
-  W = c("French", "Sardinian"), X = "Yoruba", Y = "Vindija", Z = "Chimp",
-  data = snp_data
-)
-
-result
-#
-
-
-
 
 
 

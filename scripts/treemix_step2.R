@@ -17,9 +17,6 @@ plot_resid(stem="fourpop_noroot",pop_order="fourpop.order")
 plot_resid(stem="sixpop_noroot",pop_order="sixpop.order")
 
 
-plot_tree("fourpop_constree.newick")
-
-
 # load devtools
 library(dplyr)
 library(data.table)
@@ -31,23 +28,23 @@ source("~/projects/Tursiops_RAD_popgen/scripts/TreeMix_functions.R") #path to re
 ########################################################
 ############# (A) Test migration events ################
 ########################################################
-setwd("~/projects/Tursiops_RAD_popgen/analysis/pop_structure/treemix/fourpop_new/")
+setwd("~/projects/Tursiops_RAD_popgen/analysis/pop_structure/treemix/fourpop/")
 
-plot_tree("test_migrations/treemix.2.4")
+plot_tree("test_migrations/treemix.2.9")
 
 folder <- file.path(path="test_migrations")                     #path to files of TreeMix replicates with different migration edges (m) to test
 test.linear = optM(folder, method = "linear", tsv="linear.txt")   #test m: produces a list of which the $out dataframe suggests optimum m based on multiple linear models
 plot_optM(test.linear, method = "linear")                         #shows changes in log likelihood for different m, and suggests optimum m as 'change points'
 
-
+# 2 migreation events. 
 
 
 #-------------------
 ##### six pop
 setwd("~/projects/Tursiops_RAD_popgen/analysis/pop_structure/treemix/sixpop/")
 
-plot_tree("test_migrations/treemix.2.4")
-plot_tree("bootstrap/sixpop.p.treemix.gz_constree_bootrep_323")
+plot_tree("test_migrations/treemix.4.4")
+#plot_tree("bootstrap/sixpop.p.treemix.gz_constree_bootrep_3")
 
 
 folder <- file.path(path="test_migrations")                     #path to files of TreeMix replicates with different migration edges (m) to test
@@ -56,12 +53,10 @@ plot_optM(test.linear, method = "linear")                         #shows changes
 
 # 4 migration events.
 
-treemix.bootstrap(in.file = "HapMap3_chr2_subsample_treemix_bootstrap",
-                  out.file = "test",
-                  phylip.file = "HapMap3_chr2_subsample_treemix_bootstrap_outtree.newick",
-                  pop.color.file = "PopOrdCol.txt", nboot = 100,
-                  cex=0.5, xmin = -0.005, disp = 0.001,
-                  boot.legend.location = "top", xbar = 0.05)
+
+
+
+
 
 
 
@@ -75,7 +70,7 @@ treemix.bootstrap(in.file = "HapMap3_chr2_subsample_treemix_bootstrap",
    # remove duplicates and retain tree(s) with unique topology. 
 #Adapted from R functions written by Zecca, Labra and Grassi (2019).
 
-setwd("~/projects/Tursiops_RAD_popgen/analysis/pop_structure/treemix/fourpop_new/bootstrap")
+setwd("~/projects/Tursiops_RAD_popgen/analysis/pop_structure/treemix/fourpop/bootstrap")
 #folder with all TreeMix outputs from the final runs
 source("~/projects/Tursiops_RAD_popgen/scripts/TreeMix_functions.R") #path to required functions for this analysis
 
@@ -85,7 +80,7 @@ maxLL("fourpop_treemix_bootrep_", nt=100, uel=FALSE)
 ## 2. Now plot and save unique tree with highest likelihood:
 
 pdf("../../../../../figures/TreeMix_output_fourpop.pdf", h=4, w=5)                                          
-treemix.bootstrap(in.file="fourpop_treemix_bootrep_6", #stem of TreeMix files (as above) + number of run with highest likelihood and unique topology
+treemix.bootstrap(in.file="fourpop_treemix_bootrep_7", #stem of TreeMix files (as above) + number of run with highest likelihood and unique topology
                   out.file = "tmp", 
                   phylip.file = "../fourpop_outtree.newick", 
                   #consensus tree in newick format (from the bootstrap procedure generated with PHYLIP)    
@@ -95,13 +90,13 @@ treemix.bootstrap(in.file="fourpop_treemix_bootrep_6", #stem of TreeMix files (a
                   boot.legend.location = "topleft")
 dev.off()
 
-treemix.drift(in.file = "fourpop_treemix_bootrep_68")
+treemix.drift(in.file = "fourpop_treemix_bootrep_7")
               #pairwise matrix for drift estimates with specified order of pops 
 
 write.table(file="fourpop.order", data.frame(pops= c("Aduncus", "Off", "CAtl", "Int", "CGulf")),
             quote = F, row.names=F, col.names = F)
 
-plot_resid("fourpop_treemix_bootrep_68",                                        #pairwise matrix for residuals
+plot_resid("fourpop_treemix_bootrep_7",                                        #pairwise matrix for residuals
            pop_order = "fourpop.order") 
 
   #  title("Residuals")                         
@@ -112,9 +107,10 @@ plot_resid("fourpop_treemix_bootrep_68",                                        
 
 #-----------------------------
 # six pop
-setwd("~/projects/Tursiops_RAD_popgen/analysis/pop_structure/treemix/sixpop_new/bootstrap")
+setwd("~/projects/Tursiops_RAD_popgen/analysis/pop_structure/treemix/sixpop/bootstrap")
 #folder with all TreeMix outputs from the final runs
 source("~/projects/Tursiops_RAD_popgen/scripts/TreeMix_functions.R") #path to required functions for this analysis
+
 
 result <- maxLL("sixpop_treemix_bootrep_", nt=100, uel=FALSE)
 cfTrees("sixpop_treemix_bootrep_", nt=100, p=1, m='PH85')                        
@@ -122,17 +118,17 @@ cfTrees("sixpop_treemix_bootrep_", nt=100, p=1, m='PH85')
 ## 2. Now plot and save unique tree with highest likelihood:
 
 pdf("../../../../../figures/TreeMix_output_sixpop_maxLL.pdf", h=4, w=5)                                          
-treemix.bootstrap(in.file="sixpop_treemix_bootrep_78", #stem of TreeMix files (as above) + number of run with highest likelihood and unique topology
+treemix.bootstrap(in.file="sixpop_treemix_bootrep_5", #stem of TreeMix files (as above) + number of run with highest likelihood and unique topology
                   out.file = "tmp", 
                   phylip.file = "../sixpop_outtree.newick", 
                   #consensus tree in newick format (from the bootstrap procedure generated with PHYLIP)    
-                  nboot = 200, #nboot is the number of bootstraps used
+                  nboot = 100, #nboot is the number of bootstraps used
                   fill = FALSE,  
                   #pop.color.file = "col.txt",#specify colours with a tab delimited pop.color.file - first column is pop name, second the colour
                   boot.legend.location = "topright")
 dev.off()
 
-for(i in 2:5){
+for(i in 1:5){
 
 pdf(paste0("../../../../../figures/TreeMix_output_sixpop_LL_",i,".pdf"), h=4, w=5)                                          
 plot_tree(paste0("sixpop_treemix_bootrep_",result$top_likelihood_trees$treeN[i]))
@@ -164,7 +160,70 @@ for(i in 1:6){
 dev.off()
 
 
-treemix.drift(in.file = "fourpop_treemix_bootrep_78")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+treemix.drift(in.file = "fourpop_treemix_bootrep_5")
 #pairwise matrix for drift estimates with specified order of pops 
 
 write.table(file="fourpop.order", data.frame(pops= c("Aduncus", 

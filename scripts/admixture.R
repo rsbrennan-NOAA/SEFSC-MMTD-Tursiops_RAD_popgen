@@ -174,6 +174,8 @@ dout <- data.frame(Lab.ID = data$sample,
 write.table(file="analysis/populations_admixture.txt", dout, sep="\t", quote = F, row.names=F)
 
 
+# add in which are low confidence:
+head(data)
 
 
 

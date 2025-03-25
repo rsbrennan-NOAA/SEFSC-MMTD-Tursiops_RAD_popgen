@@ -24,8 +24,10 @@ vcf
 #> 5 i264  P1
 #> 6 i526  P1
 #> 
-pops <- read.table("analysis/pop_structure/fourpop_all.clust")
-colnames(pops) <- c("id", "pop")
+pops1 <- read.table("analysis/population_assignments_summary.txt", header=T)
+
+pops <- data.frame(id = pops1$indiv,
+                    pop = pops1$fourpop)
 
 # identify ancestry informative markers (AIMS)
 # Create a new vcfR object composed only of sites above the given allele frequency difference threshold
@@ -34,14 +36,14 @@ diff1 <- alleleFreqDiff(vcfR = vcf,
                                     p1 = "Coastal_Gulf", 
                                     p2 = "Offshore", 
                                     difference = 0.7)
-#[1] "373 sites passed allele frequency difference threshold"
+#[1] "427  sites passed allele frequency difference threshold"
 
 diff2 <- alleleFreqDiff(vcfR = vcf, 
                         pm = pops, 
-                        p1 = "Coastal_Atl", 
+                        p1 = "Coastal_Atlantic", 
                         p2 = "Offshore", 
                         difference = 0.7)
-#[1] "404 sites passed allele frequency difference threshold"
+#[1] "444  sites passed allele frequency difference threshold"
 
 # Calculate hybrid index and heterozygosity for each sample. 
   # Values are returned in a data.frame
@@ -51,7 +53,7 @@ hi.het1 <- hybridIndex(vcfR = diff1,
 
 hi.het2 <- hybridIndex(vcfR = diff2, 
                       pm = pops, 
-                      p1 = "Coastal_Atl", p2 = "Offshore")
+                      p1 = "Coastal_Atlantic", p2 = "Offshore")
 
 plot(hi.het1$hybrid.index, hi.het2$hybrid.index)
 plot(hi.het1$heterozygosity, hi.het2$heterozygosity)
@@ -81,30 +83,30 @@ missing.plot(hi.het1)
 #---------------------------------------------------------------------------
 #---------------------------------------------------------------------------
 # six pop:
-pops <- read.table("analysis/pop_structure/sixpop_all.clust")
-colnames(pops) <- c("id", "pop")
 
+pops <- data.frame(id = pops1$indiv,
+                   pop = pops1$sixpop)
 # identify ancestry informative markers (AIMS)
 # Create a new vcfR object composed only of sites above the given allele frequency difference threshold
 diff1 <- alleleFreqDiff(vcfR = vcf, 
                         pm = pops, 
-                        p1 = "Coastal_Atl", 
+                        p1 = "Coastal_Atlantic", 
                         p2 = "Offshore_Atlantic", 
                         difference = 0.7)
-#[1] "607  sites passed allele frequency difference threshold"
+#[1] "672  sites passed allele frequency difference threshold"
 
 diff2 <- alleleFreqDiff(vcfR = vcf, 
                         pm = pops, 
                         p1 = "Coastal_Gulf", 
                         p2 = "Offshore_Gulf", 
                         difference = 0.7)
-#[1] "246 sites passed allele frequency difference threshold"
+#[1] "296 sites passed allele frequency difference threshold"
 
 # Calculate hybrid index and heterozygosity for each sample. 
 # Values are returned in a data.frame
 hi.het1_sixpop <- hybridIndex(vcfR = diff1, 
                        pm = pops, 
-                       p1 = "Coastal_Atl", p2 = "Offshore_Atlantic")
+                       p1 = "Coastal_Atlantic", p2 = "Offshore_Atlantic")
 
 hi.het2_sixpop <- hybridIndex(vcfR = diff2, 
                        pm = pops, 
@@ -142,3 +144,18 @@ hi.het2_sixpop
 plot(hi.het1_sixpop$hybrid.index, hi.het1$hybrid.index)
 plot(hi.het2_sixpop$hybrid.index, hi.het2$hybrid.index)
 
+pops <- read.table("analysis/population_assignments_summary.txt", header=T)
+hybs <- pops$indiv[pops$offshore_putative_hybrids == TRUE]
+
+hi.het1_sixpop$pop[hi.het1_sixpop$id %in% hybs] <- "hybrid"
+hi.het2_sixpop$pop[hi.het2_sixpop$id %in% hybs] <- "hybrid"
+
+t1 <- triangle.plot(hi.het1_sixpop,colors = cols) + ggtitle("Coastal Atlantic vs. Offshore Atlantic")
+t2 <- triangle.plot(hi.het2_sixpop,colors = cols) + ggtitle("Coastal Gulf  vs. Offshore Gulf")
+
+ggsave(file="figures/triangle_plot_sixpop_hybrids.png",
+       ggpubr::ggarrange(t2, t1, common.legend = T),
+       h=4, w=7)
+ggsave(file="figures/triangle_plot_hybrids.pdf",
+       ggpubr::ggarrange(t2, t1, common.legend = T),
+       h=4, w=7)

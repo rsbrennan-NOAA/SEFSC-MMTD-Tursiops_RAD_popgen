@@ -75,9 +75,11 @@ Note that the left group in the Atlantic are the nearshore individuals, the bott
 
 <br>
 
-## Population structure with populations inferred from Admixture
+## PCA with populations from Admixture and DAPC
 
-![](../figures/pca_admixturePops.png){width=70%}
+![](../figures/pca_admixturePops.png){width=70%} ![](../figures/pca_DAPCPops.png){width=70%} 
+
+
 
 
 ### NJ tree of pairwise genetic distances 
@@ -124,7 +126,6 @@ Split this out into each individual population across both regions. Within a pop
 
 ![](../figures/ibd_sixpops.png){width=70%}
 
-Tt312 and 13Tt073 are divergent and causing that weird pattern in offshore atlantic. I'm not sure why. Maybe there's an argument to drop them, but they don't appear weird in other analyses, I don't think. Need to double check missing data, etc for these individuals. 
 
 <br>
 
@@ -160,8 +161,7 @@ Above diagonal, Fst, below, p-values from 500 bootstrap permutations.
 ![](../figures/fst.png){width=70%}
 
 
-!!!! still to do !!!!
-
+![](../figures/fst_fourpop.png){width=70%}
 
 <br><br>
 
@@ -170,7 +170,7 @@ Above diagonal, Fst, below, p-values from 500 bootstrap permutations.
 The Intermediate individuals are possibly hybrids, given the results above they're intermediate in genetic distance for nearly all analyses. Here, I'll test this more explicitly using:
 
 1. f3 statistics
-2. D-/f4 statistics
+2. D statistics
 2. treemix
 3. triangle plots
 4. new hybrids
@@ -194,6 +194,8 @@ kable(table1,
       col.names = c("pop1", "pop2", "pop3", "est", 
                     "se", "z", "p"),
       align = c('c', 'c', 'c', 'c', 'c', 'c', 'c')) %>%
+      row_spec(which(table1$p < 0.05 & table1$est < 0), background = "#f8d0d8") %>%  # Highlight rows with negative F3
+
   kable_styling(bootstrap_options = c("striped", "hover"), 
                 full_width = FALSE)
 ```
@@ -218,7 +220,8 @@ kable(table2,
       align = c('c', 'c', 'c', 'c', 'c', 'c', 'c')) %>%
   kable_styling(bootstrap_options = c("striped", "hover"), 
                 full_width = FALSE) %>%
-  row_spec(c(7, 8), background = "#f8d0d8") %>%  # Highlight rows with negative F3
+  #row_spec(c(7, 8), background = "#f8d0d8") %>%  # Highlight rows with negative F3
+    row_spec(which(table2$p < 0.05 & table2$est < 0), background = "#f8d0d8") %>%  # Highlight rows with negative F3
   pack_rows("Intermediate Atlantic", 1, 4) %>%
   pack_rows("Intermediate Gulf", 5, 8)
 
@@ -337,6 +340,13 @@ Here's a nice paper that shows expectations for different scenarios. In short, i
 <br><br>
 
 ![Six population assignment](../figures/triangle_plot_sixpop.png){width=100%}
+
+#### with putative hybrids from PCA
+
+The "hybrids" below are those from the PCA that appear to be a separate cluster in the PCA for the offshore gulf. Note they do look to be hybrids of some sort. 
+
+![Six population assignment](../figures/triangle_plot_sixpop_hybrids.png){width=100%}
+
 
 <br><br>
 There are no F1 hybrids in these data, but the rest of the variation is likely due to admixture, not neutral IDB. 

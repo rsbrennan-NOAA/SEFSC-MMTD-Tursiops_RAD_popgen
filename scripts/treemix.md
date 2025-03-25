@@ -9,6 +9,8 @@ module load lib64/gsl
 
 cd ~/Tursiops-RAD-popgen/analysis/pop_structure/treemix
 
+# remember that the clust files are generated in pca.R, at the end. 
+
 # append aduncus samples onto these pop files:
 
 #echo -e "SRR5357655\tAduncus" >> fourpop.clust
@@ -18,6 +20,18 @@ cd ~/Tursiops-RAD-popgen/analysis/pop_structure/treemix
 #echo -e "SRR5357655\tAduncus" >> sixpop.clust
 #echo -e "SRR5357656\tAduncus" >> sixpop.clust
 #echo -e "SRR5357657\tAduncus" >> sixpop.clust
+
+# replace names with shorter versions. it messes up treemix, the long names. 
+
+sed -i 's/Coastal_Atlantic/CoastAtl/g' fourpop.clust
+sed -i 's/Coastal_Gulf/CoastGulf/g' fourpop.clust
+
+sed -i 's/Coastal_Atlantic/CoastAtl/g' sixpop.clust
+sed -i 's/Coastal_Gulf/CoastGulf/g' sixpop.clust
+sed -i 's/Intermediate_Atlantic/IntAtl/g' sixpop.clust
+sed -i 's/Intermediate_Gulf/IntGulf/g' sixpop.clust
+sed -i 's/Offshore_Atlantic/OffAtl/g' sixpop.clust
+sed -i 's/Offshore_Gulf/OffGulf/g' sixpop.clust
 
 
 cut -f 1 fourpop.clust > fourpop.keep 
@@ -30,7 +44,7 @@ zcat  fourpop.vcf.gz | awk '{if ($1 == "#CHROM"){print NF-9; exit}}'
 
 vcftools --gzvcf ~/Tursiops-RAD-popgen/analysis/variants/tursiops_aduncus_LDthin.vcf.gz --keep sixpop.keep --recode --recode-INFO-all --stdout |  bgzip > sixpop.vcf.gz
 zcat  sixpop.vcf.gz | awk '{if ($1 == "#CHROM"){print NF-9; exit}}'
-# After filtering, kept 213 out of 337 Individuals
+# 222
 
 # convert to treemix
 populations --in-vcf fourpop.vcf.gz --treemix -O . -M fourpop.clust
@@ -72,6 +86,8 @@ migrep=10
 
 cd ~/Tursiops-RAD-popgen/analysis/pop_structure/treemix/fourpop
 
+cp ../fourpop.p.treemix.gz ./
+
 sh ~/Tursiops-RAD-popgen/scripts/treemix_step1.sh $infile $ncore $blockk $outgroup $nboot $pathP $outname $minM $maxM $migrep
 
 
@@ -87,12 +103,13 @@ maxM=10
 migrep=10
 
 cd ~/Tursiops-RAD-popgen/analysis/pop_structure/treemix/sixpop
+cp ../sixpop.p.treemix.gz ./
 
 sh ~/Tursiops-RAD-popgen/scripts/treemix_step1.sh $infile $ncore $blockk $outgroup $nboot $pathP $outname $minM $maxM $migrep
 
 ```
 
-run R step 1
+run R step 1 to determine how many migration events. 
 
 
 ```bash
@@ -101,7 +118,7 @@ infile=fourpop.p.treemix.gz
 ncore=4
 blockk=75
 outgroup=Aduncus
-nboot=500		
+nboot=100		
 mig=2
 outname=fourpop
 runs=30
@@ -113,11 +130,16 @@ sh ~/Tursiops-RAD-popgen/scripts/treemix_step3.sh $infile $ncore $blockk $outgro
 ```
 
 
+
+
+
+
+
 test script from bite R. 
 
 ```bash
 
-cd ~/Tursiops-RAD-popgen/analysis/pop_structure/treemix/fourpop_new
+cd ~/Tursiops-RAD-popgen/analysis/pop_structure/treemix/fourpop
 
 infile=fourpop.p.treemix.gz
 ncore=4
@@ -130,7 +152,7 @@ pathP=~/bin/phylip-3.697/exe/consense
 
 sh ~/Tursiops-RAD-popgen/scripts/treemix_bootstraps.sh $infile $numk $ncore $blockk $outgroup $nboot $pathP $outname
 
-cd ~/Tursiops-RAD-popgen/analysis/pop_structure/treemix/sixpop_new
+cd ~/Tursiops-RAD-popgen/analysis/pop_structure/treemix/sixpop
 infile=sixpop.p.treemix.gz
 ncore=4
 blockk=75
@@ -143,7 +165,7 @@ pathP=~/bin/phylip-3.697/exe/consense
 sh ~/Tursiops-RAD-popgen/scripts/treemix_bootstraps.sh $infile $numk $ncore $blockk $outgroup $nboot $pathP $outname
 
 
-cd /mnt/c/Users/Reid.Brennan/Documents/projects/Tursiops_RAD_popgen/analysis/pop_structure/
+# cd /mnt/c/Users/Reid.Brennan/Documents/projects/Tursiops_RAD_popgen/analysis/pop_structure/
 
 ```
 

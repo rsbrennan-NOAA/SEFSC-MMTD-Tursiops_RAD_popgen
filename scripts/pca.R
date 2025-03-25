@@ -70,7 +70,6 @@ d
 ggsave("figures/pca_popIds.png", d, h=4, w=5)
 
 
-
 # color by gulf or atlantic
 
 pops$region <- ifelse(pops$Long > -81.7, "Atlantic",
@@ -286,19 +285,39 @@ d
 
 ggsave("figures/pca_admixturePops.png", d, h=4, w=5)
 
+# repeat with dapc populations
+admixPop <- read.table("analysis/populations_dapc.txt", header=T)
+pops$region <- ifelse(pops$Long > -81.7, "Atlantic",
+                      ifelse(pops$Long > 80, "Gulf", NA))
+pops$region <- ifelse(pops$Long < -81.7, "Gulf", pops$region)
 
+df <- merge(dat, pops, by.x="IDs", by.y="Lab.ID")
 
-
-misid <- data.frame(IDs= c("37Tt023","13Tt073","8Tt144","10Tt007","7Tt312","10Tt059"))
-
-misall <- merge(misid, ndat, by="IDs")
-
-d <- ggplot(ndat, aes(PC1, PC2, label=Population, fill=admixture_population, shape=region)) +
-  geom_point(size=3, color="black", aes(fill=admixture_population)) +
+ndat_dapc <- merge(df, admixPop, by.x="IDs", by.y="Lab.ID")
+# with shapes
+d <- ggplot(ndat_dapc, aes(PC1, PC2, label=Population, fill=dapc_population, shape=region)) +
+  geom_point(size=3, color="black", aes(fill=dapc_population)) +
   xlab(paste0("PC1: ",round(eig[1], 2),"% variance")) +
   ylab(paste0("PC2: ",round(eig[2], 2),"% variance")) +
   theme_bw() +
-  ggtitle('PCA: admixture populations')+
+  ggtitle('PCA: DAPC populations')+
+  scale_shape_manual(values=c(21,24))+
+  guides(fill=guide_legend(override.aes=list(shape=21)))
+
+d
+
+ggsave("figures/pca_DAPCPops.png", d, h=4, w=5)
+
+misid <- data.frame(IDs= c("37Tt023","13Tt073","8Tt144","10Tt007","7Tt312","10Tt059"))
+
+misall <- merge(misid, ndat_dapc, by="IDs")
+
+d <- ggplot(ndat_dapc, aes(PC1, PC2, label=Population, fill=dapc_population, shape=region)) +
+  geom_point(size=3, color="black", aes(fill=dapc_population)) +
+  xlab(paste0("PC1: ",round(eig[1], 2),"% variance")) +
+  ylab(paste0("PC2: ",round(eig[2], 2),"% variance")) +
+  theme_bw() +
+  ggtitle('PCA: admixture vs dapc misassignments')+
   scale_shape_manual(values=c(21,24))+
   guides(fill=guide_legend(override.aes=list(shape=21))) +
   geom_point(data=misall, size=6, fill=NA, color="black", shape=21, aes(PC1, PC2, fill=admixture_population, shape=region))
@@ -306,14 +325,58 @@ d <- ggplot(ndat, aes(PC1, PC2, label=Population, fill=admixture_population, sha
 d
 
 
+ggsave("figures/pca_DAPC_admixture_misAssignments.png", d, h=4, w=5)
 
 
 
 
+# pull out the intermediate offshore cluster:
+ndat[(ndat$PC1> 0.025 & ndat$PC1 < 0.1 & ndat$PC2 < 0.05 & ndat$PC2 > -0.01),]
+ndat[(ndat$PC1> 0.025 & ndat$PC1 < 0.1 & ndat$PC2 < 0.045 & ndat$PC2 > -0.01),]
+
+ndat$IDs[(ndat$PC1> 0.025 & ndat$PC1 < 0.1 & ndat$PC2 < 0.045 & ndat$PC2 > -0.01)]
+# "8Tt114" "8Tt243" "8Tt322" "8Tt363" "8Tt365" "8Tt424" "8Tt428" "8Tt465" "8Tt495" "8Tt513" "8Tt521" "8Tt619" "8Tt654"
+ndat_dapc$IDs == ndat$IDs
+
+# table with dapc pops, low confidence indivs, and the intermediate offshore indivs
+summary_dat <- data.frame(indiv = ndat$IDs,
+           region = ndat$region,
+           dapc_population = ndat_dapc$dapc_population,
+           admixture_population = ndat$admixture_population,
+           offshore_putative_hybrids = (ndat$PC1> 0.025 & ndat$PC1 < 0.1 & ndat$PC2 < 0.045 & ndat$PC2 > -0.01),
+           low_confidence_population = ndat$IDs %in% misid$IDs)
+head(summary_dat)
+
+# make names better:
+summary_dat$dapc_population[summary_dat$dapc_population == "Coastal_Atl"] <- "Coastal_Atlantic" 
+summary_dat$admixture_population[summary_dat$admixture_population == "Coastal_Atl"] <- "Coastal_Atlantic" 
+
+summary_dat$fourpop <- summary_dat$dapc_population
+summary_dat$sixpop <- paste(summary_dat$region, summary_dat$fourpop, sep="_")
+
+summary_dat2 <- as_tibble(summary_dat) %>%
+  mutate(sixpop = str_replace(sixpop, "Atlantic_Coastal_Atlantic", "Coastal_Atlantic") %>%
+           str_replace("Atlantic_Intermediate", "Intermediate_Atlantic") %>%
+           str_replace("Atlantic_Offshore", "Offshore_Atlantic") %>%
+           str_replace("Gulf_Coastal_Gulf", "Coastal_Gulf") %>%
+           str_replace("Gulf_Intermediate", "Intermediate_Gulf") %>%
+           str_replace("Gulf_Offshore", "Offshore_Gulf"))
 
 
+summary_dat2 <- as_tibble(summary_dat) %>%
+  mutate(across(sixpop, ~str_replace(., "Atlantic_Coastal_Atlantic", "Coastal_Atlantic") %>%
+                  str_replace("Atlantic_Intermediate", "Intermediate_Atlantic") %>%
+                  str_replace("Atlantic_Offshore", "Offshore_Atlantic") %>%
+                  str_replace("Gulf_Coastal_Gulf", "Coastal_Gulf") %>%
+                  str_replace("Gulf_Intermediate", "Intermediate_Gulf") %>%
+                  str_replace("Gulf_Offshore", "Offshore_Gulf")))
 
+head(as.data.frame(summary_dat2))
 
+sum(summary_dat2$offshore_putative_hybrids == TRUE)
+
+write.table(file="analysis/population_assignments_summary.txt", summary_dat2, sep="\t", 
+            quote = F, row.names=F)
 
 
 
@@ -331,39 +394,39 @@ d
 # need to have relatively equal sample sizes
 
 # 1: 4 pops from admixture
-# 2: separate gulf and atlantic for intermeidate and offshore.
+# 2: separate gulf and atlantic for intermediate and offshore.
 
-# 1: 4 pops from admixture
-table(ndat$admixture_population)
+# 1: 4 pop
+table(summary_dat2$fourpop)
 sum(table(ndat$admixture_population))
 
 write.table(file="analysis/pop_structure/fourpop_all.clust", 
-            data.frame(samp1 = ndat$IDs,
-                       group = ndat$admixture_population),
+            data.frame(samp1 = summary_dat2$indiv,
+                       group = summary_dat2$fourpop),
             sep="\t", quote=F, col.names=F, row.names=F)
 
 
 
 # select 70 indivs from Coastal_Atl
 # Subset Coastal_Atl IDs, keep all others
-coastal_atl_subset_idx <- sample(ndat$IDs[ndat$admixture_population == "Coastal_Atl"], 70)
-coastal_atl_subset <-  ndat[ndat$IDs %in% coastal_atl_subset_idx,]
+coastal_atl_subset_idx <- sample(summary_dat2$indiv[summary_dat2$fourpop == "Coastal_Atlantic"], 70)
+coastal_atl_subset <-  summary_dat2[summary_dat2$indiv %in% coastal_atl_subset_idx,]
+nrow(coastal_atl_subset)
 
-
-other_dat <- ndat[ndat$admixture_population != "Coastal_Atl",]
+other_dat <- summary_dat2[summary_dat2$fourpop != "Coastal_Atlantic",]
 
 combodat <- rbind(coastal_atl_subset, other_dat)
 
 # Verify new counts
-table(combodat$admixture_population)
+table(combodat$fourpop)
 #Coastal_Atl Coastal_Gulf Intermediate     Offshore 
 #70           47           54           74 
-sum(table(combodat$admixture_population))
+sum(table(combodat$fourpop))
 # 245
 
 write.table(file="analysis/pop_structure/fourpop.clust", 
-            data.frame(samp1 = combodat$IDs,
-                       group = combodat$admixture_population),
+            data.frame(samp1 = combodat$indiv,
+                       group = combodat$fourpop),
             sep="\t", quote=F, col.names=F, row.names=F)
 
 
@@ -372,51 +435,43 @@ write.table(file="analysis/pop_structure/fourpop.clust",
 
 # add region to the pops
 
-ndat$admixture_population_region <- ndat$admixture_population
-
-ndat <- ndat %>%
-  mutate(admixture_population_region = ifelse(admixture_population %in% c("Intermediate", "Offshore"),
-                                              paste(admixture_population, region, sep="_"),
-                                              admixture_population_region))
-
-head(ndat)
-table(ndat$admixture_population_region)
-#Coastal_Atl          Coastal_Gulf Intermediate_Atlantic     Intermediate_Gulf 
-#162                    47                    42                    12 
+table(summary_dat2$sixpop)
+#Coastal_Atlantic          Coastal_Gulf Intermediate_Atlantic     Intermediate_Gulf 
+#162                    44                    44                    16 
 #Offshore_Atlantic         Offshore_Gulf 
-#35                    39 
+#33                    38 
 
-# write the output, 4 pops
+# write the output, 
 
 write.table(file="analysis/pop_structure/sixpop_all.clust", 
-            data.frame(samp1 = ndat$IDs,
-                       group = ndat$admixture_population_region),
+            data.frame(samp1 = summary_dat2$indiv,
+                       group = summary_dat2$sixpop),
             sep="\t", quote=F, col.names=F, row.names=F)
 
 
 
 # for treemix:
 # Subset Coastal_Atl IDs, keep all others
-coastal_atl_subset_idx <- sample(ndat$IDs[ndat$admixture_population_region == "Coastal_Atl"], 35)
-coastal_atl_subset <-  ndat[ndat$IDs %in% coastal_atl_subset_idx,]
+coastal_atl_subset_idx <- sample(summary_dat2$indiv[summary_dat2$fourpop == "Coastal_Atlantic"], 44)
+coastal_atl_subset <-  summary_dat2[summary_dat2$indiv %in% coastal_atl_subset_idx,]
 
 
-other_dat <- ndat[ndat$admixture_population_region != "Coastal_Atl",]
+other_dat <- summary_dat2[summary_dat2$sixpop != "Coastal_Atlantic",]
 
 combodat <- rbind(coastal_atl_subset, other_dat)
 
 # Verify new counts
-table(combodat$admixture_population_region)
-#          Coastal_Atl          Coastal_Gulf Intermediate_Atlantic     Intermediate_Gulf 
-#35                    47                    42                    12 
+table(combodat$sixpop)
+#Coastal_Atlantic          Coastal_Gulf Intermediate_Atlantic     Intermediate_Gulf 
+#44                    44                    44                    16 
 #Offshore_Atlantic         Offshore_Gulf 
-#35                    39 
-sum(table(combodat$admixture_population_region))
+#33                    38 
+sum(table(combodat$sixpop))
 # 210
 
 write.table(file="analysis/pop_structure/sixpop.clust", 
-            data.frame(samp1 = combodat$IDs,
-                       group = combodat$admixture_population_region),
+            data.frame(samp1 = combodat$indiv,
+                       group = combodat$sixpop),
             sep="\t", quote=F, col.names=F, row.names=F)
 
 
