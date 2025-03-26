@@ -71,7 +71,7 @@ p <- ggplot() +
              size = 2,
              shape=22,
              alpha=1) +
-  # Finally plot 2018 & 2019 points if needed
+  #  plot 2018 & 2019 
   geom_point(data = subset(dat, RADSeq.Dataset.2 == "2018 & 2019"), 
              aes(x = Long, y = Lat, fill=RADSeq.Dataset.2, shape=RADSeq.Dataset.2),
              size = 2,

@@ -1,6 +1,7 @@
 ---
 title: "Tursiops RADseq summary"
 author: Reid Brennan
+date: "`r Sys.Date()`"
 output:
   html_document:
     theme: united
@@ -16,9 +17,22 @@ library(knitr)
 library(kableExtra)
 ```
 
-337 samples and 7577 SNPs from across the northern gulf and western Atlantic. 4356 SNPs after LD thinning
 
-![](../figures/map.png){width=70%}
+Results of initial analysis for Tursiops RADseq analysis from the Gulf and Atlantic. Overall goals are to understand population structure, look for evidence of hybridization, and determine range extent of the species. 
+
+- Initial number of samples: 375
+- Samples dropped due to sequencing quality/coverage: 3 + 24
+- Samples dropped because they're strandings: 11
+- 337 samples in the data
+- Number of SNPs after filtering:7577
+- Number of SNPs after LD thinning:4356
+
+[Link to scripts on github](https://github.com/rsbrennan-NOAA/SEFSC-MMTD-Tursiops_RAD_popgen)
+
+See map of sample locations below. 
+
+
+![Map of sample locations](../figures/map.png){width=70%}
 
 ---
 
@@ -60,7 +74,7 @@ The patterns above maybe look like an inversion. If we saw this, we'd see the PC
 
 ## Admixture
 
-Running multiple K's with the cross-validation error for each. Lowest error indicates the most likely K. It is basically withholding a subset of the genotypes then predicting their values and comparees this to the withheld data. 
+Running multiple K's with the cross-validation error for each. Lowest error indicates the most likely K. It is basically withholding a subset of the genotypes then predicting their values and compares this to the withheld data. 
 
 Sorting the plot below by Atlantic on the left, Gulf on the right. Then shallow to deep by collection location 
 
@@ -88,6 +102,16 @@ Note that the left group in the Atlantic are the nearshore individuals, the bott
 
 <br>
 <br>
+
+### Map of population assignments
+
+
+![](../figures/map_allpops.png){width=100%}
+
+![](../figures/map_atlantic.png){width=100%}
+
+![](../figures/map_gulf.png){width=100%}
+
 
 
 ## Population assignment conclusion
@@ -161,7 +185,7 @@ Above diagonal, Fst, below, p-values from 500 bootstrap permutations.
 ![](../figures/fst.png){width=70%}
 
 
-![](../figures/fst_fourpop.png){width=70%}
+![](../figures/fst_fourpop.png){width=50%}
 
 <br><br>
 
@@ -349,15 +373,36 @@ The "hybrids" below are those from the PCA that appear to be a separate cluster 
 
 
 <br><br>
-There are no F1 hybrids in these data, but the rest of the variation is likely due to admixture, not neutral IDB. 
+There are no F1 hybrids in these data, but the rest of the variation is likely due to admixture, not neutral IDB. There could be some recent-ish hybrids, but a little unclear from these results. Maybe new hybrids could help clarify. 
 
 <br><br><br><br><br><br>
 
 # still to do
 
-1. Genomic cline analysis
-  - using introgress, bgc, or similar (from Gompert). 
-2. gene environment associations
-3. general selection scans within species. 
+1. new hybrids
+2. Population structure within species
+3. Genomic cline analysis
+  - using introgress, bgc, or similar (i.e., Gompert). 
+4. gene environment associations
+5. general selection scans within species. 
 
 
+# conclusions
+
+as of 2025-03-26
+
+- Erebennus range includes both the Atlantic and the Gulf. This is a single species. 
+- Truncatus range is both the Atlantic and the Gulf. This is a single species.
+- There is substantial and significant divergence between the Gulf and the Atlantic for both of these species. There is more divergence between Erebennus in the Gulf vs Atantic than for Truncatus, which makes sense. 
+- The intermediate population is a result of hybridization between Erebennus and Truncatus.
+  - There is minimal structure between the Gulf and the Atlantic.  
+  - There has likely been lots of backcrossing between the Erebennus and the Intermediate populations. Particularly in the Gulf. 
+  - The intermediate populations are likely Erebennus, potentially a subspecies. 
+
+# outstanding questions for discussion
+
+- Stranded individuals were excluded. Should we reconsider this? There are only 11. 
+- Do we agree that there is sufficient evidence that erebennus extends to the Gulf?
+- What should we consider the intermediate population. 
+- Additional analyses to consider? 
+- Changes to existing analyses?
