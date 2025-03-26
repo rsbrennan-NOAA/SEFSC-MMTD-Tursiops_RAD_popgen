@@ -1,4 +1,5 @@
 .nextflow.*
+summary_files/
 data/
 .nextflow/
 work/
