@@ -101,6 +101,10 @@ Note that the left group in the Atlantic are the nearshore individuals, the bott
 ![](../figures/nj_tree.png){width=70%}
 
 <br>
+
+There is a group of offshore individuals, particularly in the gulf, that look like they might be hybrids, based on the PCA and nj tree. 
+
+<br>
 <br>
 
 ### Map of population assignments
@@ -111,7 +115,6 @@ Note that the left group in the Atlantic are the nearshore individuals, the bott
 ![](../figures/map_atlantic.png){width=100%}
 
 ![](../figures/map_gulf.png){width=100%}
-
 
 
 ## Population assignment conclusion
@@ -225,7 +228,7 @@ kable(table1,
 ```
 
 
-Remember, positive values are not informative, negative values indicate a population resulting from admixture. No significance here. 
+Remember, positive values are not informative, negative values indicate a population resulting from admixture.
 
 Next, I split into 6 populations:
 
@@ -375,7 +378,38 @@ The "hybrids" below are those from the PCA that appear to be a separate cluster 
 <br><br>
 There are no F1 hybrids in these data, but the rest of the variation is likely due to admixture, not neutral IDB. There could be some recent-ish hybrids, but a little unclear from these results. Maybe new hybrids could help clarify. 
 
-<br><br><br><br><br><br>
+<br><br><br>
+
+### NewHybrids
+
+For first pass, just using 90 loci that are divergent between offshore Gulf and Coastal Gulf. I ran 10 independent runs of NewHybrids. The median values of these runs are plotted below, where `High_Confidence` are individuals with a posterior > 0.99, and `Low_Confidence` are individuals with a posterior below 0.99. Note that all individuals were consistently assigned to the same group across all runs. The count of individuals in each bin are below the boxplot.
+
+![Six population assignment](../figures/newhybrids.png){width=100%}
+
+
+<br>
+
+And adding the assignments to the triangle plot:
+
+![Six population assignment](../figures/triangle_plot_sixpop_Newhybrids.png){width=100%}
+
+Again, there are no F1 hybrids, but there are some recent hybrids. 
+
+<br> 
+
+#### Mapping putative hybrids as red circles
+
+The NewHybrids assignments are shown as text in the circle. 
+
+- F2 = F2
+- B1 = Backcross 1
+- B2 = Backcross 2
+- No Label = no New Hybrids Assignment
+
+![](../figures/map_allpops_hybrids.png){width=100%}
+
+
+<br><br>
 
 # still to do
 

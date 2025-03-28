@@ -121,3 +121,48 @@ p
 ggsave("figures/map_atlantic.pdf", p, h=5, w=5)
 ggsave("figures/map_atlantic.png", p, h=5, w=5)
 
+
+
+#--------------------------------------------------------------
+# add the putative hybrids on to the map:
+
+out_hyb <- out %>% filter(offshore_putative_hybrids == TRUE)
+
+p <- ggplot() +
+  geom_sf(data = world, fill = "grey90", color = "grey70") +
+  geom_sf(data = usa, fill = NA, color = "grey70") +
+  geom_point(data = out, 
+             aes(x = Long, y = Lat, fill=fourpop, shape=fourpop),
+             size = 2,
+             alpha=1,
+             color="black") +
+  geom_point(data = out_hyb, 
+             aes(x = Long, y = Lat),
+             fill="red", 
+             shape=21,
+             size = 4,
+             alpha=1,
+             color="black") +
+  coord_sf() +
+  theme_bw() +
+  theme(
+    #panel.background = element_rect(fill = "white"),
+    panel.grid = element_blank(),
+    #axis.text = element_blank(),
+    #axis.ticks = element_blank()
+    legend.position = "top",
+    legend.title=element_blank()) +
+  xlab("Longitude")+
+  ylab("Latitude") +
+  scale_shape_manual(values=c(21,22,23, 24)) +
+  coord_sf(xlim = c(-100, -60), ylim = c(23, 47), expand = FALSE)+
+  annotation_scale()
+
+p
+
+ggsave("figures/map_allpops_hybrids.pdf", p, h=4, w=5)
+ggsave("figures/map_allpops_hybrids.png", p, h=4, w=5)
+
+
+
+
