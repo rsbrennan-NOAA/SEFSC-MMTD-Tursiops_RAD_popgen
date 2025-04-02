@@ -413,12 +413,11 @@ The NewHybrids assignments are shown as text in the circle.
 
 # still to do
 
-1. new hybrids
-2. Population structure within species
-3. Genomic cline analysis
+1. Population structure within species (admixture, fst, etc)
+2. Genomic cline analysis
   - using introgress, bgc, or similar (i.e., Gompert). 
-4. gene environment associations
-5. general selection scans within species. 
+3. gene environment associations
+4. general selection scans within species. 
 
 
 # conclusions
@@ -430,7 +429,7 @@ as of 2025-03-26
 - There is substantial and significant divergence between the Gulf and the Atlantic for both of these species. There is more divergence between Erebennus in the Gulf vs Atantic than for Truncatus, which makes sense. 
 - The intermediate population is a result of hybridization between Erebennus and Truncatus.
   - There is minimal structure between the Gulf and the Atlantic.  
-  - There has likely been lots of backcrossing between the Erebennus and the Intermediate populations. Particularly in the Gulf. 
+  - There has likely been lots of backcrossing between the Erebennus and the Intermediate populations. Particularly in the Gulf. It seems like this hybridization is still ongoing. 
   - The intermediate populations are likely Erebennus, potentially a subspecies. 
 
 # outstanding questions for discussion
