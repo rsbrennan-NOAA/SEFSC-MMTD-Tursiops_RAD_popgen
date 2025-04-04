@@ -8,10 +8,7 @@ hist(dat$map_percent_q20)
 
 all <- merge(dat, dflib, by="sample")
 
-
-
 hist(dat$mapped_q20, breaks=30)
-
 
 ggplot(all, aes(x = total_reads, fill = as.factor(lanes))) +
   geom_histogram(position = "identity", alpha = 0.9, bins = 40) +
@@ -47,7 +44,7 @@ all4$sample[grep("42193|78068",all3$sample, invert=F)]
 all5 <- all4[grep("42193|78068",all4$sample, invert=T),]
 
 nrow(all5)
-# 375 
+# 375 of the right species
 
 all5[order(all5$total_reads),]
 
@@ -56,7 +53,13 @@ all5$sample[which(all5$total_reads < 1000000)]
 length(all5$sample[which(all5$total_reads > 1000000)])
 # 372
 
-write.table(file="scripts/bam.list",paste0("/home/rbrennan/Tursiops-NC-PopulationAssignment-RAD/analysis/merged_bams/",
+all5[which(all5$sample == "26Tt309"),]
+all5[which(all5$sample == "26Tt313"),]
+all5[which(all5$sample == "2Tt156"),]
+all5[which(all5$sample == "7Tt278"),]
+
+write.table(file="scripts/bam.list",
+            paste0("/home/rbrennan/Tursiops-NC-PopulationAssignment-RAD/analysis/merged_bams/",
     all5$sample[which(all5$total_reads > 1000000)],".merged.sorted.bam"), row.names=F, quote=F, col.names =F)
 
 
