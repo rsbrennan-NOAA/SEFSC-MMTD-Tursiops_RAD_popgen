@@ -134,72 +134,59 @@ sum(sz_out$gradient[,2] > 1) ## number of loci with credibly steep clines
 sum(sz_out$gradient[,3] < 1) 
 # 38
 
-#------------------
-# could check if the outliers are centered anywhere in the genome.
-#------------------
-
-snp_ids <- row.names(extract.gt(diff1))
-snp_ids[which(sz_out$gradient[,2] > 1)]
 
 
-CHR <- sapply(strsplit(snp_ids, "_"), function(x) paste(x[1], x[2], sep="_"))
-SNP <- sapply(strsplit(snp_ids, "_"), function(x) x[3])
+## last, lets look at interspecific ancestry for the same data set, this can
+## be especially informative about the types of hybrids present
+q_out<-est_Q(Gx=GenHybrids,
+             p0=p_out$p0[,1],p1=p_out$p1[,1],
+             model="genotype",ploidy="mixed",
+             pldat=plin,
+             n_chains = 4,
+             n_iters = 3000,
+             p_warmup = 0.5)
+q_out$Q_hmc
+rstan::traceplot(q_out$Q_hmc)
 
-# Create a data frame with the results
-snp_df <- data.frame(snp_id = snp_ids, CHR = CHR, SNP = SNP)
+#Warning message:
+#Tail Effective Samples Size (ESS) is too low, indicating posterior variances and tail quantiles may be unreliable.
+#Running the chains for more iterations may help. See
+#https://mc-stan.org/misc/warnings.html#tail-ess 
 
-table(snp_df$CHR)
-
-table(snp_df$CHR[which(sz_out$gradient[,2] > 1)])
-
-snp_df[which(sz_out$gradient[,2] > 1),]
-
-# 7/21 loci on NC_047055.1  are outliers. 
-# NC_047055.1 is the x chromosome. this is similar to pattern in gompert paper.
+## plot the results
+tri_plot(hi=q_out$hi[,1],Q10=q_out$Q10[,1],pdf=FALSE,pch=19)
+## note that some individuals appear to be likely backcrosses (close to the outer lines of the triangles)
+## but the individals with intermediate hybrid indexes are clearly not F1s but rather late generation hybrids
 
 
 
+# bc the above are slow to run, save and load for later
+save.image(file = "analysis/bgc.RData")
 
+# load environment
+load(file = "analysis/bgc.RData")
+
+
+
+
+
+
+
+
+#-------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
+# analyze the actual results
+#-------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
+
+#--------------
 ## cline plots
-cl<-1.4;ca<-1.1;cm<-1.4
-cs<-"firebrick3"
+#--------------
+
 o<-sz_out
-sig<-(o$gradient[,2] > 1)
-nonsig<-(o$gradient[,2] <= 1)
-shallow <- (o$gradient[,3] < 1) 
-
-o_sig<-o$gradient[sig,]
-o_nonsig<-o$gradient[nonsig,]
-o_shallow<-o$gradient[shallow,]
-h <- seq(0, 1, 0.01)
-sig_center=o$cent[sig,1];
-nonsig_center=o$cent[nonsig,1];
-shallow_center=o$cent[shallow,1];
-sig_v=o$gradient[sig,1]
-nonsig_v=o$gradient[nonsig,1]
-shallow_v=o$gradient[shallow,1]
-sig_u <- log(sig_center/(1 - sig_center)) * sig_v
-nonsig_u <- log(nonsig_center/(1 - nonsig_center)) * nonsig_v
-shallow_u <- log(shallow_center/(1 - shallow_center)) * shallow_v
-plot(h, h, type = "n", xlab = "Hybrid index", ylab = "Ancestry probability", 
-     xlim = c(0, 1), ylim = c(0, 1),cex.lab=cl)
-for (i in seq(1,length(nonsig_v),length.out=length(nonsig_v))) {
-  phi <- (h^nonsig_v[i])/(h^nonsig_v[i] + (1 - h)^nonsig_v[i] * exp(nonsig_u[i]))
-  lines(h, phi,col=alpha("black",.9),lwd=1)
-}
-for (i in seq(1,length(shallow_v),length.out=100)) {
-  phi <- (h^shallow_v[i])/(h^shallow_v[i] + (1 - h)^shallow_v[i] * exp(shallow_u[i]))
-  lines(h, phi,col=alpha("skyblue3",.7),lwd=2)
-}
-for (i in seq(1,length(sig_v),length.out=100)) {
-  phi <- (h^sig_v[i])/(h^sig_v[i] + (1 - h)^sig_v[i] * exp(sig_u[i]))
-  lines(h, phi,col=alpha("firebrick3",.7),lwd=2)
-}
-abline(a = 0, b = 1, lty = 2, lwd=3, col="black")
-title(main="Genomic clines",cex.main=cm)
-
-
-# convert to ggplot:
 
 library(ggplot2)
 library(scales) # For alpha function
@@ -216,7 +203,7 @@ nonsig_center <- o$cent[nonsig,1]
 nonsig_v <- o$gradient[nonsig,1]
 nonsig_u <- log(nonsig_center/(1 - nonsig_center)) * nonsig_v
 
-# Plot all non-significant lines
+# crease non-sig curves df
 for (i in 1:length(nonsig_v)) {
   phi <- (h^nonsig_v[i])/(h^nonsig_v[i] + (1 - h)^nonsig_v[i] * exp(nonsig_u[i]))
   temp_df <- data.frame(h = h, phi = phi, 
@@ -225,13 +212,13 @@ for (i in 1:length(nonsig_v)) {
   plot_data <- rbind(plot_data, temp_df)
 }
 
+#---------
 # shallow curves
 shallow <- (o$gradient[,3] < 1)
 shallow_center <- o$cent[shallow,1]
 shallow_v <- o$gradient[shallow,1]
 shallow_u <- log(shallow_center/(1 - shallow_center)) * shallow_v
 
-#shallow curves:
 for (i in 1:length(shallow_v)) {
   phi <- (h^shallow_v[i])/(h^shallow_v[i] + (1 - h)^shallow_v[i] * exp(shallow_u[i]))
   temp_df <- data.frame(h = h, phi = phi, 
@@ -240,7 +227,8 @@ for (i in 1:length(shallow_v)) {
   plot_data <- rbind(plot_data, temp_df)
 }
 
-#  steep lines
+#---------------
+#  steep curves
 sig <- (o$gradient[,2] > 1)
 sig_center <- o$cent[sig,1]
 sig_v <- o$gradient[sig,1]
@@ -254,7 +242,7 @@ for (i in 1:length(sig_v)) {
   plot_data <- rbind(plot_data, temp_df)
 }
 
-# Add diagonal line data
+# Add diagonal line data, just for plotting
 diag_line <- data.frame(h = c(0, 1), phi = c(0, 1), group = "diagonal", 
                         type = "diagonal")
 plot_data <- rbind(plot_data, diag_line)
@@ -360,40 +348,125 @@ p2 <- ggplot(plot_data, aes(x = SNP_number, y = log_gradient, color = category))
 ggsave(file="figures/genomic_clines_gradients.png", p2, 
        h=4.5, w=7)
 
-save.image(file = "analysis/bgc.RData")
-
-# To load the saved environment in a future R session
-load(file = "analysis/bgc.RData")
 library(ggplot2)
+
+
+
+#---------------------------------------------------------
+#---------------------------------------------------------
+#---------------------------------------------------------
+# analyze the outliers, their locations, expectations
+#---------------------------------------------------------
+#---------------------------------------------------------
+#---------------------------------------------------------
+
+head(plot_data)
+
+# add snp id:
+snp_ids <- row.names(extract.gt(diff1))
+CHR <- sapply(strsplit(snp_ids, "_"), function(x) paste(x[1], x[2], sep="_"))
+SNP <- sapply(strsplit(snp_ids, "_"), function(x) x[3])
+nrow(plot_data)
+snp_df <- data.frame(CHR = CHR, POS = SNP, snp_id = snp_ids)
+alldat <- cbind(snp_df, plot_data)
+
+head(alldat)
+
+library(dplyr)
+library(tidyr)
+
+result <- alldat %>%
+  group_by(CHR, category) %>%
+  summarise(count = n()) %>%
+  ungroup() %>%
+  pivot_wider(names_from = category, values_from = count, values_fill = 0) %>%
+  mutate(Total = rowSums(across(where(is.numeric))))
+
+result$prop_steep <- round(result$Steep/result$Total, 2)
+result$prop_shallow <- round(result$Shallow/result$Total,2)
+
+as.data.frame(result)
+
+# 7/21 loci on NC_047055.1  are outliers. 
+# NC_047055.1 is the x chromosome. this is similar to pattern in gompert paper.
+
 
 # want to look at chromosome legnth and number of outliers
 # 
 
+chrlen <- read.table("analysis/chr_length.txt", header=F)
+colnames(chrlen) <- c("CHR", "Length")
+chrlen <- chrlen[2:nrow(chrlen),1:2]
+
+
+result <- merge(chrlen, result) %>% 
+  filter(CHR != "NC_012059.1")
+
+df_long <- pivot_longer(
+  result,
+  cols = c(Neutral, Steep, Shallow, Total, prop_steep, prop_shallow),
+  names_to = "Variable",
+  values_to = "Value"
+)
+
+# Create the faceted plot
+ggplot(df_long, aes(x = (Length)/1000000, y = Value)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = TRUE) +
+  facet_wrap(~ Variable, scales = "free_y") +
+  labs(
+    title = "Regression of Length with Various Variables",
+    x = "Chromosome Length (mb)",
+    y = "Count"
+  ) +
+  theme_bw() 
+
+ggplot(result, aes(x = Total, y = Steep)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = TRUE) +
+  labs(
+    x = "Total number of SNPs",
+    y = "Number of steep outliers"
+  ) +
+  theme_bw() 
+
+
+ggplot(result, aes(x = Total, y = Shallow)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = TRUE) +
+  labs(
+    x = "Total number of SNPs",
+    y = "Number of shallow outliers"
+  ) +
+  theme_bw() 
+
+
+#--------------------------------------------------------------------------
+#--------------------------------------------------------------------------
+#--------------------------------------------------------------------------
 # need to run randomization test for enrichment of outliers on certain chromosomes
+#--------------------------------------------------------------------------
+#--------------------------------------------------------------------------
+
+sig_v<-o$gradient[,2] > 1
+
+result$null_steep <- NA
+result$pval_steep <- NA
+
+for(i in 1:nrow(result)){
+  tmp_chr <- result$CHR[i]
+  tmp_total <- result$Total[i]
+  tmp_steep_obs <- result$Steep[i]
+  null_v<-rep(NA,1000)
+  for(j in 1:1000){
+    null_v[j]<-sum(sample(as.numeric(sig_v),tmp_total,replace=FALSE))
+  }
+  result$pval_steep[i] <- mean(null_v >= tmp_steep_obs)
+  result$null_steep[i] <- mean(null_v)
+}
+
+
 
 # think about cline center vs slope. 
-
-
-## last, lets look at interspecific ancestry for the same data set, this can
-## be especially informative about the types of hybrids present
-q_out<-est_Q(Gx=GenHybrids,
-             p0=p_out$p0[,1],p1=p_out$p1[,1],
-             model="genotype",ploidy="mixed",
-             pldat=plin,
-             n_chains = 4,
-             n_iters = 3000,
-             p_warmup = 0.5)
-q_out$Q_hmc
-rstan::traceplot(q_out$Q_hmc)
-
-#Warning message:
-#Tail Effective Samples Size (ESS) is too low, indicating posterior variances and tail quantiles may be unreliable.
-#Running the chains for more iterations may help. See
-#https://mc-stan.org/misc/warnings.html#tail-ess 
-
-## plot the results
-tri_plot(hi=q_out$hi[,1],Q10=q_out$Q10[,1],pdf=FALSE,pch=19)
-## note that some individuals appear to be likely backcrosses (close to the outer lines of the triangles)
-## but the individals with intermediate hybrid indexes are clearly not F1s but rather late generation hybrids
 
 
