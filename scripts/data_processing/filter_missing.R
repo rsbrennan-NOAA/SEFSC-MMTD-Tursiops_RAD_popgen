@@ -11,13 +11,20 @@ nrow(dat[which(dat$F_MISS > 0.75),])
 # read in metadata. remove the stranded animals
 datMeta <- read.csv("../Tursiops-NC-PopulationAssignment-RAD/Tursiops_RADseq_Metadata-original.csv")
 stranded <- datMeta$Lab.ID[datMeta$Source == "stranding"]
+# keep stranded in. 
 length(stranded)# 11 indivs
 
 # and add 7Tt252-rep, which is a replicate and of worse quality than the first one. 
 
-rmindiv <- data.frame(d=unique(c(stranded, dat$INDV[which(dat$F_MISS > 0.75)], "7Tt252-rep")))
+#rmindiv <- data.frame(d=unique(c(stranded, dat$INDV[which(dat$F_MISS > 0.75)], "7Tt252-rep")))
+rmindiv <- data.frame(d=unique(c(dat$INDV[which(dat$F_MISS > 0.75)], "7Tt252-rep")))
+table(c(stranded, dat$INDV[which(dat$F_MISS > 0.75)], "7Tt252-rep"))
 nrow(rmindiv)
 # 35
+
+# three strandings are removed for data quality: 4Tt883 9Tt139 9Tt143 
+
+
 
 write.table(file="scripts/rm_missing.txt",rmindiv, col.names=F, 
   row.names=F, quote=F)
