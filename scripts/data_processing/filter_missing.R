@@ -20,7 +20,7 @@ length(stranded)# 11 indivs
 rmindiv <- data.frame(d=unique(c(dat$INDV[which(dat$F_MISS > 0.75)], "7Tt252-rep")))
 table(c(stranded, dat$INDV[which(dat$F_MISS > 0.75)], "7Tt252-rep"))
 nrow(rmindiv)
-# 35
+# 27
 
 # three strandings are removed for data quality: 4Tt883 9Tt139 9Tt143 
 
@@ -38,17 +38,17 @@ dat <- read.csv("analysis/filtered.6.depth.ldepth.mean",
                 header=T, sep="\t")
 nrow(dat)
 hist(dat$MEAN_DEPTH, breaks=40)
-hist(dat$MEAN_DEPTH, breaks=80, xlim=c(0, 500))
+hist(dat$MEAN_DEPTH, breaks=500, xlim=c(0, 200))
 
 mean(dat$MEAN_DEPTH)
-# 46
+# 46.2
 mean(dat$MEAN_DEPTH)*3
 # *3 = 139
 
 quantile(dat$MEAN_DEPTH, probs=.975)
-#138
-sum(dat$MEAN_DEPTH > 139)
-#237
+#136
+sum(dat$MEAN_DEPTH > quantile(dat$MEAN_DEPTH, probs=.975))
+#228
 sum(dat$MEAN_DEPTH > quantile(dat$MEAN_DEPTH, probs=.975))
 dat[which(dat$MEAN_DEPTH > quantile(dat$MEAN_DEPTH, probs=.975)),]
 
@@ -76,7 +76,7 @@ mean(HDplotResults$H)
 
 hist(HDplotResults$num_hets)
 
-HDplotResults %>% ggplot()+geom_point(aes(x=H,y=abs(D)), alpha=0.1) + ylim(0,50)
+HDplotResults %>% ggplot()+geom_point(aes(x=H,y=abs(D)), alpha=0.05) + ylim(0,50)
 
 #plot H and ratio
 HDplotResults %>% ggplot()+geom_point(aes(x=H,y=ratio))
@@ -88,15 +88,15 @@ HDplotResults %>% ggplot()+geom_point(aes(x=H,y=ratio))
 
 
 sum((HDplotResults$H > 0.5))
-#34
-sum((abs(HDplotResults$D) > 6), na.rm=T)
-#1574
+#33
+sum((abs(HDplotResults$D) > 7), na.rm=T)
+#1113
 
 # positions to exclude:
-datexclude <- HDplotResults[which(HDplotResults$H > 0.5 | abs(HDplotResults$D) > 6),]
+datexclude <- HDplotResults[which(HDplotResults$H > 0.5 | abs(HDplotResults$D) > 7),]
 posexclude <- datexclude[,1:2]
 nrow(posexclude)
-#1581
+#1120
 write.table(posexclude, file="scripts/HD_exclude.txt",
             quote=F, col.names = FALSE, row.names=FALSE,
             sep="\t")
