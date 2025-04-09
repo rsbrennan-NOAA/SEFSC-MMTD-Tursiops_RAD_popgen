@@ -133,11 +133,17 @@ hist(depths$depth, breaks=300, xlim=c(-100, (max(depths$depth)+10)))
 max(depths$depth)
 
 sum(depths$depth >= 0)
-# 25
+# 37
+head(depths)
 
 datmerge <- merge(depths, dat, by.x="site", by.y="Lab.ID")
-
-dat_err <- datmerge[(depths$depth > 0),]
+head(datmerge)
+datmerge$depth[datmerge$Source == "stranding"] <- "stranding"
+depths$depth[datmerge$Source == "stranding"] <- "stranding"
+dat_err <- datmerge[(depths$depth >= 0),]
+dat_err <- dat_err[dat_err$Source != "stranding",]
+nrow(dat_err)
+#33
 
 # figure out whats going on with these ones that are > 0
 coords.gps2 = dplyr::select(dat_err, Long , Lat)
@@ -197,8 +203,9 @@ sum(dfout$depth_gebco >= 0)
 plot(dfout$depth_gebco, depths$depth)
 # they agree
 
-missing_index <- which(dfout$depth_gebco >= 0)
+missing_index <- which(dfout$depth_gebco >= 0 & dat$Source != "stranding")
 length(missing_index)
+# 33
 missingdat <- data.frame(lon = coords.gps$Long[missing_index],
                          lat = coords.gps$Lat[missing_index])
 
@@ -324,8 +331,6 @@ nrow(alldat)
 
 write.csv(alldat, file="depths.csv", row.names = F)
 
-
-
 ####----------------------------------------------------------------------------
 ####----------------------------------------------------------------------------
 # distance to shore
@@ -383,11 +388,16 @@ usa <- st_as_sf(maps::map("state", fill=TRUE, plot =FALSE))
 
 d <- dist2isobath(bathydata, x=dat$lon_corrected, y=dat$lat_corrected, isobath = 0)
 
-
 # isobath=0 means find coastline.
 # output distance is in meters
 
 head(d)
+
+tail(d)
+
+
+
+
 
 pdf(file="figures/distance_to_shore.pdf", h=6, w=8)
 # Visualize the great circle distances
@@ -405,16 +415,25 @@ dev.off()
 
 dfout <- data.frame(
   id = dat$id,
-  distance_to_shore = d$distance
+  distance_to_shore = round(d$distance, 2)
   )
 
-df_all <- merge(dat, dfout, by="id")
+head(dfout)
+
+#df_all <- merge(dat, dfout, by="id")
+
+
+dat <- read.csv("Tursiops_RADseq_Metadata_new.csv")
+
+strand <- dat$Lab.ID[dat$Source == "stranding"]
+dfout$distance_to_shore[dfout$id %in% strand] <- "stranding"
+
+sum(dfout$distance_to_shore == "stranding")
+
+tail(dfout)
 
 write.csv(dfout, file="analysis/distance.csv", 
           row.names=F, quote=F)
-
-
-
 
 
 

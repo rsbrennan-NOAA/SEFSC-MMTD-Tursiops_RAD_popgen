@@ -7,9 +7,12 @@ module load bio/vcftools
 module load lib64/gsl
 
 
-cd ~/Tursiops-RAD-popgen/analysis/pop_structure/treemix
+cd ~/Tursiops-RAD-popgen/analysis/pop_structure/
 
-# remember that the clust files are generated in pca.R, at the end. 
+dos2unix fourpop.clust
+dos2unix sixpop.clust
+
+# remember that the clust files are generated in subset_pops.R, at the end. 
 
 # append aduncus samples onto these pop files:
 
@@ -33,26 +36,26 @@ sed -i 's/Intermediate_Gulf/IntGulf/g' sixpop.clust
 sed -i 's/Offshore_Atlantic/OffAtl/g' sixpop.clust
 sed -i 's/Offshore_Gulf/OffGulf/g' sixpop.clust
 
-
 cut -f 1 fourpop.clust > fourpop.keep 
 cut -f 1 sixpop.clust  > sixpop.keep 
 
 vcftools --gzvcf ~/Tursiops-RAD-popgen/analysis/variants/tursiops_aduncus_LDthin.vcf.gz --keep fourpop.keep --recode --recode-INFO-all --stdout |  bgzip > fourpop.vcf.gz
 zcat  fourpop.vcf.gz | awk '{if ($1 == "#CHROM"){print NF-9; exit}}'
-# there should be 248 indivs.
+# there should be 250 indivs.
 
 
 vcftools --gzvcf ~/Tursiops-RAD-popgen/analysis/variants/tursiops_aduncus_LDthin.vcf.gz --keep sixpop.keep --recode --recode-INFO-all --stdout |  bgzip > sixpop.vcf.gz
 zcat  sixpop.vcf.gz | awk '{if ($1 == "#CHROM"){print NF-9; exit}}'
-# 222
+# 226
 
 # convert to treemix
-populations --in-vcf fourpop.vcf.gz --treemix -O . -M fourpop.clust
+populations --in-vcf fourpop.vcf.gz --treemix -O treemix/ -M fourpop.clust
 # fourpop.p.treemix
 
-populations --in-vcf sixpop.vcf.gz --treemix -O . -M sixpop.clust
+populations --in-vcf sixpop.vcf.gz --treemix -O treemix/ -M sixpop.clust
 #sixpop.p.treemix
 
+cd treemix
 tail -n +2 fourpop.p.treemix |  gzip  > fourpop.p.treemix.gz
 tail -n +2 sixpop.p.treemix  | gzip > sixpop.p.treemix.gz
 
@@ -114,31 +117,6 @@ run R step 1 to determine how many migration events.
 
 ```bash
 
-infile=fourpop.p.treemix.gz
-ncore=4
-blockk=75
-outgroup=Aduncus
-nboot=100		
-mig=2
-outname=fourpop
-runs=30
-tree=fourpop_constree.newick
-pathP=~/bin/phylip-3.697/exe/consense	
-
-sh ~/Tursiops-RAD-popgen/scripts/treemix_step3.sh $infile $ncore $blockk $outgroup $nboot $mig $outname $runs $tree $pathP
-
-```
-
-
-
-
-
-
-
-test script from bite R. 
-
-```bash
-
 cd ~/Tursiops-RAD-popgen/analysis/pop_structure/treemix/fourpop
 
 infile=fourpop.p.treemix.gz
@@ -171,7 +149,7 @@ sh ~/Tursiops-RAD-popgen/scripts/treemix_bootstraps.sh $infile $numk $ncore $blo
 
 
 
-
+then next steps in R
 
 
 

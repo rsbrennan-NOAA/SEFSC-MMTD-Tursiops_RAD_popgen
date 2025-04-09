@@ -36,7 +36,7 @@ folder <- file.path(path="test_migrations")                     #path to files o
 test.linear = optM(folder, method = "linear", tsv="linear.txt")   #test m: produces a list of which the $out dataframe suggests optimum m based on multiple linear models
 plot_optM(test.linear, method = "linear")                         #shows changes in log likelihood for different m, and suggests optimum m as 'change points'
 
-# 2 migreation events. 
+# 2 migration events. 
 
 
 #-------------------
@@ -80,7 +80,7 @@ maxLL("fourpop_treemix_bootrep_", nt=100, uel=FALSE)
 ## 2. Now plot and save unique tree with highest likelihood:
 
 pdf("../../../../../figures/TreeMix_output_fourpop.pdf", h=4, w=5)                                          
-treemix.bootstrap(in.file="fourpop_treemix_bootrep_7", #stem of TreeMix files (as above) + number of run with highest likelihood and unique topology
+treemix.bootstrap(in.file="fourpop_treemix_bootrep_73", #stem of TreeMix files (as above) + number of run with highest likelihood and unique topology
                   out.file = "tmp", 
                   phylip.file = "../fourpop_outtree.newick", 
                   #consensus tree in newick format (from the bootstrap procedure generated with PHYLIP)    
@@ -90,10 +90,10 @@ treemix.bootstrap(in.file="fourpop_treemix_bootrep_7", #stem of TreeMix files (a
                   boot.legend.location = "topleft")
 dev.off()
 
-treemix.drift(in.file = "fourpop_treemix_bootrep_7")
+treemix.drift(in.file = "fourpop_treemix_bootrep_73")
               #pairwise matrix for drift estimates with specified order of pops 
 
-write.table(file="fourpop.order", data.frame(pops= c("Aduncus", "Off", "CAtl", "Int", "CGulf")),
+write.table(file="fourpop.order", data.frame(pops= c("Aduncus", "Offshore", "CoastAtl", "Intermediate", "CoastGulf")),
             quote = F, row.names=F, col.names = F)
 
 plot_resid("fourpop_treemix_bootrep_7",                                        #pairwise matrix for residuals
@@ -118,7 +118,7 @@ cfTrees("sixpop_treemix_bootrep_", nt=100, p=1, m='PH85')
 ## 2. Now plot and save unique tree with highest likelihood:
 
 pdf("../../../../../figures/TreeMix_output_sixpop_maxLL.pdf", h=4, w=5)                                          
-treemix.bootstrap(in.file="sixpop_treemix_bootrep_5", #stem of TreeMix files (as above) + number of run with highest likelihood and unique topology
+treemix.bootstrap(in.file="sixpop_treemix_bootrep_10", #stem of TreeMix files (as above) + number of run with highest likelihood and unique topology
                   out.file = "tmp", 
                   phylip.file = "../sixpop_outtree.newick", 
                   #consensus tree in newick format (from the bootstrap procedure generated with PHYLIP)    

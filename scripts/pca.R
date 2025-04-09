@@ -7,19 +7,20 @@ library(SeqArray)
 library(stringr)
 
 pops <- read.csv("Tursiops_RADseq_Metadata_new.csv")
-
-filename = "analysis/filtered.final_ids_LDthin"
+nrow(pops)
+filename = "analysis/variants/filtered.final_ids_LDthin"
 filename.gds = paste0(filename, ".gds")
 filename.vcf.gz = paste0(filename, ".vcf.gz")
 # Convert VCF to GDS
 SeqArray::seqVCF2GDS(vcf.fn = filename.vcf.gz, out.fn = filename.gds, storage.option="ZIP_RA")
 
 gdsin = SeqArray::seqOpen(filename.gds)
+#SeqArray::seqClose(filename.gds)
 
 print(paste0("The number of SAMPLES in data: ", length(c(SeqArray::seqGetData(gdsin, "sample.id")))))
-# [1] "The number of SAMPLES in data: 337"
+# [1] "The number of SAMPLES in data: 345"
 print(paste0("The number of SNPs in data: ",  length(c(SeqArray::seqGetData(gdsin, "variant.id")))))
-# [1] "The number of SNPs in data: 4356"
+# [1] "The number of SNPs in data: 4496"
 summary(m1 <- SeqArray::seqMissing(gdsin, per.variant=TRUE))
 summary(m2 <- SeqArray::seqMissing(gdsin, per.variant=FALSE))
 
@@ -33,10 +34,16 @@ pop.ids <- sub("^(FB).*$", "\\1", pop.ids)
 SeqArray::seqSummary(gdsin)
 
 SeqArray::seqSetFilter(gdsin)
-snp_in <- SeqArray::seqGetData(gdsin, "variant.id")
+snp_in_all <- SeqArray::seqGetData(gdsin, "variant.id")
 samp_in <- SeqArray::seqGetData(gdsin, "sample.id")
 
+tail(SeqArray::seqGetData(gdsin, "chromosome"))
 
+sexsnp <- snp_in_all[which(SeqArray::seqGetData(gdsin, "chromosome") == "NC_047055.1")]
+length(sexsnp)
+
+snp_in <- snp_in_all[which(SeqArray::seqGetData(gdsin, "chromosome") != "NC_047055.1")]
+length(snp_in)
 
 #--------------------------------------------
 # pca
@@ -77,7 +84,7 @@ pops$region <- ifelse(pops$Long > -81.7, "Atlantic",
 pops$region <- ifelse(pops$Long < -81.7, "Gulf", pops$region)
 
 df <- merge(dat, pops, by.x="IDs", by.y="Lab.ID")
-
+nrow(df)
 
 # with ids
 d <- ggplot(df, aes(PC1, PC2, label=Population, color=region)) +
@@ -109,12 +116,21 @@ ggsave("figures/pca_region.png", d, h=4, w=5)
 
 # color by depth
 depth <- read.csv("depths.csv", header=T)
+depth$corrected_depth <- as.numeric(depth$corrected_depth)
 
-df <- merge(df, depth, by.x="IDs", by.y="id")
-df$log_corrected_depth <- log10(df$corrected_depth*-1)
+df2 <- merge(df, depth, by.x="IDs", by.y="id", all.x=TRUE)
 
-d <- ggplot(df, aes(PC1, PC2, label=Population, fill=corrected_depth, shape=region)) +
-  geom_point(size =3) +
+#df2$point_type <- ifelse(df2$corrected_depth == "stranding", "stranding", "depth")
+
+d <- ggplot(df2, aes(PC1, PC2, fill=corrected_depth, shape=region, color="")) +
+  geom_point(data = subset(df2, Source != "stranding"),
+             size =3,color="black") +
+  geom_point(data = subset(df2, Source == "stranding"),
+             size = 3, 
+             shape=22, 
+             fill="black"
+             #color="black"
+             ) +
   xlab(paste0("PC1: ",round(eig[1], 2),"% variance")) +
   ylab(paste0("PC2: ",round(eig[2], 2),"% variance")) +
   theme_bw() +
@@ -126,9 +142,13 @@ d <- ggplot(df, aes(PC1, PC2, label=Population, fill=corrected_depth, shape=regi
     name = "Depth",
     limits = c(-200, 0),  
     oob = scales::squish, # anything below -800 will be the yellow
-    direction = -1  # reverse direction if needed
+    direction = -1,  # reverse direction if needed
+    na.value="black"
   ) +
-  scale_shape_manual(values=c(21, 24))
+  scale_shape_manual(values=c(21, 24)) +
+  scale_colour_manual(values=NA) +              
+  guides(color=guide_legend("Stranding", override.aes=list(colour="black")))
+
 
 d
 
@@ -138,13 +158,29 @@ ggsave("figures/pca_depth.png", d, h=4, w=5)
 
 
 # color by distance from shore
-depth <- read.csv("analysis/depth_distance.csv", header=T)
+depth <- read.csv("analysis/distance.csv", header=T)
+nrow(depth[depth$distance_to_shore == "stranding",])
 
-df <- merge(df, depth, by.x="IDs", by.y="id")
+df2 <- merge(df, depth, by.x="IDs", by.y="id")
+nrow(df2[df2$distance_to_shore == "stranding",])
 
-d <- ggplot(df, aes(PC1, PC2, label=Population, fill=distance_to_shore/1000, shape=region)) +
-  geom_point(size =3) +
-  xlab(paste0("PC1: ",round(eig[1], 2),"% variance")) +
+
+sum(is.na(as.numeric(df2$distance_to_shore)))
+
+df2$distance_to_shore <- as.numeric(df2$distance_to_shore)/1000
+df2[(is.na(df2$distance_to_shore)),]
+
+
+d <- ggplot(df2, aes(PC1, PC2, label=Population, fill=distance_to_shore, 
+                     shape=region, color="")) +
+  geom_point(data = subset(df2, Source != "stranding"),
+             size =3,color="black") +
+  geom_point(data = subset(df2, Source == "stranding"),
+             size = 3, 
+             shape=22, 
+             fill="black"
+             #color="black"
+  ) +  xlab(paste0("PC1: ",round(eig[1], 2),"% variance")) +
   ylab(paste0("PC2: ",round(eig[2], 2),"% variance")) +
   theme_bw() +
   ggtitle('All individuals: PC1, PC2') +
@@ -157,7 +193,10 @@ d <- ggplot(df, aes(PC1, PC2, label=Population, fill=distance_to_shore/1000, sha
     oob = scales::squish,
     direction = 1
   ) +
-  scale_shape_manual(values=c(21, 24))
+  scale_shape_manual(values=c(21, 24)) +
+  scale_colour_manual(values=NA) +              
+  guides(color=guide_legend("Stranding", override.aes=list(colour="black")))
+
 d
 
 ggsave("figures/pca_distance.png", d, h=4, w=5)
@@ -177,6 +216,8 @@ positions <- SeqArray::seqGetData(gdsin, "position")
 
 SnpLoad <- snpgdsPCASNPLoading(pca.out, gdsin)
 dim(SnpLoad$snploading)
+
+
 
 pc<-1
 
@@ -257,7 +298,6 @@ dev.off()
 
 
 
-
 #-------------------------------------------------------------------------------
 #-------------------------------------------------------------------------------
 #-------------------------------------------------------------------------------
@@ -308,7 +348,9 @@ d
 
 ggsave("figures/pca_DAPCPops.png", d, h=4, w=5)
 
-misid <- data.frame(IDs= c("37Tt023","13Tt073","8Tt144","10Tt007","7Tt312","10Tt059"))
+misididx <- which(ndat_dapc$dapc_population != ndat$admixture_population)
+
+misid <- data.frame(IDs= ndat_dapc$IDs[misididx])
 
 misall <- merge(misid, ndat_dapc, by="IDs")
 
@@ -335,7 +377,8 @@ ndat[(ndat$PC1> 0.025 & ndat$PC1 < 0.1 & ndat$PC2 < 0.05 & ndat$PC2 > -0.01),]
 ndat[(ndat$PC1> 0.025 & ndat$PC1 < 0.1 & ndat$PC2 < 0.045 & ndat$PC2 > -0.01),]
 
 ndat$IDs[(ndat$PC1> 0.025 & ndat$PC1 < 0.1 & ndat$PC2 < 0.045 & ndat$PC2 > -0.01)]
-# "8Tt114" "8Tt243" "8Tt322" "8Tt363" "8Tt365" "8Tt424" "8Tt428" "8Tt465" "8Tt495" "8Tt513" "8Tt521" "8Tt619" "8Tt654"
+#[1] "13Tt073" "7Tt312"  "8Tt114"  "8Tt144"  "8Tt243"  "8Tt322"  "8Tt363"  "8Tt365" 
+#[9] "8Tt424"  "8Tt428"  "8Tt465"  "8Tt495"  "8Tt513"  "8Tt521"  "8Tt619"  "8Tt654" 
 ndat_dapc$IDs == ndat$IDs
 
 # table with dapc pops, low confidence indivs, and the intermediate offshore indivs
@@ -348,8 +391,6 @@ summary_dat <- data.frame(indiv = ndat$IDs,
 head(summary_dat)
 
 # make names better:
-summary_dat$dapc_population[summary_dat$dapc_population == "Coastal_Atl"] <- "Coastal_Atlantic" 
-summary_dat$admixture_population[summary_dat$admixture_population == "Coastal_Atl"] <- "Coastal_Atlantic" 
 
 summary_dat$fourpop <- summary_dat$dapc_population
 summary_dat$sixpop <- paste(summary_dat$region, summary_dat$fourpop, sep="_")
@@ -379,100 +420,60 @@ write.table(file="analysis/population_assignments_summary.txt", summary_dat2, se
             quote = F, row.names=F)
 
 
-
-
-
-
-
-
+# ---------------------------------------------------------------------------
+# ---------------------------------------------------------------------------
+# ---------------------------------------------------------------------------
+# ---------------------------------------------------------------------------
+# ---------------------------------------------------------------------------
 #------------------------------------------------------------------------
-#------------------------------------------------------------------------
-#------------------------------------------------------------------------
-#------------------------------------------------------------------------
-#------------------------------------------------------------------------
-# write out files for treemix:
-# need to have relatively equal sample sizes
+# pca of sex chr
 
-# 1: 4 pops from admixture
-# 2: separate gulf and atlantic for intermediate and offshore.
-
-# 1: 4 pop
-table(summary_dat2$fourpop)
-sum(table(ndat$admixture_population))
-
-write.table(file="analysis/pop_structure/fourpop_all.clust", 
-            data.frame(samp1 = summary_dat2$indiv,
-                       group = summary_dat2$fourpop),
-            sep="\t", quote=F, col.names=F, row.names=F)
+df2$IDs[df2$region ==]
+gdsSubset(gdsin, coast,
+          sample.include=NULL, snp.include=NULL,
+          compress="LZMA_RA",
+          verbose=TRUE,
+          allow.fork=FALSE)
 
 
-
-# select 70 indivs from Coastal_Atl
-# Subset Coastal_Atl IDs, keep all others
-coastal_atl_subset_idx <- sample(summary_dat2$indiv[summary_dat2$fourpop == "Coastal_Atlantic"], 70)
-coastal_atl_subset <-  summary_dat2[summary_dat2$indiv %in% coastal_atl_subset_idx,]
-nrow(coastal_atl_subset)
-
-other_dat <- summary_dat2[summary_dat2$fourpop != "Coastal_Atlantic",]
-
-combodat <- rbind(coastal_atl_subset, other_dat)
-
-# Verify new counts
-table(combodat$fourpop)
-#Coastal_Atl Coastal_Gulf Intermediate     Offshore 
-#70           47           54           74 
-sum(table(combodat$fourpop))
-# 245
-
-write.table(file="analysis/pop_structure/fourpop.clust", 
-            data.frame(samp1 = combodat$indiv,
-                       group = combodat$fourpop),
-            sep="\t", quote=F, col.names=F, row.names=F)
+pca.out = SNPRelate::snpgdsPCA(autosome.only = F, gdsin, num.thread=2, 
+                               remove.monosnp = T, maf = 0.05,
+                               snp.id=sexsnp)
 
 
-###----------------------------------------------------------------------------
-# 2: separate gulf and atlantic for intermeidate and offshore.
+eig = pca.out$eigenval[!is.na(pca.out$eigenval)]
+barplot(100*eig/sum(eig), main="PCA Eigenvalues")
 
-# add region to the pops
+# scale 
+eig <- 100*eig/sum(eig)
 
-table(summary_dat2$sixpop)
-#Coastal_Atlantic          Coastal_Gulf Intermediate_Atlantic     Intermediate_Gulf 
-#162                    44                    44                    16 
-#Offshore_Atlantic         Offshore_Gulf 
-#33                    38 
+dat <- as.data.frame(pca.out$eigenvect)
 
-# write the output, 
+colnames(dat) <- c("PC1", "PC2", "PC3",colnames(dat)[4:ncol(dat)] )
+dat$IDs <- pca.out$sample.id
+dat$Population <- pop.ids
+head(dat)
 
-write.table(file="analysis/pop_structure/sixpop_all.clust", 
-            data.frame(samp1 = summary_dat2$indiv,
-                       group = summary_dat2$sixpop),
-            sep="\t", quote=F, col.names=F, row.names=F)
+df <- merge(dat, pops, by.x="IDs", by.y="Lab.ID")
+
+head(df)
+
+d <- ggplot(df, aes(PC1, PC2, label=Population, fill=Sex, 
+                    shape=region, color="")) +
+  geom_point(size =3,color="black") +
+  xlab(paste0("PC1: ",round(eig[1], 2),"% variance")) +
+  ylab(paste0("PC2: ",round(eig[2], 2),"% variance")) +
+  theme_bw() +
+  scale_shape_manual(values=c(21, 24))         
+d
+
+ggsave("figures/pca_distance.png", d, h=4, w=5)
 
 
 
-# for treemix:
-# Subset Coastal_Atl IDs, keep all others
-coastal_atl_subset_idx <- sample(summary_dat2$indiv[summary_dat2$fourpop == "Coastal_Atlantic"], 44)
-coastal_atl_subset <-  summary_dat2[summary_dat2$indiv %in% coastal_atl_subset_idx,]
 
 
-other_dat <- summary_dat2[summary_dat2$sixpop != "Coastal_Atlantic",]
 
-combodat <- rbind(coastal_atl_subset, other_dat)
-
-# Verify new counts
-table(combodat$sixpop)
-#Coastal_Atlantic          Coastal_Gulf Intermediate_Atlantic     Intermediate_Gulf 
-#44                    44                    44                    16 
-#Offshore_Atlantic         Offshore_Gulf 
-#33                    38 
-sum(table(combodat$sixpop))
-# 210
-
-write.table(file="analysis/pop_structure/sixpop.clust", 
-            data.frame(samp1 = combodat$indiv,
-                       group = combodat$sixpop),
-            sep="\t", quote=F, col.names=F, row.names=F)
 
 
 

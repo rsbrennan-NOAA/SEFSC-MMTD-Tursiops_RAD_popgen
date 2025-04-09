@@ -22,7 +22,7 @@ ggsave("figures/cv.png", p, h=3, w=3)
 
 # actual results:
 
-samplelist <- read_delim("analysis/pop_structure/LDthin_numCorrect.fam",
+samplelist <- read_delim("analysis/variants/LDthin_noX_numCorrect.fam",
                          col_names = c("individual", "id2", "a", "b", "c", "d"),
                          delim=" ")
 
@@ -35,7 +35,7 @@ all_data <- tibble(individual=character(),
 
 # then add all results to this
 for (k in 2:8){
-  data <- read_delim(paste0("analysis/pop_structure/LDthin_numCorrect.",k,".Q"),
+  data <- read_delim(paste0("analysis/pop_structure/LDthin_noX_numCorrect.",k,".Q"),
                      col_names = paste0("Q",seq(1:k)),
                      delim=" ")
   data$sample <- samplelist$individual
@@ -63,8 +63,9 @@ all_data <- result
 #pop_sub <- pops[pops$Lab.ID.. %in% result$IDs,]
 
 # order samples by population:
-sampleorder <- df$Lab.ID[order(df$region, (df$corrected_depth*-1))]
-df$corrected_depth[order((df$corrected_depth*-1))]
+df$corrected_depth[df$Source == "stranding"] <- 0
+sampleorder <- df$Lab.ID[order(df$region, (as.numeric(df$corrected_depth)*-1))]
+df$corrected_depth[order((as.numeric(df$corrected_depth)*-1))]
 all_data$IDs <- as.factor(all_data$sample)
 all_data$IDs <- factor(all_data$IDs, levels=sampleorder)
 all_data$sample <- all_data$IDs
@@ -148,7 +149,7 @@ write.table(file= "subset.txt", data.frame(V1= c(sub_id, rest_id), V2= c(sub_id,
 # most likely k is 4, lets try to assign indivs based on this.
 
 k <- 4
-data <- read_delim(paste0("analysis/pop_structure/LDthin_numCorrect.",k,".Q"),
+data <- read_delim(paste0("analysis/pop_structure/LDthin_noX_numCorrect.",k,".Q"),
                    col_names = paste0("Q",seq(1:k)),
                    delim=" ")
 data$sample <- samplelist$individual
@@ -159,9 +160,9 @@ q_cols <- c("Q1", "Q2", "Q3", "Q4")
 # assign highest Q
 data$highest_Q <- q_cols[max.col(data[,q_cols])]
 data$highest_Q[data$highest_Q == "Q1"] <- "Intermediate"
-data$highest_Q[data$highest_Q == "Q2"] <- "Coastal_Atl"
+data$highest_Q[data$highest_Q == "Q2"] <- "Coastal_Gulf"
 data$highest_Q[data$highest_Q == "Q3"] <- "Offshore"
-data$highest_Q[data$highest_Q == "Q4"] <- "Coastal_Gulf"
+data$highest_Q[data$highest_Q == "Q4"] <- "Coastal_Atlantic"
 
 data[which(data$sample == "37Tt023"),]
 
@@ -172,11 +173,6 @@ dout <- data.frame(Lab.ID = data$sample,
 
 
 write.table(file="analysis/populations_admixture.txt", dout, sep="\t", quote = F, row.names=F)
-
-
-# add in which are low confidence:
-head(data)
-
 
 
 
