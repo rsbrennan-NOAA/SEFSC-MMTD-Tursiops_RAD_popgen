@@ -110,8 +110,6 @@ dim(f2_blocks)
 f2_blocks[,,1]                # f2-statistics of the 1st SNP block
 apply(f2_blocks, 1:2, mean)   # average across all blocks
 
-
-
 #dat <- read_plink("pop_structure/admixtools/fourpop",verbose = TRUE)
 pop1 = "Intermediate"
 pop2 = c("Coastal_Gulf", "Coastal_Atlantic")
@@ -239,29 +237,6 @@ write.table(four.out, file="analysis/pop_structure/dstats/fourpop_all_dstats.pop
             quote=F, col.names=F, row.names = FALSE, sep="\t")
 write.table(six.out, file="analysis/pop_structure/dstats/sixpop_all_dstats.pop", 
             quote=F, col.names=F, row.names = FALSE, sep="\t")
-
-
-# !!!!! then run dstats in bash
-
-dstat_four <- read.table("analysis/pop_structure/dstats/fourpop_all_BBAA.txt", header=T)
-dstat_four
-
-dstat_four$p.value_multTesting <- p.adjust(dstat_four$p.value,method="bonferroni")
-
-write.table(dstat_four,"analysis/pop_structure/dstats/dstats_fourpop.txt",
-            sep="\t", quote=F, row.names=F)
-# remember, always arranged to be positive. 
-# p1 and p2 can be flipped, would make negative.
-# as is, indicates gene flow between p2 and p3. 
-# so 
-dstat_six <- read.table("analysis/pop_structure/dstats/sixpop_all_BBAA.txt", header=T)
-dstat_six$p.value_multTesting <- p.adjust(dstat_six$p.value,method="bonferroni")
-
-dstat_six[dstat_six$p.value_multTesting < 0.05,]
-write.table(dstat_six,"analysis/pop_structure/dstats/dstats_sixpop.txt",
-            sep="\t", quote=F, row.names=F)
-#
-
 
 
 
