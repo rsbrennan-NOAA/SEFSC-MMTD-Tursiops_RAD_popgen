@@ -5,16 +5,16 @@
 library(triangulaR)
 library(vcfR)
 
-vcf <- read.vcfR( "analysis/filtered.final_ids.vcf.gz", verbose = FALSE )
+vcf <- read.vcfR( "analysis/variants/filtered.final_ids.vcf.gz", verbose = FALSE )
 vcf
 
-#***** Object of Class vcfR *****
-#337 samples
-#24 CHROMs
-#7,577 variants
-#Object size: 86.3 Mb
+#***** Object of Class vcfR
+#345 samples
+#23 CHROMs
+#7,819 variants
+#Object size: 90.3 Mb
 #0 percent missing data
-#*****        *****         *****
+
 # make a popmap
 #>     id pop
 #> 1  i55  P1
@@ -36,7 +36,7 @@ diff1 <- alleleFreqDiff(vcfR = vcf,
                                     p1 = "Coastal_Gulf", 
                                     p2 = "Offshore", 
                                     difference = 0.7)
-#[1] "427  sites passed allele frequency difference threshold"
+#[1] "438 sites passed allele frequency difference threshold"
 write.table(data.frame(snps=row.names(extract.gt(diff1))),
             quote = F,
             col.names = F,
@@ -51,7 +51,7 @@ diff2 <- alleleFreqDiff(vcfR = vcf,
                         p1 = "Coastal_Atlantic", 
                         p2 = "Offshore", 
                         difference = 0.7)
-#[1] "444  sites passed allele frequency difference threshold"
+#[1] "450 sites passed allele frequency difference threshold"
 
 # Calculate hybrid index and heterozygosity for each sample. 
   # Values are returned in a data.frame
@@ -101,20 +101,20 @@ diff1 <- alleleFreqDiff(vcfR = vcf,
                         p1 = "Coastal_Atlantic", 
                         p2 = "Offshore_Atlantic", 
                         difference = 0.7)
-#[1] "672  sites passed allele frequency difference threshold"
+#[1] "696  sites passed allele frequency difference threshold"
 
 diff2 <- alleleFreqDiff(vcfR = vcf, 
                         pm = pops, 
                         p1 = "Coastal_Gulf", 
                         p2 = "Offshore_Gulf", 
-                        difference = 0.6)
-#[1] "296 sites passed allele frequency difference threshold"
+                        difference = 0.7)
+#[1] "301 sites passed allele frequency difference threshold"
 
 write.table(data.frame(snps=row.names(extract.gt(diff2))),
             quote = F,
             col.names = F,
             file="analysis/snp_set_gulfOnly.txt",
-            sep="\t",
+            sepp="\t",
             row.names=F
 )
 
@@ -169,8 +169,8 @@ plot(hi.het2_sixpop$hybrid.index, hi.het2$hybrid.index)
 pops <- read.table("analysis/population_assignments_summary.txt", header=T)
 hybs <- pops$indiv[pops$offshore_putative_hybrids == TRUE]
 
-hi.het1_sixpop$pop[hi.het1_sixpop$id %in% hybs] <- "purative_hybrid"
-hi.het2_sixpop$pop[hi.het2_sixpop$id %in% hybs] <- "purative_hybrid"
+hi.het1_sixpop$pop[hi.het1_sixpop$id %in% hybs] <- "putative_hybrid"
+hi.het2_sixpop$pop[hi.het2_sixpop$id %in% hybs] <- "putative_hybrid"
 
 t1 <- triangle.plot(hi.het1_sixpop,colors = cols) + ggtitle("Coastal Atlantic vs. Offshore Atlantic")
 t2 <- triangle.plot(hi.het2_sixpop,colors = cols) + ggtitle("Coastal Gulf  vs. Offshore Gulf")
@@ -181,50 +181,4 @@ ggsave(file="figures/triangle_plot_sixpop_hybrids.png",
 ggsave(file="figures/triangle_plot_hybrids.pdf",
        ggpubr::ggarrange(t2, t1, common.legend = T),
        h=4, w=7)
-
-
-
-
-
-##-------------------------------------------------------------------------------
-# newhybrids output
-pops <- read.table("analysis/population_assignments_summary.txt", header=T)
-
-pops2 <- read.table("analysis/pop_structure/newhybrids/newhybrids_posteriors.txt", header=T)
-
-hybs <- pops$indiv[pops$offshore_putative_hybrids == TRUE]
-newhybrids <- pops2[pops2$sig == "High_Confidence" & pops2$highest_category != "Pure1" & pops2$highest_category != "Pure2" ,]
-
-F2 <- newhybrids$indiv[newhybrids$highest_category == "F2"]
-Backcross2  <- newhybrids$indiv[newhybrids$highest_category == "Backcross2"]
-Backcross1 <- newhybrids$indiv[newhybrids$highest_category == "Backcross1"]
-
-hi.het1_sixpop$pop[hi.het1_sixpop$id %in% hybs] <- "putative_hybrid"
-hi.het2_sixpop$pop[hi.het2_sixpop$id %in% hybs] <- "putative_hybrid"
-
-hi.het1_sixpop$pop[hi.het1_sixpop$id %in% F2] <- "NewHybrids_F2"
-hi.het2_sixpop$pop[hi.het2_sixpop$id %in% F2] <- "NewHybrids_F2"
-
-hi.het1_sixpop$pop[hi.het1_sixpop$id %in% Backcross2] <- "NewHybrids_Backcross2"
-hi.het2_sixpop$pop[hi.het2_sixpop$id %in% Backcross2] <- "NewHybrids_Backcross2"
-
-hi.het1_sixpop$pop[hi.het1_sixpop$id %in% Backcross1] <- "NewHybrids_Backcross1"
-hi.het2_sixpop$pop[hi.het2_sixpop$id %in% Backcross1] <- "NewHybrids_Backcross1"
-
-library(paletteer)
-cols <- c("#E41A1CFF", "#377EB8FF", "#4DAF4AFF", "#984EA3FF", 
-          "#FF7F00FF", "#EEC229FF", "#A65628FF", "#F781BFFF", 
-          "#999999FF", "black")
-
-
-t1 <- triangle.plot(hi.het1_sixpop,colors = cols) + ggtitle("Coastal Atlantic vs. Offshore Atlantic")
-t2 <- triangle.plot(hi.het2_sixpop,colors = cols) + ggtitle("Coastal Gulf  vs. Offshore Gulf")
-
-ggsave(file="figures/triangle_plot_sixpop_Newhybrids.png",
-       ggpubr::ggarrange(t2, t1, common.legend = T),
-       h=4, w=7.5)
-ggsave(file="figures/triangle_plot_Newhybrids.pdf",
-       ggpubr::ggarrange(t2, t1, common.legend = T),
-       h=4, w=7.5)
-
 

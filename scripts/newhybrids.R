@@ -5,13 +5,12 @@
 # https://groups.google.com/g/dartr/c/dvpgv6C6Ras
 
 library(tidyverse)
-
 pofz_path <- "analysis/pop_structure/newhybrids/"
 inds_file <- "analysis/variants/indivs_gulfVSoffshore.txt"
 
 pofz_files <- list.files(path = pofz_path, pattern = "aa-PofZ_\\d+\\.txt", full.names = TRUE)
 indiv_names <- read_delim(inds_file, delim = '\t', col_names = FALSE) %>% pull(X1)
-
+length(indiv_names)
 
 allres <- pofz_files %>%
   # getrun number from each file path
@@ -31,7 +30,7 @@ allres <- pofz_files %>%
   ungroup()
 
 
-pops <- read.table("analysis/population_assignments_summary.txt", header=T)
+pops <- read_delim("analysis/population_assignments_summary.txt")
 
 allres <- allres %>%
   left_join(pops, by = "indiv")
@@ -52,11 +51,13 @@ allres_with_highest <- allres %>%
     )
   )
 
+head(allres_with_highest)
+
 # Analyze consistency across runs for each individual
 consistency_analysis <- allres_with_highest %>%
   group_by(indiv, sixpop) %>%
   summarize(
-    num_runs = n(),
+    num_runs = length(highest_category),
     # Count occurrences of each category
     Pure1_count = sum(highest_category == "Pure1"),
     Pure2_count = sum(highest_category == "Pure2"),
@@ -79,7 +80,6 @@ consistency_analysis <- allres_with_highest %>%
     mean_highest_value = mean(highest_value),
     .groups = "drop"
   ) %>%
-  # Add a consistent flag for easy filtering
   mutate(is_consistent = consistency_percent == 100)
       
 sum(consistency_analysis$is_consistent)
@@ -166,14 +166,112 @@ write.table(median_assignments,
 
 
 
+##-------------------------------------------------------------------------------
+##-------------------------------------------------------------------------------
+##-------------------------------------------------------------------------------
+# triangle plot
+library(triangulaR)
+library(vcfR)
+
+vcf <- read.vcfR( "analysis/variants/filtered.final_ids.vcf.gz", verbose = FALSE )
+vcf
+
+pops1 <- read.table("analysis/population_assignments_summary.txt", header=T)
+
+pops <- data.frame(id = pops1$indiv,
+                   pop = pops1$fourpop)
+
+# identify ancestry informative markers (AIMS)
+# Create a new vcfR object composed only of sites above the given allele frequency difference threshold
+diff1 <- alleleFreqDiff(vcfR = vcf, 
+                        pm = pops, 
+                        p1 = "Coastal_Gulf", 
+                        p2 = "Offshore", 
+                        difference = 0.7)
+
+
+diff2 <- alleleFreqDiff(vcfR = vcf, 
+                        pm = pops, 
+                        p1 = "Coastal_Atlantic", 
+                        p2 = "Offshore", 
+                        difference = 0.7)
+#[1] "450 sites passed allele frequency difference threshold"
+
+# Calculate hybrid index and heterozygosity for each sample. 
+# Values are returned in a data.frame
+hi.het1 <- hybridIndex(vcfR = diff1, 
+                       pm = pops, 
+                       p1 = "Coastal_Gulf", p2 = "Offshore")
+
+hi.het2 <- hybridIndex(vcfR = diff2, 
+                       pm = pops, 
+                       p1 = "Coastal_Atlantic", p2 = "Offshore")
+
+
+
+
+
+
+
+
+plot(hi.het1_sixpop$hybrid.index, hi.het1$hybrid.index)
+plot(hi.het2_sixpop$hybrid.index, hi.het2$hybrid.index)
+
+pops <- read.table("analysis/population_assignments_summary.txt", header=T)
+hybs <- pops$indiv[pops$offshore_putative_hybrids == TRUE]
+
+hi.het1_sixpop$pop[hi.het1_sixpop$id %in% hybs] <- "putative_hybrid"
+hi.het2_sixpop$pop[hi.het2_sixpop$id %in% hybs] <- "putative_hybrid"
+
+t1 <- triangle.plot(hi.het1_sixpop,colors = cols) + ggtitle("Coastal Atlantic vs. Offshore Atlantic")
+t2 <- triangle.plot(hi.het2_sixpop,colors = cols) + ggtitle("Coastal Gulf  vs. Offshore Gulf")
+
+
+pops <- read.table("analysis/population_assignments_summary.txt", header=T)
+
+pops2 <- read.table("analysis/pop_structure/newhybrids/newhybrids_posteriors.txt", header=T)
+
+hybs <- pops$indiv[pops$offshore_putative_hybrids == TRUE]
+newhybrids <- pops2[pops2$sig == "High_Confidence" & pops2$highest_category != "Pure1" & pops2$highest_category != "Pure2" ,]
+
+F2 <- newhybrids$indiv[newhybrids$highest_category == "F2"]
+Backcross2  <- newhybrids$indiv[newhybrids$highest_category == "Backcross2"]
+Backcross1 <- newhybrids$indiv[newhybrids$highest_category == "Backcross1"]
+
+hi.het1_sixpop$pop[hi.het1_sixpop$id %in% hybs] <- "putative_hybrid"
+hi.het2_sixpop$pop[hi.het2_sixpop$id %in% hybs] <- "putative_hybrid"
+
+hi.het1_sixpop$pop[hi.het1_sixpop$id %in% F2] <- "NewHybrids_F2"
+hi.het2_sixpop$pop[hi.het2_sixpop$id %in% F2] <- "NewHybrids_F2"
+
+hi.het1_sixpop$pop[hi.het1_sixpop$id %in% Backcross2] <- "NewHybrids_Backcross2"
+hi.het2_sixpop$pop[hi.het2_sixpop$id %in% Backcross2] <- "NewHybrids_Backcross2"
+
+hi.het1_sixpop$pop[hi.het1_sixpop$id %in% Backcross1] <- "NewHybrids_Backcross1"
+hi.het2_sixpop$pop[hi.het2_sixpop$id %in% Backcross1] <- "NewHybrids_Backcross1"
+
+library(paletteer)
+cols <- c("#E41A1CFF", "#377EB8FF", "#4DAF4AFF", "#984EA3FF", 
+          "#FF7F00FF", "#EEC229FF", "#A65628FF", "#F781BFFF", 
+          "#999999FF", "black")
+
+
+t1 <- triangle.plot(hi.het1_sixpop,colors = cols) + ggtitle("Coastal Atlantic vs. Offshore Atlantic")
+t2 <- triangle.plot(hi.het2_sixpop,colors = cols) + ggtitle("Coastal Gulf  vs. Offshore Gulf")
+
+ggsave(file="figures/triangle_plot_sixpop_Newhybrids.png",
+       ggpubr::ggarrange(t2, t1, common.legend = T),
+       h=4, w=7.5)
+ggsave(file="figures/triangle_plot_Newhybrids.pdf",
+       ggpubr::ggarrange(t2, t1, common.legend = T),
+       h=4, w=7.5)
 
 
 
 
 #--------------------------------------------------------------
-# add the  hybrids on to the map:
-
-
+# add the  hybrids to the map:
+#--------------------------------------------------------------
 
 library(ggplot2)
 library(sf)

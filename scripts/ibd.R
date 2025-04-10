@@ -5,9 +5,9 @@ library(algatr)
 library(ade4)
 library(dplyr)
 
-vcf <- read.vcfR( "analysis/filtered.final_ids_LDthin.vcf.gz", verbose = FALSE )
+vcf <- read.vcfR( "analysis/variants/filtered.final_ids_LDthin_noX.vcf.gz", verbose = FALSE )
 #genin <- vcfR2genind(vcf)
-
+vcf
 
 # compare imputation methods
 simple_dos  <- simple_impute(gen_to_geno(vcf))
