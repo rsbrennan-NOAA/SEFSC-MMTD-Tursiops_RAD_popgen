@@ -5,3 +5,5 @@ data/
 work/
 logout/
 analysis/
+.Rhistory
+.Rproj.user/
