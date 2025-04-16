@@ -114,7 +114,7 @@ write.table(data.frame(snps=row.names(extract.gt(diff2))),
             quote = F,
             col.names = F,
             file="analysis/snp_set_gulfOnly.txt",
-            sepp="\t",
+            sep="\t",
             row.names=F
 )
 

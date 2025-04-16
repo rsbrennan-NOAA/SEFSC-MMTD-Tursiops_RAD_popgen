@@ -209,22 +209,14 @@ hi.het2 <- hybridIndex(vcfR = diff2,
 
 
 
-
-
-
-
-
-plot(hi.het1_sixpop$hybrid.index, hi.het1$hybrid.index)
-plot(hi.het2_sixpop$hybrid.index, hi.het2$hybrid.index)
-
 pops <- read.table("analysis/population_assignments_summary.txt", header=T)
 hybs <- pops$indiv[pops$offshore_putative_hybrids == TRUE]
 
-hi.het1_sixpop$pop[hi.het1_sixpop$id %in% hybs] <- "putative_hybrid"
-hi.het2_sixpop$pop[hi.het2_sixpop$id %in% hybs] <- "putative_hybrid"
+hi.het1$pop[hi.het1$id %in% hybs] <- "putative_hybrid"
+hi.het2$pop[hi.het2$id %in% hybs] <- "putative_hybrid"
 
-t1 <- triangle.plot(hi.het1_sixpop,colors = cols) + ggtitle("Coastal Atlantic vs. Offshore Atlantic")
-t2 <- triangle.plot(hi.het2_sixpop,colors = cols) + ggtitle("Coastal Gulf  vs. Offshore Gulf")
+t1 <- triangle.plot(hi.het1,colors = cols) + ggtitle("Coastal Atlantic vs. Offshore Atlantic")
+t2 <- triangle.plot(hi.het2,colors = cols) + ggtitle("Coastal Gulf  vs. Offshore Gulf")
 
 
 pops <- read.table("analysis/population_assignments_summary.txt", header=T)
@@ -238,17 +230,17 @@ F2 <- newhybrids$indiv[newhybrids$highest_category == "F2"]
 Backcross2  <- newhybrids$indiv[newhybrids$highest_category == "Backcross2"]
 Backcross1 <- newhybrids$indiv[newhybrids$highest_category == "Backcross1"]
 
-hi.het1_sixpop$pop[hi.het1_sixpop$id %in% hybs] <- "putative_hybrid"
-hi.het2_sixpop$pop[hi.het2_sixpop$id %in% hybs] <- "putative_hybrid"
+hi.het1$pop[hi.het1$id %in% hybs] <- "putative_hybrid"
+hi.het2$pop[hi.het2$id %in% hybs] <- "putative_hybrid"
 
-hi.het1_sixpop$pop[hi.het1_sixpop$id %in% F2] <- "NewHybrids_F2"
-hi.het2_sixpop$pop[hi.het2_sixpop$id %in% F2] <- "NewHybrids_F2"
+hi.het1$pop[hi.het1$id %in% F2] <- "NewHybrids_F2"
+hi.het2$pop[hi.het2$id %in% F2] <- "NewHybrids_F2"
 
-hi.het1_sixpop$pop[hi.het1_sixpop$id %in% Backcross2] <- "NewHybrids_Backcross2"
-hi.het2_sixpop$pop[hi.het2_sixpop$id %in% Backcross2] <- "NewHybrids_Backcross2"
+hi.het1$pop[hi.het1$id %in% Backcross2] <- "NewHybrids_Backcross2"
+hi.het2$pop[hi.het2$id %in% Backcross2] <- "NewHybrids_Backcross2"
 
-hi.het1_sixpop$pop[hi.het1_sixpop$id %in% Backcross1] <- "NewHybrids_Backcross1"
-hi.het2_sixpop$pop[hi.het2_sixpop$id %in% Backcross1] <- "NewHybrids_Backcross1"
+hi.het1$pop[hi.het1$id %in% Backcross1] <- "NewHybrids_Backcross1"
+hi.het2$pop[hi.het2$id %in% Backcross1] <- "NewHybrids_Backcross1"
 
 library(paletteer)
 cols <- c("#E41A1CFF", "#377EB8FF", "#4DAF4AFF", "#984EA3FF", 
@@ -256,8 +248,8 @@ cols <- c("#E41A1CFF", "#377EB8FF", "#4DAF4AFF", "#984EA3FF",
           "#999999FF", "black")
 
 
-t1 <- triangle.plot(hi.het1_sixpop,colors = cols) + ggtitle("Coastal Atlantic vs. Offshore Atlantic")
-t2 <- triangle.plot(hi.het2_sixpop,colors = cols) + ggtitle("Coastal Gulf  vs. Offshore Gulf")
+t1 <- triangle.plot(hi.het1,colors = cols) + ggtitle("Coastal Atlantic vs. Offshore Atlantic")
+t2 <- triangle.plot(hi.het2,colors = cols) + ggtitle("Coastal Gulf  vs. Offshore Gulf")
 
 ggsave(file="figures/triangle_plot_sixpop_Newhybrids.png",
        ggpubr::ggarrange(t2, t1, common.legend = T),
