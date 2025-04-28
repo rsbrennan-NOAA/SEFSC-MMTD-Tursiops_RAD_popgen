@@ -24,7 +24,7 @@ echo "Job ${SLURM_ARRAY_JOB_ID}_${SLURM_ARRAY_TASK_ID} started at: $(date)"
 ~/bin/newhybrids/newhybrids-no-gui-linux.exe --no-gui \
   --data-file ~/Tursiops-RAD-popgen/analysis/variants/all_variants.3.ped \
   --burn-in 100000 \
-  --num-sweeps 500000
+  --num-sweeps 1000000 
 
 cp aa-PofZ.txt ~/Tursiops-RAD-popgen/analysis/pop_structure/newhybrids/aa-PofZ_${SLURM_ARRAY_TASK_ID}.txt
 
