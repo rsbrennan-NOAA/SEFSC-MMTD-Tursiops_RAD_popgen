@@ -126,7 +126,7 @@ median_assignments <- allres %>%
   )
 
 median_assignments$sig <- "Low_Confidence"
-median_assignments$sig[median_assignments$highest_value > 0.99] <- "High_Confidence"
+median_assignments$sig[median_assignments$highest_value > 0.95] <- "High_Confidence"
 
 category_counts <- median_assignments %>%
   group_by(sixpop, highest_category, sig) %>%
@@ -163,6 +163,15 @@ write.table(median_assignments,
             file="analysis/pop_structure/newhybrids/newhybrids_posteriors.txt",
             quote = F,
             row.names = F, sep="\t")
+
+filtered_dat <- median_assignments %>%
+  filter(highest_category != "Pure1" & highest_category != "Pure2")
+
+# write hybrids to drop from vcf:
+write.table(filtered_dat$indiv, 
+            file="analysis/pop_structure/newhybrids/hybrids.txt",
+            quote = F,
+            row.names = F, sep="\t", col.names=F)
 
 
 
@@ -308,13 +317,13 @@ p <- ggplot() +
              size = 2,
              alpha=1,
              color="black") +
-  geom_point(data = out_hyb, 
-             aes(x = Long, y = Lat),
-             fill="red", 
-             shape=21,
-             size = 4,
-             alpha=1,
-             color="black") +
+  #geom_point(data = out_hyb, 
+  #           aes(x = Long, y = Lat),
+  #           fill="red", 
+  #           shape=21,
+  #           size = 4,
+  #           alpha=1,
+  #           color="black") +
   geom_point(data = Backcross1, 
              aes(x = Long, y = Lat),
              fill="red", 

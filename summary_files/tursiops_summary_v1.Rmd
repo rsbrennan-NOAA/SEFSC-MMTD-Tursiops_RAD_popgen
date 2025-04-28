@@ -411,6 +411,23 @@ The NewHybrids assignments are shown as text in the circle.
 
 <br><br>
 
+# Diversity
+
+
+![](../figures/heterozygosity_fourpop.png){width=100%}
+![](../figures/heterozygosity_sixpop.png){width=100%}
+
+### remove hybrids
+
+![](../figures/heterozygosity_fourpop_nohyb.png){width=100%}
+![](../figures/heterozygosity_sixpop_nohyb.png){width=100%}
+
+Should use the one without hybrids. 
+
+<br><br>
+
+
+
 # still to do
 
 1. Population structure within species (admixture, fst, etc)
