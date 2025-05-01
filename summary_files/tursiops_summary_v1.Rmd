@@ -427,6 +427,14 @@ Should use the one without hybrids.
 <br><br>
 
 
+### pi
+
+![](../figures/pi_fourpop.png){width=70%}
+
+
+![](../figures/pi_sixpop.png){width=70%}
+
+
 
 # still to do
 

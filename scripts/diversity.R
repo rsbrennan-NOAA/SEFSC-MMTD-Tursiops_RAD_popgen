@@ -3,6 +3,9 @@
 #----------------------------------------------------------------------------------
 library(ggplot2)
 library(ggpubr)
+library(tidyr)
+library(dplyr)
+library(patchwork)
 
 # fis,  obs and exp het, from stacks
 
@@ -308,6 +311,212 @@ ggsave(filename = "figures/heterozygosity_sixpop_nohyb.png", sixpop_out,
 
 
 
+#--------------------------------------------------------------------------------
+#--------------------------------------------------------------------------------
+#--------------------------------------------------------------------------------
+#--------------------------------------------------------------------------------
+# pixy
+### four pop
+dat_pops <- read.csv("analysis/diversity/1kb_fourpop_pi.txt", header=T, sep="\t")
+nrow(dat_pops)
+
+dat.na <- dat_pops[!is.na(dat_pops$avg_pi),]
+nrow(dat.na)
+#183556
+
+dat_pops.sub <- dat.na[grep("NC_",dat.na$chromosome),]
+dat_pops.sub <- dat_pops.sub[grep("NC_047055.1",dat_pops.sub$chromosome, invert=T),]
+nrow(dat_pops.sub)
+# 177036
+table(dat_pops.sub$chromosome)
+table(dat_pops.sub$pop)
+# 44259 for all
+
+ggplot(dat_pops.sub, aes(x=pop, y=(avg_pi))) +
+  geom_boxplot() +
+  coord_cartesian(ylim = c(0, 0.002))
+sum(dat_pops.sub$avg_pi == 0)
+
+sum(dat_pops.sub$count_diffs)/sum(dat_pops.sub$count_comparisons)
+#[1] 0.0008097222
+
+
+pi <- dat_pops.sub %>%
+  group_by(pop) %>%
+  summarise(overall_pi = sum(count_diffs) / sum(count_comparisons))
+
+  # Load required libraries
+  library(dplyr)
+library(boot)
+library(purrr)  
+  
+
+# function to calculate pi
+calculate_pi <- function(data, indices) {
+  d <- data[indices,] # need to specify indices here bc this is how boot samples. 
+  pi <- sum(d$count_diffs) / sum(d$count_comparisons)
+  return(pi)
+}
+
+# Function to run bootstrap 
+bootstrap_population <- function(pop_data) {
+  set.seed(123) 
+  boot_results <- boot(data = pop_data, statistic = calculate_pi, R = 10000)
+  ci <- boot.ci(boot_results, type = "perc")
+  
+  return(list(
+    population = unique(pop_data$pop),
+    estimate = boot_results$t0,
+    ci_lower = ci$percent[4],
+    ci_upper = ci$percent[5]
+  ))
+}
+
+# run bootstrap
+results <- dat_pops.sub %>%
+  group_by(pop) %>%
+  group_split() %>% # create of df for each pop
+  map_dfr(bootstrap_population) # apply function to each df in list
+
+results
+#population       estimate ci_lower ci_upper
+#<chr>               <dbl>    <dbl>    <dbl>
+#  1 Coastal_Atlantic 0.000696 0.000687 0.000705
+#2 Coastal_Gulf     0.000641 0.000631 0.000651
+#3 Intermediate     0.000940 0.000928 0.000951
+#4 Offshore         0.00142  0.00141  0.00144 
+
+
+results$population <- factor(results$population)
+#legend_order <- c("All Populations", "Atlantic", "Dry Tortuga", "NGOMex", "WGOMex")
+#results_combined$population_legend <- factor(results_combined$population, levels = legend_order)
+
+piplot <- ggplot(results, 
+                 aes(x = population, 
+                     y = estimate, 
+                     fill = population, shape=population)) +
+  geom_point(size=4) +
+  geom_errorbar(aes(ymin = ci_lower, ymax = ci_upper), width = 0.2) +
+  theme_classic(base_size = 12) +
+  ylab("Genetic\ndiversity") +
+  #scale_color_manual(values=c("grey75","#E69F00","#56B4E9", "#009E73", "#CC79A7"))+
+  #scale_fill_manual(values=c("grey75","#E69F00","#56B4E9", "#009E73", "#CC79A7"))+
+  scale_shape_manual(values=c(21,22,23,24))+    
+  xlab("") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1),
+        legend.title = element_blank()) +
+  guides(fill = guide_legend(override.aes = list(size = 4)),  
+         shape = guide_legend(override.aes = list(size = 4))) 
+
+
+piplot
+
+ggsave("figures/pi_fourpop.png", h=5, w=6)
+
+
+#-------------------------
+# six pop
+#-------------------------------------------------------------------------------
+
+
+dat_pops <- read.csv("analysis/diversity/1kb_sixpop_pi.txt", header=T, sep="\t")
+nrow(dat_pops)
+
+dat.na <- dat_pops[!is.na(dat_pops$avg_pi),]
+nrow(dat.na)
+
+dat_pops.sub <- dat.na[grep("NC_",dat.na$chromosome),]
+dat_pops.sub <- dat_pops.sub[grep("NC_047055.1",dat_pops.sub$chromosome, invert=T),]
+nrow(dat_pops.sub)
+table(dat_pops.sub$chromosome)
+table(dat_pops.sub$pop)
+# 44259 for all
+
+ggplot(dat_pops.sub, aes(x=pop, y=(avg_pi))) +
+  geom_boxplot() +
+  coord_cartesian(ylim = c(0, 0.002))
+sum(dat_pops.sub$avg_pi == 0)
+
+sum(dat_pops.sub$count_diffs)/sum(dat_pops.sub$count_comparisons)
+#[1] 0.0007588548
+
+
+pi <- dat_pops.sub %>%
+  group_by(pop) %>%
+  summarise(overall_pi = sum(count_diffs) / sum(count_comparisons))
+pi
+  
+# Load required libraries
+library(dplyr)
+library(boot)
+library(purrr)  
+
+
+# function to calculate pi
+calculate_pi <- function(data, indices) {
+  d <- data[indices,] # need to specify indices here bc this is how boot samples. 
+  pi <- sum(d$count_diffs) / sum(d$count_comparisons)
+  return(pi)
+}
+
+# Function to run bootstrap 
+bootstrap_population <- function(pop_data) {
+  set.seed(123) 
+  boot_results <- boot(data = pop_data, statistic = calculate_pi, R = 10000)
+  ci <- boot.ci(boot_results, type = "perc")
+  
+  return(list(
+    population = unique(pop_data$pop),
+    estimate = boot_results$t0,
+    ci_lower = ci$percent[4],
+    ci_upper = ci$percent[5]
+  ))
+}
+
+# run bootstrap
+results <- dat_pops.sub %>%
+  group_by(pop) %>%
+  group_split() %>% # create of df for each pop
+  map_dfr(bootstrap_population) # apply function to each df in list
+
+
+results
+
+#population       estimate ci_lower ci_upper
+#<chr>               <dbl>    <dbl>    <dbl>
+#1 Coastal_Atlantic      0.000696 0.000687 0.000705
+#2 Coastal_Gulf          0.000641 0.000631 0.000651
+#3 Intermediate_Atlantic 0.000935 0.000923 0.000947
+#4 Intermediate_Gulf     0.000940 0.000927 0.000953
+#5 Offshore_Atlantic     0.00142  0.00140  0.00144 
+#6 Offshore_Gulf         0.00140  0.00138  0.00141 
+
+
+results$population <- factor(results$population)
+#legend_order <- c("All Populations", "Atlantic", "Dry Tortuga", "NGOMex", "WGOMex")
+#results_combined$population_legend <- factor(results_combined$population, levels = legend_order)
+
+piplot <- ggplot(results, 
+                 aes(x = population, 
+                     y = estimate, 
+                     fill = population, shape=population)) +
+  geom_point(size=4) +
+  geom_errorbar(aes(ymin = ci_lower, ymax = ci_upper), width = 0.2) +
+  theme_classic(base_size = 12) +
+  ylab("Genetic\ndiversity") +
+  #scale_color_manual(values=c("grey75","#E69F00","#56B4E9", "#009E73", "#CC79A7"))+
+  #scale_fill_manual(values=c("grey75","#E69F00","#56B4E9", "#009E73", "#CC79A7"))+
+  scale_shape_manual(values=c(21,22,23,24, 21, 22))+    
+  xlab("") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1),
+        legend.title = element_blank()) +
+  guides(fill = guide_legend(override.aes = list(size = 4)),  
+         shape = guide_legend(override.aes = list(size = 4))) 
+
+
+piplot
+
+ggsave("figures/pi_sixpop.png", h=5, w=6)
 
 
 
@@ -317,6 +526,17 @@ ggsave(filename = "figures/heterozygosity_sixpop_nohyb.png", sixpop_out,
 
 
 
+
+
+
+
+
+
+
+
+
+
+  
 
 
 # Modify each plot to remove x-axis labels except bottom plots
