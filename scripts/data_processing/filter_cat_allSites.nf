@@ -26,7 +26,7 @@ process CONCAT_VCF {
 }
 
 process FILTER_VCF {
-        publishDir params.outdir, mode: 'move'
+        publishDir params.outdir, mode: 'copy'
 
         input:
         path merged_vcf
@@ -34,21 +34,20 @@ process FILTER_VCF {
         output:
         path 'filtered.invariant.vcf.gz', emit: filtered_invariant
         path 'filtered.invariant.vcf.gz.tbi'
-        path 'combined_filtered_invariant.vcf.gz', emit: combined_filtered
-        path 'combined_filtered_invariant.vcf.gz.tbi'
 
         script:
         """
-        source ~/.bashrc
+	source /opt/bioinformatics/mambaforge/etc/profile.d/conda.sh
 
-	mamba activate vcflib-1.0.9
+	conda activate vcflib-1.0.9
 	module load bio/vcftools
 	module load bio/bcftools
         
 	vcftools --gzvcf ${merged_vcf} \
         --max-maf 0.05 \
         --remove-indels \
-        --max-missing 0.7 \
+        --remove ~/Tursiops-RAD-popgen/scripts/rm_missing.txt \
+	--max-missing 0.7 \
         --min-meanDP 10 \
         --max-meanDP 136 \
         --not-chr NC_012059.1 \
@@ -59,21 +58,48 @@ process FILTER_VCF {
         tabix -f filtered.invariant.vcf.gz
         tabix -f \${final_vcf}
 
-        # Combine the two VCFs
-        bcftools concat \
-                --allow-overlaps \
-                \${final_vcf} filtered.invariant.vcf.gz \
-                -O z -o combined_filtered_invariant.vcf.gz
-    
-        tabix -p vcf combined_filtered_invariant.vcf.gz
         """
 }
+
+process COMBINE_VCFS {
+    publishDir params.outdir, mode: 'move'
+    input:
+    path filtered_invariant
+    output:
+    path 'combined_filtered_invariant.vcf.gz', emit: combined_filtered
+    path 'combined_filtered_invariant.vcf.gz.tbi'
+
+    script:
+    """
+    source /opt/bioinformatics/mambaforge/etc/profile.d/conda.sh
+    conda activate vcflib-1.0.9
+
+    module load bio/bcftools
+    module load bio/htslib/1.19
+
+    final_vcf="${HOME}/Tursiops-RAD-popgen/analysis/variants/filtered.final.vcf.gz"
+    
+    tabix -f ${filtered_invariant}
+    tabix -f \${final_vcf}
+
+   # Combine the two VCFs
+    bcftools concat \\
+        --allow-overlaps \\
+        \${final_vcf} ${filtered_invariant} \\
+        -O z -o combined_filtered_invariant.vcf.gz
+    
+    tabix -p vcf combined_filtered_invariant.vcf.gz
+    """
+}
+
+
 
 // Main workflow
 workflow {
     vcf_dir = Channel.fromPath(params.indir, checkIfExists: true)
     CONCAT_VCF(vcf_dir)
     FILTER_VCF(CONCAT_VCF.out.merged_vcf)
+    COMBINE_VCFS(FILTER_VCF.out.filtered_invariant)
 }
 
 
