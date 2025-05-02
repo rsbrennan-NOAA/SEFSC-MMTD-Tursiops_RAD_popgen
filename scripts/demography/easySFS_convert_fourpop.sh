@@ -16,6 +16,6 @@ cd ~/Tursiops-RAD-popgen/analysis/moments
 
 echo "four population start"
 
-~/bin/easySFS/easySFS.py  -i ~/Tursiops-RAD-popgen/analysis/variants/combined_filtered_invariant.vcf.gz -p ~/Tursiops-RAD-popgen/analysis/pop_structure/fourpop_all.clust -a -f -o ~/Tursiops-RAD-popgen/analysis/moments/fourpop_sfs --order Coastal_Atlantic,Coastal_Gulf,Intermediate,Offshore  --proj 290,80,102,122
+~/bin/easySFS/easySFS.py  -i ~/Tursiops-RAD-popgen/analysis/variants/filtered.final.noMAF.vcf.gz -p ~/Tursiops-RAD-popgen/analysis/pop_structure/fourpop_all.clust -a -f -o ~/Tursiops-RAD-popgen/analysis/moments/fourpop_sfs --order Coastal_Atlantic,Coastal_Gulf,Intermediate,Offshore  --proj 224,64,78,88
 
 echo "four population done"
