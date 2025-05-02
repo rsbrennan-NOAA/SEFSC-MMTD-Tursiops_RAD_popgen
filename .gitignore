@@ -7,3 +7,6 @@ logout/
 analysis/
 .Rhistory
 .Rproj.user/
+report*.html
+timeline*
+.ipynb_checkpoints

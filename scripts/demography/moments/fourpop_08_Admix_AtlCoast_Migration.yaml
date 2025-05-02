@@ -1,0 +1,36 @@
+time_units: generations
+demes:
+  - name: Ancestor
+    epochs:
+      - end_time: 10000
+        start_size: 2000
+  - name: Offshore
+    ancestors: [Ancestor]
+    epochs:
+      - start_size: 2000
+  - name: Coastal
+    ancestors: [Ancestor]
+    epochs:
+      - end_time: 8000
+        start_size: 2000
+  - name: CAtlantic
+    ancestors: [Coastal]
+    epochs:
+      - start_size: 2000
+  - name: CGulf
+    ancestors: [Coastal]
+    epochs:
+      - start_size: 2000
+  - name: Intermediate
+    ancestors: [Offshore, CAtlantic]
+    proportions: [0.5, 0.5]
+    start_time: 4000
+    epochs:
+      - start_size: 2000
+migrations:
+  - demes: [CGulf, Intermediate]
+    rate: 1e-3
+  - demes: [Offshore, Intermediate]
+    rate: 1e-3
+  - demes: [CGulf, Offshore]
+    rate: 1e-3
