@@ -1,0 +1,90 @@
+prameters:
+- name: SizeAnc
+  description: Size of Ancestor population
+  values:
+  - demes:
+    Ancestor:
+      epochs:
+        0: start_size
+  lower_bound: 100
+  upper_bound: 250000
+- name: sizeB
+  description: B population size
+  values:
+  -demes:
+    B:
+      epochs:
+        0: start_size
+  lower_bound: 100
+  upper_bound: 250000
+- name: sizeCoastal
+  description: coastal population size
+  values:
+  - demes:
+    Coastal:
+      epochs:
+        0: start_size
+  lower_bound: 100
+  upper_bound: 250000
+- name: sizeOffshore
+  description: Offshore population size
+  values:
+  - demes:
+    Offshore:
+        epochs:
+          0: start_size
+  lower_bound: 100
+  upper_bound: 250000
+- name: sizeIntermediate
+  description: Intermediate population size
+  values:
+  - demes:
+      Intermediate:
+        epochs:
+          0: start_size
+  lower_bound: 100
+  upper_bound: 250000
+- name: sizeCgulf
+  description: coastal gulf population size
+  values:
+  - demes:  
+    CGulf:
+      epochs:
+        0: start_size
+  lower_bound: 100
+  upper_bound: 250000
+- name: sizeCatl
+  description: coastal atlantic population size
+  values:
+  - demes:
+    CAtlantic:
+      epochs:
+        0: start_size
+  lower_bound: 100
+  upper_bound: 250000
+- name: Split1
+  description: Time of first split
+  values:
+  - demes:
+    Ancestor:
+      epochs:
+        0: end_time
+- name: Split2
+  description: Time of B split
+  values:
+  - demes:
+    B:
+      epochs:
+        0: end_time
+- name: Split3
+  description: Time of coastal split
+  values:
+  - demes:
+    Coastal:
+      epochs:
+        0: end_time
+constraints:
+- params: [Split1, Split2]
+  constraint: greater_than
+- params: [Split1, Split3]
+  constraint: greater_than

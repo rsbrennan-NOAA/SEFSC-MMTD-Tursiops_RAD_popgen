@@ -5,7 +5,7 @@
 #SBATCH -o %x_%j.out
 #SBATCH -e %x_%j.err
 #SBATCH -D /home/rbrennan/Tursiops-RAD-popgen/logout
-#SBATCH --mem=500G
+#SBATCH --mem=1000G
 #SBATCH --partition=himem
 #SBATCH --time=7-00
 
