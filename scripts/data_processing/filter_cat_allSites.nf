@@ -50,7 +50,7 @@ process FILTER_VCF {
 	--max-missing 0.7 \
         --min-meanDP 10 \
         --max-meanDP 136 \
-        --not-chr NC_012059.1 \
+	--not-chr NC_012059.1 \
         --recode --recode-INFO-all --stdout | bgzip -c > filtered.invariant.vcf.gz
 
         final_vcf="${HOME}/Tursiops-RAD-popgen/analysis/variants/filtered.final.vcf.gz"
@@ -76,6 +76,7 @@ process COMBINE_VCFS {
 
     module load bio/bcftools
     module load bio/htslib/1.19
+    module load bio/vcftools
 
     final_vcf="${HOME}/Tursiops-RAD-popgen/analysis/variants/filtered.final.vcf.gz"
     
@@ -86,8 +87,33 @@ process COMBINE_VCFS {
     bcftools concat \\
         --allow-overlaps \\
         \${final_vcf} ${filtered_invariant} \\
-        -O z -o combined_filtered_invariant.vcf.gz
+        -O z -o combined_filtered_invariant.1.vcf.gz
     
+    vcftools --gzvcf combined_filtered_invariant.1.vcf.gz \
+	--chr NC_047034.1 \
+	--chr NC_047035.1 \
+	--chr NC_047036.1 \
+	--chr NC_047037.1 \
+	--chr NC_047038.1 \
+	--chr NC_047039.1 \
+	--chr NC_047040.1 \
+	--chr NC_047041.1 \
+	--chr NC_047042.1 \
+	--chr NC_047043.1 \
+	--chr NC_047044.1 \
+	--chr NC_047045.1 \
+	--chr NC_047046.1 \
+	--chr NC_047047.1 \
+	--chr NC_047048.1 \
+	--chr NC_047049.1 \
+	--chr NC_047050.1 \
+	--chr NC_047051.1 \
+	--chr NC_047052.1 \
+	--chr NC_047053.1 \
+	--chr NC_047054.1 \
+	--chr NC_047055.1 \
+	--recode --recode-INFO-all --stdout | bgzip -c > combined_filtered_invariant.vcf.gz
+
     tabix -p vcf combined_filtered_invariant.vcf.gz
     """
 }
