@@ -45,6 +45,7 @@ vcftools --gzvcf ${INDIR}/filtered.final_MitoIncluded.noMAF.vcf.gz \
         --chr NC_047053.1 \
         --chr NC_047054.1 \
         --chr NC_047055.1 \
+	--remove ~/Tursiops-RAD-popgen/analysis/pop_structure/newhybrids/hybrids.txt \
 	--recode --recode-INFO-all --stdout |  bgzip > ${INDIR}/filtered.final.noMAF.vcf.gz
 
 bcftools annotate --set-id '%CHROM\_%POS'  ${INDIR}/filtered.final.noMAF.vcf.gz  -Oz -o ${INDIR}/filtered.final_ids.noMAF.vcf.gz

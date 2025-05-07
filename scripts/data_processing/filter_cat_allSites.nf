@@ -53,11 +53,6 @@ process FILTER_VCF {
 	--not-chr NC_012059.1 \
         --recode --recode-INFO-all --stdout | bgzip -c > filtered.invariant.vcf.gz
 
-        final_vcf="${HOME}/Tursiops-RAD-popgen/analysis/variants/filtered.final.vcf.gz"
-
-        tabix -f filtered.invariant.vcf.gz
-        tabix -f \${final_vcf}
-
         """
 }
 

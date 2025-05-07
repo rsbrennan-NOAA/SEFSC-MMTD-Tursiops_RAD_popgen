@@ -14,7 +14,11 @@ mamba activate easySFS
 
 echo "six population start"
 
-~/bin/easySFS/easySFS.py  -i ~/Tursiops-RAD-popgen/analysis/variants/filtered.final.noMAF.vcf.gz -p ~/Tursiops-RAD-popgen/analysis/pop_structure/sixpop_all.clust --preview -a
+#remove hybs
+
+grep -v -f ~/Tursiops-RAD-popgen/analysis/pop_structure/newhybrids/hybrids.txt ~/Tursiops-RAD-popgen/analysis/pop_structure/sixpop_all.clust > ~/Tursiops-RAD-popgen/analysis/pop_structure/sixpop_all_noHybrids.clust
+
+~/bin/easySFS/easySFS.py  -i ~/Tursiops-RAD-popgen/analysis/variants/filtered.final.noMAF.vcf.gz -p ~/Tursiops-RAD-popgen/analysis/pop_structure/sixpop_all_noHybrids.clust --preview -a
 
 echo "six population done"
 

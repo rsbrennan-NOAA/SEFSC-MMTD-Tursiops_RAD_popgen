@@ -34,7 +34,7 @@ print(f"Population IDs: {fs.pop_ids}")
 # define file paths
 deme_graph = "/home/rbrennan/Tursiops-RAD-popgen/scripts/demography/moments/fourpop_01_NoAdmix.yaml"
 options = "/home/rbrennan/Tursiops-RAD-popgen/scripts/demography/moments/options_fourpop_01_NoAdmix.yaml"
-output = "/home/rbrennan/Tursiops-RAD-popgen/analysis/moments/model1-best-fit.yaml"
+output = "/home/rbrennan/Tursiops-RAD-popgen/analysis/moments/model1-best-fit_fmin.yaml"
     
 # Run optimization
 print("Starting demographic model optimization")
@@ -42,9 +42,10 @@ ret = moments.Demes.Inference.optimize(
     deme_graph,
     options,
     fs,
-    method="lbfgsb",
+    method="fmin",
     output=output,
-    overwrite=True
+    overwrite=True,
+    verbose=20
 )
 
 

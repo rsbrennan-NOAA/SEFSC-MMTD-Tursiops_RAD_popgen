@@ -8,7 +8,7 @@
 #SBATCH --cpus-per-task=6
 #SBATCH --mem=48G
 #SBATCH --partition=standard
-#SBATCH --time=72:00:00
+#SBATCH --time=7-00
 
 source ~/.bashrc
 mamba activate moments
