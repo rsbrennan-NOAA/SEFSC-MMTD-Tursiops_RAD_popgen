@@ -33,7 +33,6 @@ process FILTER_VCF {
 
         output:
         path 'filtered.invariant.vcf.gz', emit: filtered_invariant
-        path 'filtered.invariant.vcf.gz.tbi'
 
         script:
         """

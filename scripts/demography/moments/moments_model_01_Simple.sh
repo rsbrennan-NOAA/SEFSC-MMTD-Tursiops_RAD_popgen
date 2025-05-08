@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name=m_01-v1
+#SBATCH --job-name=m_01-Simple
 #SBATCH --mail-user=reid.brennan@noaa.gov
 #SBATCH --mail-type=END
 #SBATCH -o %x_%j.out

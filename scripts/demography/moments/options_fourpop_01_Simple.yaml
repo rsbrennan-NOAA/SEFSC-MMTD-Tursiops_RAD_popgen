@@ -1,0 +1,27 @@
+parameters:
+- name: Split1
+  description: Time of first split
+  values:
+    - demes:
+        Ancestor:
+          epochs:
+            0: end_time
+- name: Split2
+  description: Time of B split
+  values:
+    - demes:
+        B:
+          epochs:
+            0: end_time
+- name: Split3
+  description: Time of coastal split
+  values:
+    - demes:
+        Coastal:
+          epochs:
+            0: end_time
+constraints:
+- params: [Split1, Split2]
+  constraint: greater_than
+- params: [Split1, Split3]
+  constraint: greater_than
