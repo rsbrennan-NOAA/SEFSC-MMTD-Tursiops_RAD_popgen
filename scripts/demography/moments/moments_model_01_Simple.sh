@@ -5,8 +5,10 @@
 #SBATCH -o %x_%j.out
 #SBATCH -e %x_%j.err
 #SBATCH -D /home/rbrennan/Tursiops-RAD-popgen/logout
-#SBATCH --cpus-per-task=6
-#SBATCH --mem=80G
+#SBATCH --ntasks=1 
+#SBATCH --nodes=1
+#SBATCH --cpus-per-task=4
+#SBATCH --mem=40G
 #SBATCH --partition=standard
 #SBATCH --time=7-00
 

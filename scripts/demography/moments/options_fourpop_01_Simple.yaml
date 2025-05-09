@@ -25,3 +25,5 @@ constraints:
   constraint: greater_than
 - params: [Split1, Split3]
   constraint: greater_than
+- params: [Split2, Split3]
+  constraint: greater_than
