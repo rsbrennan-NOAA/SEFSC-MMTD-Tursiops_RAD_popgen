@@ -32,10 +32,14 @@ fs = moments.Spectrum(fs, pop_ids=new_pop_ids)
 print(f"Population IDs: {fs.pop_ids}")
  
 # define file paths
-deme_graph = "/home/rbrennan/Tursiops-RAD-popgen/scripts/demography/moments/fourpop_01_NoAdmix.yaml"
-options = "/home/rbrennan/Tursiops-RAD-popgen/scripts/demography/moments/options_fourpop_01_Simple.yaml"
-output = "/home/rbrennan/Tursiops-RAD-popgen/analysis/moments/model1-best-fit_fmin_simple.yaml"
-    
+deme_graph = "/home/rbrennan/Tursiops-RAD-popgen/scripts/demography/moments/fourpop_04_Admix_AtlCoast.yaml"
+options = "/home/rbrennan/Tursiops-RAD-popgen/scripts/demography/moments/options_fourpop_04_Simple.yaml"
+output = "/home/rbrennan/Tursiops-RAD-popgen/analysis/moments/model_04-bestfit_fmin.yaml"
+
+print(f"deme_graph file: {deme_graph}")
+print(f"options file: {options}")
+print(f"output file: {output}")
+
 # Run optimization
 print("Starting demographic model optimization")
 ret = moments.Demes.Inference.optimize(
@@ -46,7 +50,7 @@ ret = moments.Demes.Inference.optimize(
     output=output,
     overwrite=True,
     verbose=1,
-    perturb = 2
+    perturb = 0.7
 )
 
 
@@ -56,7 +60,7 @@ print(f"Log-likelihood: {-LL}")
 print("Best fit parameters:")
 
 # save to file
-with open("optimization_model01_results.txt", "w") as f:
+with open("optimization_model_04_results.txt", "w") as f:
     f.write(f"Log-likelihood: {-LL}\n")
     f.write("Best fit parameters\n")
     for n, p in zip(param_names, opt_params):
@@ -74,7 +78,7 @@ try:
      graph = demes.load(output)
      fig = plt.figure(figsize=(10, 8))
      demesdraw.tubes(graph, ax=fig.add_subplot(111))
-     plt.savefig("demes_model.png", dpi=300)
+     plt.savefig("demes_model_04.png", dpi=300)
      print("Saved demographic model plot")
 except Exception as e:
      print(f"Failed to generate plot: {e}")

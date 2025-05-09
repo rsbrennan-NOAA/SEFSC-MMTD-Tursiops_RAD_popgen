@@ -3,11 +3,12 @@ demes:
   - name: Ancestor
     epochs:
       - end_time: 10000
-        start_size: 2000
+        start_size: 10000
   - name: Offshore
     ancestors: [Ancestor]
     epochs:
-      - start_size: 2000
+      - start_size: 10000
+        end_time: 0
   - name: Coastal
     ancestors: [Ancestor]
     epochs:
@@ -17,13 +18,16 @@ demes:
     ancestors: [Coastal]
     epochs:
       - start_size: 2000
+        end_time: 0
   - name: CGulf
     ancestors: [Coastal]
     epochs:
       - start_size: 2000
+        end_time: 0
   - name: Intermediate
     ancestors: [Offshore, CGulf]
     proportions: [0.5, 0.5]
     start_time: 4000
     epochs:
       - start_size: 2000
+        end_time: 0

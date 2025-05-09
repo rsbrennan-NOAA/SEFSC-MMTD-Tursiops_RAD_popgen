@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name=m_01-Simple
+#SBATCH --job-name=m_03-Simple
 #SBATCH --mail-user=reid.brennan@noaa.gov
 #SBATCH --mail-type=END
 #SBATCH -o %x_%j.out
@@ -17,5 +17,5 @@ mamba activate moments
 
 cd ~/Tursiops-RAD-popgen/analysis/moments/
 
-python -u ~/Tursiops-RAD-popgen/scripts/demography/moments/moments_model_01_Simple.py
+python -u ~/Tursiops-RAD-popgen/scripts/demography/moments/moments_model_03_Simple.py
 
