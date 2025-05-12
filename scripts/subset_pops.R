@@ -27,7 +27,7 @@ write.table(file="analysis/pop_structure/fourpop_all.clust",
 # We have huge overrepresentation from NC. so we want to target those indivs.
 # we have 168 coastal ATL. But 118 are from NC
 # Coastal_Atlantic     Coastal_Gulf     Intermediate         Offshore 
-# 168               46               60               71 
+# 168                    46                 60                  71 
 datMeta <- read.csv("Tursiops_RADseq_Metadata_new.csv")
 
 ncsamp <- datMeta$Lab.ID[datMeta$Lat > 33.32 & datMeta$Lat < 36.16]
@@ -56,7 +56,7 @@ combodat <- rbind(coastal_atl_subset, other_dat)
 # Verify new counts
 table(combodat$fourpop)
 #Coastal_Atl Coastal_Gulf Intermediate     Offshore 
-#70           47           54           74 
+#70              47            54             74 
 sum(table(combodat$fourpop))
 # 247
 

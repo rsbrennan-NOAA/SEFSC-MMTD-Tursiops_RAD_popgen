@@ -1,0 +1,63 @@
+parameters:
+- name: Split1
+  description: Time of first split
+  values:
+    - demes:
+        Ancestor:
+          epochs:
+            0: end_time
+- name: Split2
+  description: Time of coastal split
+  values:
+    - demes:
+        Coastal:
+          epochs:
+            0: end_time
+- name: Admix_Time
+  description: Time of admixture event
+  values:
+    - demes:
+        Intermediate:
+          start_time
+- name: Admix_Prop
+  description: Admixture proportion from Offshore
+  values:
+    - demes:
+        Intermediate:
+          proportions:
+            0
+- name: m1
+  description: Symmetric migration CGulf, Intermediate
+  values:
+    - migrations:
+        0: rate
+  upper_bound: 0.1
+
+- name: m2
+  description: Symmetric migration Offshore, Intermediate
+  values:
+    - migrations:
+        1: rate
+  upper_bound: 0.1
+
+- name: m3
+  description: Symmetric migration CGulf, Offshore
+  values:
+    - migrations:
+        2: rate
+  upper_bound: 0.1
+
+- name: m4
+  description: Symmetric migration Coastal, Offshore
+  values:
+    - migrations:
+        3: rate
+  upper_bound: 0.1
+
+constraints:
+- params: [Split1, Split2]
+  constraint: greater_than
+- params: [Split1, Admix_Time]
+  constraint: greater_than
+- params: [Split2, Admix_Time]
+  constraint: greater_than

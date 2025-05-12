@@ -1,0 +1,63 @@
+parameters:
+- name: Split1
+  description: Time of first split
+  values:
+    - demes:
+        Ancestor:
+          epochs:
+            0: end_time
+- name: Split2
+  description: Time of B split
+  values:
+    - demes:
+        B:
+          epochs:
+            0: end_time
+- name: Split3
+  description: Time of coastal split
+  values:
+    - demes:
+        Coastal:
+          epochs:
+            0: end_time
+- name: m1
+  description: Symmetric migration CGulf, Intermediate
+  values:
+    - migrations:
+        0: rate
+  upper_bound: 0.1
+
+- name: m2
+  description: Symmetric migration Offshore, Intermediate
+  values:
+    - migrations:
+        1: rate
+  upper_bound: 0.1
+
+- name: m3
+  description: Symmetric migration CGulf, Offshore
+  values:
+    - migrations:
+        2: rate
+  upper_bound: 0.1
+
+- name: m4
+  description: Symmetric migration B, Offshore
+  values:
+    - migrations:
+        3: rate
+  upper_bound: 0.1
+
+- name: m5
+  description: Symmetric migration Coastal, Intermediate
+  values:
+    - migrations:
+        4: rate
+  upper_bound: 0.1
+constraints:
+- params: [Split1, Split2]
+  constraint: greater_than
+- params: [Split1, Split3]
+  constraint: greater_than
+- params: [Split2, Split3]
+  constraint: greater_than
