@@ -12,7 +12,7 @@ import os
 import matplotlib.cm as cm
 import time
 from datetime import datetime
-
+import csv
 import argparse
 
 # Parse command-line arguments
@@ -26,15 +26,17 @@ MODEL_NUMBER = args.model_number
 REPNUMBER = args.rep_number 
 
 # define file paths
-DEME_GRAPH_PATH = f"/home/rbrennan/Tursiops-RAD-popgen/scripts/demography/moments/fourpop_{MODEL_NUMBER}.yaml"
-OPTIONS_PATH = f"/home/rbrennan/Tursiops-RAD-popgen/scripts/demography/moments/options_fourpop_{MODEL_NUMBER}_Simple.yaml"
-OUTPUT_PATH = f"/home/rbrennan/Tursiops-RAD-popgen/analysis/moments/model_{MODEL_NUMBER}-bestfit_fmin.yaml"
-
 PERTURB = 1
 MAXITER = 10
 METHOD = "powell"
-OUTPUT_RESULTS_FILE = f"optimization_model_{MODEL_NUMBER}_{REPNUMBER}_{METHOD}_results.txt"  # Include REPNUMBER in output file
+
+DEME_GRAPH_PATH = f"/home/rbrennan/Tursiops-RAD-popgen/scripts/demography/moments/fourpop_{MODEL_NUMBER}.yaml"
+OPTIONS_PATH = f"/home/rbrennan/Tursiops-RAD-popgen/scripts/demography/moments/options_fourpop_{MODEL_NUMBER}_Simple.yaml"
+OUTPUT_PATH = f"/home/rbrennan/Tursiops-RAD-popgen/analysis/moments/initialRuns/model_{MODEL_NUMBER}-bestfit_{METHOD}.yaml"
+
+OUTPUT_RESULTS_FILE = f"/home/rbrennan/Tursiops-RAD-popgen/analysis/moments/initialRuns/optimization_model_{MODEL_NUMBER}_{REPNUMBER}_{METHOD}_results.txt"  # Include REPNUMBER in output file
 PLOT_FILE = f"/home/rbrennan/Tursiops-RAD-popgen/figures/moments/optimization_model_{MODEL_NUMBER}_{REPNUMBER}_{METHOD}.png"  # Include REPNUMBER in plot file name
+SUMMARY_FILE = f"/home/rbrennan/Tursiops-RAD-popgen/analysis/moments/initialRuns/model_{MODEL_NUMBER}_summary.csv"  # Summary file per model
 
 
 # Print file paths for verification
@@ -55,8 +57,6 @@ fs = moments.Spectrum.from_file("/home/rbrennan/Tursiops-RAD-popgen/analysis/mom
 new_pop_ids = ['CAtlantic', 'CGulf', 'Intermediate', 'Offshore']
 fs = moments.Spectrum(fs, pop_ids=new_pop_ids)
 print(f"Population IDs: {fs.pop_ids}")
- 
-
 
 # Run optimization
 print(f"Starting demographic model optimization for model {MODEL_NUMBER}, rep {REPNUMBER}")
@@ -83,17 +83,41 @@ with open(OUTPUT_RESULTS_FILE, "w") as f:
     f.write(f"Log-likelihood: {-LL}\n")
     f.write("Best fit parameters\n")
     for n, p in zip(param_names, opt_params):
-        line = f"{n}\t{p:.3f}"
+        line = f"{n}\t{p}"
         f.write(line + "\n")
         print(line)
 
+# Create a dictionary of results to save to the CSV summary file
+results_dict = {
+    'Run': REPNUMBER,
+    'LogLikelihood': -LL
+}
+
+# Add all parameters to the dictionary
+for n, p in zip(param_names, opt_params):
+    results_dict[n] = p
+
+# Check if summary file exists and create/append appropriately
+file_exists = os.path.isfile(SUMMARY_FILE)
+
+with open(SUMMARY_FILE, 'a', newline='') as csvfile:
+    fieldnames = ['Run', 'LogLikelihood'] + list(param_names)
+    writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+    
+    # Write header only if the file doesn't exist yet
+    if not file_exists:
+        writer.writeheader()
+    
+    writer.writerow(results_dict)
+
+print(f"Results appended to summary file: {SUMMARY_FILE}")
 
 end_time = time.time()
 end_time_print = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
 elapsed_time = end_time - start_time
-print(f"Analysis for model {MODEL_NUMBER}, repetition {REPNUMBER} ended at {end_time_print}")
-print(f"Analysis completed for model {MODEL_NUMBER}, repetition {REPNUMBER} in {elapsed_time / 3600:.2f} hours")
+print(f"Analysis for model {MODEL_NUMBER}, rep {REPNUMBER} ended at {end_time_print}")
+print(f"Analysis completed for model {MODEL_NUMBER}, rep {REPNUMBER} in {elapsed_time / 3600:.2f} hours")
 
 
 # plot
