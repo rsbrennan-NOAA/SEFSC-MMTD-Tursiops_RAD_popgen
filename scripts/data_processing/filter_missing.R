@@ -100,3 +100,66 @@ nrow(posexclude)
 write.table(posexclude, file="scripts/HD_exclude.txt",
             quote=F, col.names = FALSE, row.names=FALSE,
             sep="\t")
+
+
+
+
+
+#-----------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------------
+# no maf filtee
+
+
+# HDplot
+library(vcfR)
+
+vcfInput<-read.vcfR("analysis/variants/filtered.6.noMAF.vcf.gz")
+vcfInput
+
+gt_modified <- vcfInput@gt
+
+# Replace .:.:.:.:.:.:.:. with NA
+gt_modified[gt_modified == ".:.:.:.:.:.:.:."] <- NA
+
+# Create a new vcfR object with the modified data
+vcfInput_modified <- vcfInput
+vcfInput_modified@gt <- gt_modified
+
+source("scripts/HDplot.R")
+
+HDplotResults<-HDplot(vcfInput_modified)
+
+head(HDplotResults)
+mean(HDplotResults$H)
+
+hist(HDplotResults$num_hets)
+
+HDplotResults %>% ggplot()+geom_point(aes(x=H,y=abs(D)), alpha=0.05) + ylim(0,20)
+
+#plot H and ratio
+HDplotResults %>% ggplot()+geom_point(aes(x=H,y=ratio))
+
+
+# sites beyond the distribution are likely paralogs
+## D- > than 5 or 6 for sure, but maybe even 5?
+## H - > than about 0.5
+
+
+sum((HDplotResults$H > 0.5))
+#33
+sum((abs(HDplotResults$D) > 7), na.rm=T)
+#1113
+
+# positions to exclude:
+datexclude <- HDplotResults[which(HDplotResults$H > 0.5 | abs(HDplotResults$D) > 7),]
+posexclude <- datexclude[,1:2]
+nrow(posexclude)
+#1120
+write.table(posexclude, file="scripts/HD_exclude_noMAF.txt",
+            quote=F, col.names = FALSE, row.names=FALSE,
+            sep="\t")
+
+
+

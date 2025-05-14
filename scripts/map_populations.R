@@ -10,7 +10,6 @@ library(marmap)
 library(RColorBrewer)
 
 
-
 # Get the world map data
 world <- ne_countries(scale = "medium", returnclass = "sf")
 
@@ -32,12 +31,24 @@ out <- merge(dat, pops, by.x="Lab.ID", by.y="indiv")
 #----------------------------------------------
 # add pop colors
 
+# coastal
+#56B4E9
+#004488
+
+#Offshore:
+#F0B800
+#B65A00
+
+#intermediate:
+#1B9E77
+#66A61E
+
 p <- ggplot() +
   geom_sf(data = world, fill = "grey90", color = "grey70") +
   geom_sf(data = usa, fill = NA, color = "grey70") +
   geom_point(data = out, 
              aes(x = Long, y = Lat, fill=fourpop, shape=fourpop),
-             size = 2,
+             size = 2.5,
              alpha=1,
              color="black") +
   coord_sf() +
@@ -52,7 +63,8 @@ p <- ggplot() +
   xlab("Longitude")+
   ylab("Latitude") +
   scale_shape_manual(values=c(21,22,23, 24)) +
-  coord_sf(xlim = c(-100, -60), ylim = c(23, 47), expand = FALSE)+
+  scale_fill_manual(values=c("#56B4E9","#004488","#66A61E","#F0B800")) +
+  coord_sf(xlim = c(-100, -64), ylim = c(23, 42), expand = FALSE)+
   annotation_scale()
 
 p
