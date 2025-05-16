@@ -11,7 +11,7 @@
 #SBATCH --cpus-per-task=1
 #SBATCH --mem=10G
 #SBATCH --partition=standard
-#SBATCH --time=1-00
+#SBATCH --time=5-00
 #SBATCH --array=05-08
 
 source ~/.bashrc

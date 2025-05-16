@@ -37,7 +37,7 @@ plink --vcf ~/Tursiops-RAD-popgen/analysis/variants/LDthin_noX_numCorrect.vcf \
 
 rm log*.out
 
-for K in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15; \
+for K in 1 2 3 4 5 6 7 8 9 10; \
 do admixture -j4 -s time --cv ~/Tursiops-RAD-popgen/analysis/variants/LDthin_noX_numCorrect.bed $K | tee log${K}.out; done
 
 

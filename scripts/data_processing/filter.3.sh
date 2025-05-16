@@ -22,7 +22,7 @@ vcftools --gzvcf ${INDIR}/filtered.6.vcf.gz --max-meanDP 136 --exclude-positions
 
 # remove the mitochondrial chromosome
 
-vcftools --gzvcf ${INDIR}/filtered.final_MitoIncluded.vcf.gz --not-chr NC_012059.1 --recode --recode-INFO-all --stdout |  bgzip > ${INDIR}/filtered.final.vcf.gz
+vcftools --gzvcf ${INDIR}/filtered.final_MitoIncluded.vcf.gz --not-chr NC_012059.1 --not-chr NW_022983433.1 --recode --recode-INFO-all --stdout |  bgzip > ${INDIR}/filtered.final.vcf.gz
 
 bcftools annotate --set-id '%CHROM\_%POS'  ${INDIR}/filtered.final.vcf.gz  -Oz -o ${INDIR}/filtered.final_ids.vcf.gz
 
