@@ -71,7 +71,7 @@ p1 <- ggplot() +
   #scale_shape_manual(values=c(21,22,23,24)) +
   #scale_fill_manual(values=c("#56B4E9","#004488","#66A61E","#F0B800")) +
   scale_shape_manual(values=c(21,21,22,22,24,24))+
-  scale_fill_manual(values=c("#A6DDF0", "#276FBF","#88D03F","#1B9E77", "#FFDD33", "#C49E45")) +
+  scale_fill_manual(values=c("#A6DDF0", "#276FBF","#B4ED50","#2E8B57", "#FFDD33", "#C49E45")) +
   coord_sf(xlim = c(-100, -64), ylim = c(23, 42), expand = FALSE)+
   annotation_scale()
   
@@ -180,7 +180,7 @@ p2 <- ggplot(df, aes(PC1, PC2, fill=sixpop, shape=sixpop)) +
   theme_classic() +
   #ggtitle('PCA: DAPC populations')+
   scale_shape_manual(values=c(21,21,22,22,24,24))+
-  scale_fill_manual(values=c("#A6DDF0", "#276FBF","#88D03F","#1B9E77", "#FFDD33", "#C49E45"))
+  scale_fill_manual(values=c("#A6DDF0", "#276FBF","#B4ED50","#2E8B57", "#FFDD33", "#C49E45"))
   #guides(fill=guide_legend(override.aes=list(shape=21)))
 
 p2
@@ -250,13 +250,13 @@ all_data$k <- as.numeric(all_data$k)
 
 all_data$Q[which(all_data$k == "2" & all_data$Q == "Q2")] <- "Coastal"
 all_data$Q[which(all_data$k == "2" & all_data$Q == "Q1")] <- "Offshore"
-all_data$Q[which(all_data$k == "3" & all_data$Q == "Q1")] <- "Coastal"
+all_data$Q[which(all_data$k == "3" & all_data$Q == "Q1")] <- "Offshore"
 all_data$Q[which(all_data$k == "3" & all_data$Q == "Q2")] <- "Coastal_Gulf"
-all_data$Q[which(all_data$k == "3" & all_data$Q == "Q3")] <- "Offshore"
-all_data$Q[which(all_data$k == "4" & all_data$Q == "Q4")] <- "Coastal"
+all_data$Q[which(all_data$k == "3" & all_data$Q == "Q3")] <- "Coastal"
+all_data$Q[which(all_data$k == "4" & all_data$Q == "Q4")] <- "Coastal_Gulf"
 all_data$Q[which(all_data$k == "4" & all_data$Q == "Q1")] <- "Intermediate"
 all_data$Q[which(all_data$k == "4" & all_data$Q == "Q3")] <- "Offshore"
-all_data$Q[which(all_data$k == "4" & all_data$Q == "Q2")] <- "Coastal_Gulf"
+all_data$Q[which(all_data$k == "4" & all_data$Q == "Q2")] <- "Coastal"
 
 
 
@@ -279,7 +279,7 @@ p3 <-
         strip.background = element_blank()) +
   scale_color_manual(values = c("black","grey55"),
                      name = "Population") +
-  scale_color_manual(values=c("#A6DDF0", "#276FBF","#88D03F","#1B9E77", "#FFDD33", "#C49E45"))+
+  scale_color_manual(values=c("#A6DDF0", "#276FBF","#B4ED50","#2E8B57", "#FFDD33", "#C49E45")) +
   scale_fill_manual(values=c("#A6DDF0", "#276FBF","#61BA5C", "#E2BF3C"))+
   facet_wrap(~k,ncol=1)
 p3

@@ -403,20 +403,38 @@ as.data.frame((f4_sixpops))
 # admixture graph
 
 # first calc F2 stats, this is needed for downstream steps
-prefix = 'analysis/pop_structure/admixtools/tursiops_sixpop'
-my_f2_dir = 'analysis/pop_structure/admixtools/f2_tursiops_sixpop/'
+#prefix = 'analysis/pop_structure/admixtools/tursiops_aduncus_fourpop'
+#my_f2_dir = 'analysis/pop_structure/admixtools/f2_tursiops_aduncus_fourpop/'
+prefix = 'analysis/pop_structure/admixtools/tursiops_fourpop'
+my_f2_dir = 'analysis/pop_structure/admixtools/f2_tursiops_fourpop/'
 #extract_f2(prefix, my_f2_dir,auto_only = FALSE,
 #           maxmiss =0.3, overwrite=T)
 
 f2_blocks = f2_from_precomp(my_f2_dir)
 
+
+# https://www.nature.com/articles/s41467-024-47015-y#Fig3
+# https://onlinelibrary.wiley.com/doi/full/10.1111/mec.17539
+# https://github.com/GenisGE/impalascripts/tree/d2679462e0091ecf529f48836da933097f719add/analyses/gene_flow/qpgraph
+
+
 #The best-fit graph was estimated using five independent runs of command 
 #find_graphs(stop_gen2 = 1000, numgraphs = 100, plusminus_generations = 20). 
 #Confidence intervals were estimated using qpgraph_resample_snps with 100 bootstraps. The above methods used statistics (such as f2, f3, and D-statistics) estimated from individual SNPs.
-  outgraph <- find_graphs(f2_blocks,stop_gen2 = 1000, 
-                        numgraphs = 100, plusminus_generations = 20)
-  outgraph %>% slice_min(score)
+  outgraph <- find_graphs(f2_blocks,
+                          stop_gen2 = 15, 
+                        numgraphs = 10, 
+                        plusminus_generations = 5, 
+                        numadmix=0
+                        #max_admix = 1)
+  
   winner = outgraph %>% slice_min(score)
+  
+  qpgraph(f2_blocks, winner, return_fstats=TRUE)
+  
+    outgraph %>% slice_min(score)
+  plot_graph(winner$edges[[1]])
+  
   write_tsv(winner$edges[[1]], 'fourpop_edges.tsv')
   write_lines(paste0('score\t', winner$score[[1]]),'fourpop_score.tsv')
 # Confidence intervals were estimated using qpgraph_resample_snps with 100 bootstraps. 
@@ -429,10 +447,207 @@ qpg_results$score
 qpg_results$f3
 qpg_results$edges
 plot_graph(qpg_results$edges)
-plotly_graph(qpg_results$edges)
+plotly_graph(qpg_results$edges, fixed=TRUE)
+plotly_graph(qpg_results$edges, highlight_unidentifiable = TRUE)
 
 
 
-https://github.com/ekirving/qpbrute
+# ------------------------------------
 
-https://link.springer.com/article/10.1186/s12862-023-02195-x#Fig3
+# other approach
+
+cl <- makeCluster(10)
+registerDoParallel(cl)
+
+clusterExport(cl, c("find_graphs", "f2_blocks"))
+winners <- list()
+fits <- list()
+
+all_pops <- foreach(x = nruns) %dopar% {
+  find_graphs(f2_blocks, max_admix=0, stop_gen2 = 30)
+}
+
+stopCluster(cl)
+
+winners <- lapply(all_pops, function(x){x %>% slice_min(score, with_ties = FALSE)}) 
+fits <- lapply(1:length(winners), function(x){qpgraph(f2_blocks, winners[[x]]$graph[[1]], return_fstats=TRUE)})
+
+winners <- do.call("rbind", winners)
+
+winners$score
+
+# select run with best likelihood
+whichbest <- which.min(winners$score)
+initial_graph <- fits[[1]]
+initial_graph <- fits[[whichbest]]
+
+plot_graph(initial_graph$edges, 
+           highlight_unidentifiable=FALSE)
+
+initial_graph_out <- winners$graph[[whichbest]]
+
+
+# now figure out if admixture improves the fit
+# with admixture:
+library(foreach)
+library(doParallel)
+
+nruns <- 1:10
+
+# Set up parallel cluster with 10 cores
+
+cl <- makeCluster(10)
+registerDoParallel(cl)
+
+clusterExport(cl, c("find_graphs", "f2_blocks"))
+winners <- list()
+fits <- list()
+
+all_pops <- foreach(x = nruns) %dopar% {
+  find_graphs(f2_blocks, max_admix=3, stop_gen2 = 30)
+}
+
+stopCluster(cl)
+
+winners <- lapply(all_pops, function(x){x %>% slice_min(score, with_ties = FALSE)}) 
+fits <- lapply(1:length(winners), function(x){qpgraph(f2_blocks, winners[[x]]$graph[[1]], return_fstats=TRUE)})
+
+winners <- do.call("rbind", winners)
+
+winners$score
+
+# select run with best likelihood
+whichbest <- which.min(winners$score)
+bestgraph <- fits[[6]]
+bestgraph <- fits[[whichbest]]
+
+plot_graph(bestgraph$edges, 
+                 highlight_unidentifiable=FALSE, 
+           textsize=4,
+           fix=T)
+
+
+bestgraph_out_3 <- winners$graph[[whichbest]]
+
+# ------------------------------------
+
+# 2 admix:
+
+cl <- makeCluster(10)
+registerDoParallel(cl)
+
+clusterExport(cl, c("find_graphs", "f2_blocks"))
+winners <- list()
+fits <- list()
+
+all_pops <- foreach(x = nruns) %dopar% {
+  find_graphs(f2_blocks, max_admix=2, stop_gen2 = 30)
+}
+
+stopCluster(cl)
+
+winners <- lapply(all_pops, function(x){x %>% slice_min(score, with_ties = FALSE)}) 
+fits <- lapply(1:length(winners), function(x){qpgraph(f2_blocks, winners[[x]]$graph[[1]], return_fstats=TRUE)})
+
+winners <- do.call("rbind", winners)
+
+winners$score
+
+# select run with best likelihood
+whichbest <- which.min(winners$score)
+bestgraph <- fits[[6]]
+bestgraph <- fits[[whichbest]]
+
+plot_graph(bestgraph$edges, 
+           highlight_unidentifiable=FALSE, 
+           textsize=4,
+           fix=T)
+
+
+bestgraph_out_2 <- winners$graph[[whichbest]]
+
+# ------------------------------------
+
+# 1 admix:
+
+cl <- makeCluster(10)
+registerDoParallel(cl)
+
+clusterExport(cl, c("find_graphs", "f2_blocks"))
+winners <- list()
+fits <- list()
+
+all_pops <- foreach(x = nruns) %dopar% {
+  find_graphs(f2_blocks, numadmix =1, stop_gen2 = 30)
+}
+
+stopCluster(cl)
+
+winners <- lapply(all_pops, function(x){x %>% slice_min(score, with_ties = FALSE)}) 
+fits <- lapply(1:length(winners), function(x){qpgraph(f2_blocks, winners[[x]]$graph[[1]], return_fstats=TRUE)})
+
+winners <- do.call("rbind", winners)
+
+winners$score
+
+# select run with best likelihood
+whichbest <- which.min(winners$score)
+bestgraph <- fits[[6]]
+bestgraph <- fits[[whichbest]]
+
+plot_graph(bestgraph$edges, 
+           highlight_unidentifiable=FALSE, 
+           textsize=4,
+           fix=T)
+
+write_delim(bestgraph$edges, file="analysis/pop_structure/admixtools/graph_out.txt",delim="\t", quote="none")
+
+bestgraph_out_1 <- winners$graph[[whichbest]]
+
+
+
+# look at residuals of model
+getDZ <- function(pair, df) df[((df[,1] == pair[1] & df[,2]==pair[2]) | (df[,1] == pair[2] & df[,2] == pair[1])), c("diff", "z")]
+
+print(plotQPgraphRes(bestgraph,
+                     oma=c(1,3,1,0)))
+
+
+# compare 3 vs 2 vs 1
+
+fits = qpgraph_resample_multi(f2_blocks, list(initial_graph_out, bestgraph_out_1), nboot = 500)
+compare_fits(fits[[1]]$score_test, fits[[2]]$score_test)
+#$p_emp
+#[1] 0.0239521
+#$p_emp_nocorr
+#[1] 0.02
+
+hist(fits[[2]]$score_test, col="blue", breaks=30,xlim=c(0,200))
+hist(fits[[1]]$score_test, breaks=30, add=T)
+
+fits = qpgraph_resample_multi(f2_blocks, list(bestgraph_out_1, bestgraph_out_2), nboot = 500)
+compare_fits(fits[[1]]$score_test, fits[[2]]$score_test)
+#$p_emp
+#[1] 0.3033932
+#$p_emp_nocorr
+#[1] 0.3
+hist(fits[[2]]$score_test, col=scales::alpha("blue", 0.2), breaks=30,xlim=c(0,200))
+hist(fits[[1]]$score_test, col=scales::alpha("red", 0.2),breaks=30, add=T)
+
+fits = qpgraph_resample_multi(f2_blocks, list(bestgraph_out_1, bestgraph_out_3), nboot = 500)
+compare_fits(fits[[1]]$score_test, fits[[2]]$score_test)
+#$p
+#[1] 0.9753403
+#$p_emp
+#[1] 0.9660679
+hist(fits[[2]]$score_test, col=scales::alpha("blue", 0.2), breaks=30,xlim=c(0,200), ylim=c(0,20))
+hist(fits[[1]]$score_test, breaks=30, add=T, col=scales::alpha("red", 0.2))
+
+
+plot_graph(bestgraph_out_2, 
+           highlight_unidentifiable=FALSE, 
+           textsize=4,
+           fix=F)
+
+
+#https://link.springer.com/article/10.1186/s12862-023-02195-x#Fig3

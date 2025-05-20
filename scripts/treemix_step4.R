@@ -3,6 +3,8 @@
 ################## (B) Plot Tree #######################
 ########################################################
 
+library(BITEV2)
+
 ## 1. From the final runs, compare tree likelihoods, 
 # select tree with highest likelihood, 
 # remove duplicates and retain tree(s) with unique topology. 

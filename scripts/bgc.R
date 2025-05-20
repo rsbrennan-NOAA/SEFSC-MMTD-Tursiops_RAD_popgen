@@ -4,11 +4,14 @@ library(bgchm)
 
 library(triangulaR)
 library(vcfR)
+library(dplyr)
+library(ggplot2)
+
 
 
 # also useful here: https://github.com/zgompert/bgchm_test/blob/main/FitClineModel_Lycaeides.R
 
-vcf <- read.vcfR( "analysis/filtered.final_ids.vcf.gz", verbose = FALSE )
+vcf <- read.vcfR( "analysis/variants/filtered.final_ids.vcf.gz", verbose = FALSE )
 vcf
 
 pops1 <- read.table("analysis/population_assignments_summary.txt", header=T)
@@ -23,6 +26,8 @@ diff1 <- alleleFreqDiff(vcfR = vcf,
                         p1 = "Coastal_Gulf", 
                         p2 = "Offshore", 
                         difference = 0.7)
+
+# [1] "438 sites passed allele frequency difference threshold"
 
 genos <- t(extract.gt(diff1))
 genos <- gsub("0/0", 0,genos)
@@ -75,24 +80,34 @@ h_out<-est_hi(Gx=GenHybrids,
 ## plot hybrid index estimates with 90% equal-tail probability intervals
 ## sorted by hybrid index, just a nice way to visualize that in this example we have
 ## few hybrids with intermediate hybrid indexes
+# save these:
+
+pdf(file="figures/bgc_hybrid_index.pdf", h=5, w=5)
 plot(sort(h_out$hi[,1]),ylim=c(0,1),pch=19,xlab="Individual (sorted by HI)",ylab="Hybrid index (HI)")
 segments(1:length(h_out$hi[,1]),
          h_out$hi[order(h_out$hi[,1]),3],
          1:60,
          h_out$hi[order(h_out$hi[,1]),4])
+dev.off()
 
-rstan::traceplot(h_out$hi_hmc)
+pdf(file="figures/bgc_hybrid_index_hmc.pdf", h=4, w=10)
+
+#rstan::traceplot(h_out$hi_hmc)
 rstan::traceplot(h_out$hi_hmc,pars=c("H[1]","H[10]","H[20]"))
+dev.off()
+
 ## view the summary from rstan
 h_out$hi_hmc
 
-## fit a hierarchical genomic cline model for all 51 loci using the estimated
+## fit a hierarchical genomic cline model for all  loci using the estimated
 ## hybrid indexes and parental allele frequencies (point estimates)
 ## use 4000 iterations and 2000 warmup to make sure we get a nice effective sample size
+## note that this takes a while to run- 60 min or so.
 gc_out<-est_genocl(Gx=GenHybrids,p0=p_out$p0[,1],
                    p1=p_out$p1[,1],H=h_out$hi[,1],
                    model="genotype",ploidy="mixed",
-                   pldat=plin,hier=TRUE,n_iters=4000)
+                   pldat=plin,hier=TRUE,
+                   p_warmup = 0.5, n_iters=4000)
 
 ## how variable is introgression among loci? Lets look at the cline SDs
 ## these are related to the degree of coupling among loci overall
@@ -100,7 +115,8 @@ gc_out$SDc
 gc_out$SDv
 
 ## examine a plot of the joint posterior distribution for the SDs
-pp_plot(objs=gc_out,param1="sdv",param2="sdc",probs=c(0.5,0.75,0.95),colors="black",addPoints=TRUE,palpha=0.1,pdf=FALSE,pch=19)
+pp_plot(objs=gc_out,param1="sdv",param2="sdc",probs=c(0.5,0.75,0.95),colors="black",
+        addPoints=TRUE,palpha=0.1,pdf=FALSE,pch=19)
 
 ## impose sum-to-zero constraint on log/logit scale
 ## not totally necessary, but this is mostly a good idea
@@ -129,12 +145,21 @@ gencline_plot(center=sz_out$center[,1],v=sz_out$gradient,pdf=FALSE)
   # less than 1 is shallower than expected, higher introgression.
 which(sz_out$gradient[,2] > 1) ## index for loci with credibly steep clines
 sum(sz_out$gradient[,2] > 1) ## number of loci with credibly steep clines
-# 27
+# 26
 ## number of loci with credibly shallow clines, now 95% instead of 5%
 sum(sz_out$gradient[,3] < 1) 
-# 38
+# 39
 
 
+# what about the center:
+which(sz_out$center[,2] > 1) ## index for loci with credibly steep clines
+
+which(sz_out$center[,2] > .5)
+which(sz_out$center[,3] < .5)
+sum(sz_out$center[,2] > .5)
+#33
+sum(sz_out$center[,3] < .5)
+# 50
 
 ## last, lets look at interspecific ancestry for the same data set, this can
 ## be especially informative about the types of hybrids present
@@ -148,16 +173,14 @@ q_out<-est_Q(Gx=GenHybrids,
 q_out$Q_hmc
 rstan::traceplot(q_out$Q_hmc)
 
-#Warning message:
-#Tail Effective Samples Size (ESS) is too low, indicating posterior variances and tail quantiles may be unreliable.
-#Running the chains for more iterations may help. See
-#https://mc-stan.org/misc/warnings.html#tail-ess 
 
 ## plot the results
-tri_plot(hi=q_out$hi[,1],Q10=q_out$Q10[,1],pdf=FALSE,pch=19)
+#pdf(file="figures/bgc_trianglePlot.pdf", h=4, w=4)
+
+#tri_plot(hi=q_out$hi[,1],Q10=q_out$Q10[,1],pdf=FALSE,pch=19)
 ## note that some individuals appear to be likely backcrosses (close to the outer lines of the triangles)
 ## but the individals with intermediate hybrid indexes are clearly not F1s but rather late generation hybrids
-
+dev.off()
 
 
 # bc the above are slow to run, save and load for later
@@ -189,7 +212,7 @@ load(file = "analysis/bgc.RData")
 o<-sz_out
 
 library(ggplot2)
-library(scales) # For alpha function
+library(scales) # For alpha 
 
 # makehybrid index values
 h <- seq(0, 1, 0.01)
@@ -203,7 +226,7 @@ nonsig_center <- o$cent[nonsig,1]
 nonsig_v <- o$gradient[nonsig,1]
 nonsig_u <- log(nonsig_center/(1 - nonsig_center)) * nonsig_v
 
-# crease non-sig curves df
+# create non-sig curves df
 for (i in 1:length(nonsig_v)) {
   phi <- (h^nonsig_v[i])/(h^nonsig_v[i] + (1 - h)^nonsig_v[i] * exp(nonsig_u[i]))
   temp_df <- data.frame(h = h, phi = phi, 
@@ -254,7 +277,7 @@ p <- ggplot() +
   # We need to use aes(color = ...) to get the legend to work
   geom_line(data = subset(plot_data, type == "nonsig"), 
             aes(x = h, y = phi, group = group, color = "Neutral"), 
-            linewidth = 0.5, alpha = 0.3) +
+            linewidth = 0.5, alpha = 0.5) +
   geom_line(data = subset(plot_data, type == "shallow"), 
             aes(x = h, y = phi, group = group, color = "Shallow"), 
             linewidth = 1, alpha = 0.5) +
@@ -267,25 +290,22 @@ p <- ggplot() +
             linetype = 2, linewidth = 2, color = "black") +
   # Set custom colors for the legend
   scale_color_manual(name = NULL,
-                     values = c("Neutral" = "grey30", 
+                     values = c("Neutral" = "grey45", 
                                 "Shallow" = "skyblue3", 
                                 "Steep" = "firebrick3")) +
   guides(color = guide_legend(override.aes = list(linewidth = 2, alpha=1))) +
   # Set plot labels and limits
   labs(x = "Hybrid index", 
-       y = "Ancestry probability",
-       title = "Genomic clines") +
+       y = "Ancestry probability") +
   # Match the original plot limits
   scale_x_continuous(limits = c(0, 1)) +
   scale_y_continuous(limits = c(0, 1)) +
   # Control theme elements to match original appearance
-  theme_bw(base_size = 14) +
+  theme_classic(base_size = 14) +
   theme(
-    axis.title = element_text(size = rel(1.4)),
-    plot.title = element_text(size = rel(1.4), hjust = 0.5),
+
     legend.position = "bottom",
-    legend.title = element_text(size = rel(1.2)),
-    legend.text = element_text(size = rel(1.1))
+
   )
 
 p
@@ -303,53 +323,150 @@ ggsave(file="figures/genomic_clines.png", p,
 # gompert was ordering by linkage group
 #sig<-1 + (o$gradient[order(snpLgSz[,1]),2] > 1)
 
+split_cols <- strsplit(colnames(genos), "_")
+# Extract the accession numbers (first element of each split)
+chroms <- sapply(split_cols, function(x) paste0(x[1], "_", x[2]))
+SNP <- colnames(genos)
 # ggplot
 plot_data <- data.frame(
+  SNP_id <- SNP,
+  CHR <- chroms,
   SNP_number = 1:nrow(o$gradient),
   log_gradient = log(o$gradient[,1]),
   lower_ci = log(o$gradient[,2]),
   upper_ci = log(o$gradient[,3])
 )
 
+colnames(plot_data) <- c("SNP", "CHR", "SNP_number", "log_gradient", "lower_ci", "upper_ci")
+
 plot_data$category <- "Neutral"
 plot_data$category[o$gradient[,2] > 1] <- "Steep"  # significant
 plot_data$category[o$gradient[,3] < 1] <- "Shallow" # shallow
 
-p2 <- ggplot(plot_data, aes(x = SNP_number, y = log_gradient, color = category)) +
-  # Add points
-  geom_point(size = 1.5, shape = 19, fill = "white") +
-  # Add confidence interval segments
-  geom_segment(aes(x = SNP_number, y = lower_ci, 
+# make a factor for CHR 
+plot_data$CHR <- factor(plot_data$CHR, levels = unique(plot_data$CHR))
+
+# colors for chromosomes
+chr_colors <- rep(c("black", "grey1"), length.out = length(levels(plot_data$CHR)))
+names(chr_colors) <- levels(plot_data$CHR)
+
+# order by chr then position:
+
+
+# Split data by category
+neutral_data <- subset(plot_data, category == "Neutral")
+shallow_data <- subset(plot_data, category == "Shallow")
+steep_data <- subset(plot_data, category == "Steep")
+
+chr_bounds <- plot_data %>%
+  # We need to join with the chr_colors information
+  mutate(color = chr_colors[as.character(CHR)]) %>%
+  # Only keep chromosomes with black color
+  filter(color == "black") %>%
+  group_by(CHR) %>%
+  summarize(min_snp = min(SNP_number),
+            max_snp = max(SNP_number)) %>%
+  mutate(ymin = -Inf, ymax = Inf)
+
+# for chr labels
+chr_levels <- levels(plot_data$CHR)
+n_chrs <- length(chr_levels)
+
+# Create new chromosome labels (1:21 plus X)
+new_chr_labels <- c(as.character(1:(n_chrs-1)), "X")
+
+# Calculate midpoints for each chromosome for label placement
+chr_midpoints <- plot_data %>%
+  group_by(CHR) %>%
+  summarize(mid_pos = mean(c(min(SNP_number), max(SNP_number)))) %>%
+  arrange(match(CHR, chr_levels))  # Maintain original order
+
+# Assign new labels to the midpoints dataframe
+chr_midpoints$new_label <- new_chr_labels
+
+# Create the plot with 3 geom_point layers - one for each category
+p2 <- ggplot() +
+  geom_rect(data = chr_bounds,
+            aes(xmin = min_snp, xmax = max_snp,
+                ymin = ymin, ymax = ymax,
+                fill = CHR),
+            alpha = 1, fill="grey80") +
+  # Add points for each category with alternating chromosome colors
+  # Add confidence interval segments colored by category
+  geom_segment(data = neutral_data,
+               aes(x = SNP_number, y = lower_ci, 
                    xend = SNP_number, yend = upper_ci),
-               linewidth = 0.3) +
+               color = "grey30", linewidth = 0.3) +
+  geom_segment(data = shallow_data,
+               aes(x = SNP_number, y = lower_ci, 
+                   xend = SNP_number, yend = upper_ci),
+               color = "skyblue3", linewidth = 0.3) +
+  geom_segment(data = steep_data,
+               aes(x = SNP_number, y = lower_ci, 
+                   xend = SNP_number, yend = upper_ci),
+               color = "firebrick3", linewidth = 0.3) +
+  geom_point(data = neutral_data, 
+             aes(x = SNP_number, y = log_gradient, color = CHR),
+             size = 3, shape = 19) +
+  geom_point(data = shallow_data, 
+             aes(x = SNP_number, y = log_gradient),
+             size = 3.5, shape = 21, fill = "skyblue3", color="black") +
+  geom_point(data = steep_data, 
+             aes(x = SNP_number, y = log_gradient, color = CHR),
+             size = 3.5, shape = 21,fill = "firebrick3", color="black") +
+#  geom_point(data = shallow_data, 
+#             aes(x = SNP_number, y = log_gradient),
+#             color = "skyblue3",
+#             size = 3, shape = 21, stroke =2) +
+#  geom_point(data = steep_data, 
+#             aes(x = SNP_number, y = log_gradient),
+#             color = "firebrick3",
+#             size = 3, shape = 21, stroke =2) +
   # Add horizontal line at y=0
   geom_hline(yintercept = 0, linetype = "dashed", linewidth = 0.8) +
-  # Set colors to match previous plot
-  scale_color_manual(values = c("Neutral" = "grey30", 
-                                "Shallow" = "skyblue3", 
-                                "Steep" = "firebrick3")) +
-  labs(x = "SNP number", 
-       y = "Log gradient (v)",
-       title = "Cline gradients (v)") +
-#  ylim(c(-2.2, 2)) +
-  theme_bw() +
-  theme(
-    axis.title = element_text(size = rel(1.4)),
-    axis.text = element_text(size = rel(1.1)),
-    plot.title = element_text(size = rel(1.4), hjust = 0.5),
-    legend.position = "bottom",
-    legend.title = element_blank(),
-    legend.text = element_text(size = rel(1.1))
+  
+  # Set point colors for chromosomes
+  scale_color_manual(values = chr_colors, guide = "none") +  # Hide chromosome colors from legend
+  
+  # Add chromosome labels
+  scale_x_continuous(
+    breaks = chr_midpoints$mid_pos,
+    labels = chr_midpoints$new_label,
+    expand = c(0.01, 0.01)
   ) +
-  guides(color = guide_legend(override.aes = list(size = 3)))
+  
+  # Create a dummy aesthetic for the legend
+  #annotate("point", x = -Inf, y = -Inf, color = "grey30", size = 3, shape = 19) +
+  #annotate("point", x = -Inf, y = -Inf, color = "skyblue3", size = 3, shape = 19) +
+  #annotate("point", x = -Inf, y = -Inf, color = "firebrick3", size = 3, shape = 19) +
+  
+  labs(x = "Chromosome", 
+       y = "Log gradient (v)") +
+  theme_classic(base_size = 14) +
+  theme(
+    #legend.position = "bottom",
+  )
+p2
 
-#
+# Add manual legend
+#p2 <- p2 + guides(color = guide_legend(
+#  override.aes = list(
+#    color = c("grey30", "skyblue3", "firebrick3"),
+#    shape = c(19, 19, 19),
+#    size = c(3, 3, 3)
+#  ),
+#  labels = c("Neutral", "Shallow", "Steep")
+#))
 
-ggsave(file="figures/genomic_clines_gradients.png", p2, 
-       h=4.5, w=7)
+#p2
 
-library(ggplot2)
 
+ggsave(filename="figures/bgc_p1.pdf",p, h=4, w=3.5)
+ggsave(filename="figures/bgc_p2.pdf",p2, h=4, w=7)
+
+ggsave(filename="figures/bgc_combined.pdf",
+       ggarrange(p,p2, widths=c(0.33,1), common.legend=T),
+       h=3.5, w=11)
 
 
 #---------------------------------------------------------
@@ -367,7 +484,7 @@ snp_ids <- row.names(extract.gt(diff1))
 CHR <- sapply(strsplit(snp_ids, "_"), function(x) paste(x[1], x[2], sep="_"))
 SNP <- sapply(strsplit(snp_ids, "_"), function(x) x[3])
 nrow(plot_data)
-snp_df <- data.frame(CHR = CHR, POS = SNP, snp_id = snp_ids)
+snp_df <- data.frame(CHR2 = CHR, POS = SNP, snp_id = snp_ids)
 alldat <- cbind(snp_df, plot_data)
 
 head(alldat)
@@ -387,8 +504,8 @@ result$prop_shallow <- round(result$Shallow/result$Total,2)
 
 as.data.frame(result)
 
-# 7/21 loci on NC_047055.1  are outliers. 
-# NC_047055.1 is the x chromosome. this is similar to pattern in gompert paper.
+# 7/21 loci on NC_047055.1  are steep outliers. 
+# NC_047055.1 is the x chromosome. this is similar to pattern in gompert paper and many others
 
 
 # want to look at chromosome legnth and number of outliers
@@ -396,15 +513,14 @@ as.data.frame(result)
 
 chrlen <- read.table("analysis/chr_length.txt", header=F)
 colnames(chrlen) <- c("CHR", "Length")
-chrlen <- chrlen[2:nrow(chrlen),1:2]
+chrlen <- chrlen[1:nrow(chrlen),1:2]
 
 
-result <- merge(chrlen, result) %>% 
-  filter(CHR != "NC_012059.1")
+result <- merge(chrlen, result)
 
 df_long <- pivot_longer(
   result,
-  cols = c(Neutral, Steep, Shallow, Total, prop_steep, prop_shallow),
+  cols = c(Neutral, Steep, Shallow, Total),
   names_to = "Variable",
   values_to = "Value"
 )
@@ -415,30 +531,38 @@ ggplot(df_long, aes(x = (Length)/1000000, y = Value)) +
   geom_smooth(method = "lm", se = TRUE) +
   facet_wrap(~ Variable, scales = "free_y") +
   labs(
-    title = "Regression of Length with Various Variables",
+    title = "CHR length vs # loci",
     x = "Chromosome Length (mb)",
     y = "Count"
   ) +
   theme_bw() 
 
-ggplot(result, aes(x = Total, y = Steep)) +
+ggsave("figures/bgc_length_vs_loci.png", h=4,w=5)
+
+
+plt1 <- ggplot(result, aes(x = Total, y = Steep)) +
   geom_point() +
   geom_smooth(method = "lm", se = TRUE) +
   labs(
-    x = "Total number of SNPs",
-    y = "Number of steep outliers"
+    x = "Total number of loci",
+    y = "Number of steep outliers",
+    title="Steep outliers"
   ) +
   theme_bw() 
 
 
-ggplot(result, aes(x = Total, y = Shallow)) +
+plt2 <- ggplot(result, aes(x = Total, y = Shallow)) +
   geom_point() +
   geom_smooth(method = "lm", se = TRUE) +
   labs(
-    x = "Total number of SNPs",
-    y = "Number of shallow outliers"
+    x = "Total number of loci",
+    y = "Number of shallow outliers",
+    title="Shallow outliers"
   ) +
   theme_bw() 
+
+ggsave("figures/bgc_sig_vs_total.png", ggarrange(plt1, plt2), h=3,w=6)
+
 
 
 #--------------------------------------------------------------------------
@@ -464,6 +588,40 @@ for(i in 1:nrow(result)){
   result$pval_steep[i] <- mean(null_v >= tmp_steep_obs)
   result$null_steep[i] <- mean(null_v)
 }
+
+
+# shallow outliers:
+
+
+sig_v<-o$gradient[,3] < 1
+
+result$null_shallow <- NA
+result$pval_shallow <- NA
+
+for(i in 1:nrow(result)){
+  tmp_chr <- result$CHR[i]
+  tmp_total <- result$Total[i]
+  tmp_steep_obs <- result$Shallow [i]
+  null_v<-rep(NA,1000)
+  for(j in 1:1000){
+    null_v[j]<-sum(sample(as.numeric(sig_v),tmp_total,replace=FALSE))
+  }
+  result$pval_shallow[i] <- mean(null_v >= tmp_steep_obs)
+  result$null_shallow[i] <- mean(null_v)
+}
+
+result
+
+
+
+# ------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
+# cline centers
+
+# https://github.com/zgompert/bgchm_test/blob/18ba0853ce36dcc9cf8e69da0f7a8f3b3d33f4ef/FitClineModel_Lycaeides.R
 
 
 
