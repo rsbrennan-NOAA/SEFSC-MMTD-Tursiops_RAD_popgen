@@ -26,34 +26,61 @@ parameters:
         Intermediate:
           proportions:
             0
-- name: m1
-  description: Symmetric migration CGulf, Intermediate
+- name: m_CGulf_to_Int
+  description: Migration rate from CGulf to Intermediate
   values:
     - migrations:
         0: rate
-  upper_bound: 0.1
+  upper_bound: 0.01
 
-- name: m2
-  description: Symmetric migration Offshore, Intermediate
+- name: m_Int_to_CGulf
+  description: Migration rate from Intermediate to CGulf
   values:
     - migrations:
         1: rate
-  upper_bound: 0.1
+  upper_bound: 0.01
 
-- name: m3
-  description: Symmetric migration CGulf, Offshore
+- name: m_Off_to_Int
+  description: Migration rate from Offshore to Intermediate
   values:
     - migrations:
         2: rate
-  upper_bound: 0.1
+  upper_bound: 0.01
 
-- name: m4
-  description: Symmetric migration Coastal, Offshore
+- name: m_Int_to_Off
+  description: Migration rate from Intermediate to Offshore
   values:
     - migrations:
         3: rate
-  upper_bound: 0.1
+  upper_bound: 0.01
 
+- name: m_CGulf_to_Off
+  description: Migration rate from CGulf to Offshore
+  values:
+    - migrations:
+        4: rate
+  upper_bound: 0.01
+
+- name: m_Off_to_CGulf
+  description: Migration rate from Offshore to CGulf
+  values:
+    - migrations:
+        5: rate
+  upper_bound: 0.01
+
+- name: m_Coast_to_Off
+  description: Migration rate from Coastal to Offshore
+  values:
+    - migrations:
+        6: rate
+  upper_bound: 0.01
+
+- name: m_Off_to_Coast
+  description: Migration rate from Offshore to Coastal
+  values:
+    - migrations:
+        7: rate
+  upper_bound: 0.01
 constraints:
 - params: [Split1, Split2]
   constraint: greater_than

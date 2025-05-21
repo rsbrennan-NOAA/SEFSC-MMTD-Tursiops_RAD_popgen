@@ -26,7 +26,7 @@ MODEL_NUMBER = args.model_number
 REPNUMBER = args.rep_number 
 
 # define file paths
-PERTURB = 1
+PERTURB = 3
 MAXITER = 10
 METHOD = "powell"
 

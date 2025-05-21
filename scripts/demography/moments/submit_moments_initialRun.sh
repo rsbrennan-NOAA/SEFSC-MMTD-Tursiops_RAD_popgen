@@ -9,10 +9,10 @@
 #SBATCH --ntasks=1 
 #SBATCH --nodes=1
 #SBATCH --cpus-per-task=1
-#SBATCH --mem=10G
+#SBATCH --mem=6G
 #SBATCH --partition=standard
 #SBATCH --time=5-00
-#SBATCH --array=05-08
+#SBATCH --array=07
 
 source ~/.bashrc
 mamba activate moments
@@ -21,6 +21,6 @@ mamba activate moments
 cd ~/Tursiops-RAD-popgen/analysis/moments/
 
 MODEL_NUMBER=$(printf "%02d" $SLURM_ARRAY_TASK_ID)
-REP_NUMBER="04"
+REP_NUMBER="assym-2"
 
 python -u ~/Tursiops-RAD-popgen/scripts/demography/moments/moments_model_initialRun.py $MODEL_NUMBER $REP_NUMBER

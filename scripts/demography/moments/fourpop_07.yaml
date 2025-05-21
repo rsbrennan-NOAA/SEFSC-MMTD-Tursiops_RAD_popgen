@@ -32,11 +32,27 @@ demes:
       - start_size: 5000
         end_time: 0
 migrations:
-  - demes: [CGulf, Intermediate]
+  - source: CGulf
+    dest: Intermediate
     rate: 1e-5
-  - demes: [Offshore, Intermediate]
+  - source: Intermediate
+    dest: CGulf
     rate: 1e-5
-  - demes: [CGulf, Offshore]
+  - source: Offshore
+    dest: Intermediate
     rate: 1e-5
-  - demes: [Coastal, Offshore]
+  - source: Intermediate
+    dest: Offshore
+    rate: 1e-5
+  - source: CGulf
+    dest: Offshore
+    rate: 1e-5
+  - source: Offshore
+    dest: CGulf
+    rate: 1e-5
+  - source: Coastal
+    dest: Offshore
+    rate: 1e-5
+  - source: Offshore
+    dest: Coastal
     rate: 1e-5
