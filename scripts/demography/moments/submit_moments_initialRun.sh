@@ -12,7 +12,7 @@
 #SBATCH --mem=6G
 #SBATCH --partition=standard
 #SBATCH --time=5-00
-#SBATCH --array=07
+#SBATCH --array=1-80%8  # 8 models × 10 reps = 80 total jobs
 
 source ~/.bashrc
 mamba activate moments
@@ -20,7 +20,14 @@ mamba activate moments
 # Change to the analysis directory and run the selected model
 cd ~/Tursiops-RAD-popgen/analysis/moments/
 
-MODEL_NUMBER=$(printf "%02d" $SLURM_ARRAY_TASK_ID)
-REP_NUMBER="assym-2"
+# Calculate model and rep numbers from array task ID
+MODEL_NUMBER=$(( (($SLURM_ARRAY_TASK_ID - 1) % 8) + 1 ))
+REP_NUMBER=$(( (($SLURM_ARRAY_TASK_ID - 1) / 8) + 1 ))
+
+MODEL_NUMBER=$(printf "%02d" $MODEL_NUMBER)
+REP_NUMBER=$(printf "%02d" $REP_NUMBER)
+
+echo "model number: $MODEL_NUMBER"
+echo "rep number: $REP_NUMBER"
 
 python -u ~/Tursiops-RAD-popgen/scripts/demography/moments/moments_model_initialRun.py $MODEL_NUMBER $REP_NUMBER

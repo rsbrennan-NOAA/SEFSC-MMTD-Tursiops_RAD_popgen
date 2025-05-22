@@ -32,11 +32,11 @@ METHOD = "powell"
 
 DEME_GRAPH_PATH = f"/home/rbrennan/Tursiops-RAD-popgen/scripts/demography/moments/fourpop_{MODEL_NUMBER}.yaml"
 OPTIONS_PATH = f"/home/rbrennan/Tursiops-RAD-popgen/scripts/demography/moments/options_fourpop_{MODEL_NUMBER}_Simple.yaml"
-OUTPUT_PATH = f"/home/rbrennan/Tursiops-RAD-popgen/analysis/moments/initialRuns/model_{MODEL_NUMBER}-bestfit_{METHOD}.yaml"
+OUTPUT_PATH = f"/home/rbrennan/Tursiops-RAD-popgen/analysis/moments/initialRuns/model_{MODEL_NUMBER}-bestfit_{METHOD}_downSample.yaml"
 
-OUTPUT_RESULTS_FILE = f"/home/rbrennan/Tursiops-RAD-popgen/analysis/moments/initialRuns/optimization_model_{MODEL_NUMBER}_{REPNUMBER}_{METHOD}_results.txt"  # Include REPNUMBER in output file
-PLOT_FILE = f"/home/rbrennan/Tursiops-RAD-popgen/figures/moments/optimization_model_{MODEL_NUMBER}_{REPNUMBER}_{METHOD}.png"  # Include REPNUMBER in plot file name
-SUMMARY_FILE = f"/home/rbrennan/Tursiops-RAD-popgen/analysis/moments/initialRuns/model_{MODEL_NUMBER}_summary.csv"  # Summary file per model
+OUTPUT_RESULTS_FILE = f"/home/rbrennan/Tursiops-RAD-popgen/analysis/moments/initialRuns/optimization_model_{MODEL_NUMBER}_{REPNUMBER}_{METHOD}_downSample_results.txt"  # Include REPNUMBER in output file
+PLOT_FILE = f"/home/rbrennan/Tursiops-RAD-popgen/figures/moments/optimization_model_{MODEL_NUMBER}_{REPNUMBER}_{METHOD}_downSample.png"  # Include REPNUMBER in plot file name
+SUMMARY_FILE = f"/home/rbrennan/Tursiops-RAD-popgen/analysis/moments/initialRuns/model_{MODEL_NUMBER}_{REPNUMBER}_{METHOD}_downSample_summary.csv"  # Summary file per model
 
 
 # Print file paths for verification
@@ -51,7 +51,7 @@ print(f"[{current_time}] Starting moments analysis for model {MODEL_NUMBER}, rep
 
 # load the sfs 
 print(f"Loading SFS")
-fs = moments.Spectrum.from_file("/home/rbrennan/Tursiops-RAD-popgen/analysis/moments/fourpop_sfs/dadi/Coastal_Atlantic-Coastal_Gulf-Intermediate-Offshore.sfs")
+fs = moments.Spectrum.from_file("/home/rbrennan/Tursiops-RAD-popgen/analysis/moments/fourpop_sfs_downsample/dadi/Coastal_Atlantic-Coastal_Gulf-Intermediate-Offshore.sfs")
     
 # pop ids are in wrong order- fix them
 new_pop_ids = ['CAtlantic', 'CGulf', 'Intermediate', 'Offshore']
