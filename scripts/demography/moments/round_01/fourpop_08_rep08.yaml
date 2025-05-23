@@ -1,0 +1,62 @@
+time_units: generations
+demes:
+- name: Ancestor
+  epochs:
+  - end_time: 88608
+    start_size: 7058
+- name: Offshore
+  ancestors:
+  - Ancestor
+  epochs:
+  - start_size: 440
+- name: Coastal
+  ancestors:
+  - Ancestor
+  epochs:
+  - end_time: 85836
+    start_size: 12971
+- name: CAtlantic
+  ancestors:
+  - Coastal
+  epochs:
+  - start_size: 15727
+- name: CGulf
+  ancestors:
+  - Coastal
+  epochs:
+  - start_size: 14403
+- name: Intermediate
+  ancestors:
+  - Offshore
+  - CAtlantic
+  proportions:
+  - 0.5246845532444792
+  - 0.47531544675552084
+  start_time: 74608
+  epochs:
+  - start_size: 12130
+migrations:
+- source: CGulf
+  dest: Intermediate
+  rate: 2.7723738295835606e-06
+- source: Intermediate
+  dest: CGulf
+  rate: 2.223761158593674e-06
+- source: Offshore
+  dest: Intermediate
+  rate: 0.00012222628303024732
+- source: Intermediate
+  dest: Offshore
+  rate: 5.000306118725073e-05
+- source: CGulf
+  dest: Offshore
+  rate: 9.066857054654374e-06
+- source: Offshore
+  dest: CGulf
+  rate: 2.562914769373213e-07
+- source: Coastal
+  dest: Offshore
+  rate: 2.053998982604388e-08
+- source: Offshore
+  dest: Coastal
+  rate: 0.006177915013072365

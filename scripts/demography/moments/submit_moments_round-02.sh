@@ -1,5 +1,8 @@
 #!/bin/bash
 #SBATCH --job-name=moments_initialRun
+#SBATCH --mail-user=reid.brennan@noaa.gov
+#SBATCH --mail-type=END
+#SBATCH --mail-type=ARRAY_TASKS
 #SBATCH -o %x_%A_%a.out  # %A is the job array ID, %a is the task ID
 #SBATCH -e %x_%A_%a.err
 #SBATCH -D /home/rbrennan/Tursiops-RAD-popgen/logout
@@ -27,5 +30,4 @@ REP_NUMBER=$(printf "%02d" $REP_NUMBER)
 echo "model number: $MODEL_NUMBER"
 echo "rep number: $REP_NUMBER"
 
-#python -u ~/Tursiops-RAD-popgen/scripts/demography/moments/moments_model_initialRun.py $MODEL_NUMBER $REP_NUMBER
-python -u ~/Tursiops-RAD-popgen/scripts/demography/moments/moments_model_round-01_m${MODEL_NUMBER}.py $MODEL_NUMBER $REP_NUMBER
+python -u ~/Tursiops-RAD-popgen/scripts/demography/moments/moments_model_initialRun.py $MODEL_NUMBER $REP_NUMBER

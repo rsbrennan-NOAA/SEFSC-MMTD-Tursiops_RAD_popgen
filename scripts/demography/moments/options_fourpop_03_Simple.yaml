@@ -6,6 +6,8 @@ parameters:
         Ancestor:
           epochs:
             0: end_time
+  lower_bound: 1000
+  upper_bound: 100000
 - name: Split2
   description: Time of coastal split
   values:

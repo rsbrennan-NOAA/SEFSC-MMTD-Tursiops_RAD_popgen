@@ -1,0 +1,108 @@
+constraints:
+- constraint: greater_than
+  params:
+  - Split1
+  - Split2
+- constraint: greater_than
+  params:
+  - Split1
+  - Split3
+- constraint: greater_than
+  params:
+  - Split2
+  - Split3
+parameters:
+- description: Time of first split
+  name: Split1
+  starting_value: 13514
+  values:
+  - demes:
+      Ancestor:
+        epochs:
+          0: end_time
+- description: Time of B split
+  name: Split2
+  starting_value: 2378
+  values:
+  - demes:
+      B:
+        epochs:
+          0: end_time
+- description: Time of coastal split
+  name: Split3
+  starting_value: 2100
+  values:
+  - demes:
+      Coastal:
+        epochs:
+          0: end_time
+- description: Ancestral population size
+  lower_bound: 100
+  name: N_Ancestor
+  starting_value: 4024
+  upper_bound: 40000
+  values:
+  - demes:
+      Ancestor:
+        epochs:
+          0: start_size
+- description: Offshore population size
+  lower_bound: 100
+  name: N_Offshore
+  starting_value: 16902
+  upper_bound: 40000
+  values:
+  - demes:
+      Offshore:
+        epochs:
+          0: start_size
+- description: B population size
+  lower_bound: 100
+  name: N_B
+  starting_value: 38319
+  upper_bound: 40000
+  values:
+  - demes:
+      B:
+        epochs:
+          0: start_size
+- description: Intermediate population size
+  lower_bound: 100
+  name: N_Intermediate
+  starting_value: 21373
+  upper_bound: 40000
+  values:
+  - demes:
+      Intermediate:
+        epochs:
+          0: start_size
+- description: Coastal population size
+  lower_bound: 100
+  name: N_Coastal
+  starting_value: 27705
+  upper_bound: 40000
+  values:
+  - demes:
+      Coastal:
+        epochs:
+          0: start_size
+- description: Coastal Atlantic population size
+  lower_bound: 100
+  name: N_CAtlantic
+  starting_value: 12689
+  upper_bound: 40000
+  values:
+  - demes:
+      CAtlantic:
+        epochs:
+          0: start_size
+- description: Coastal Gulf population size
+  lower_bound: 100
+  name: N_CGulf
+  starting_value: 27491
+  upper_bound: 40000
+  values:
+  - demes:
+      CGulf:
+        epochs:
+          0: start_size

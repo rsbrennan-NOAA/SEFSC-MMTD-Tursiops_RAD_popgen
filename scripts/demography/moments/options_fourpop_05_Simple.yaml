@@ -6,6 +6,8 @@ parameters:
         Ancestor:
           epochs:
             0: end_time
+  lower_bound: 1000
+  upper_bound: 100000
 - name: Split2
   description: Time of B split
   values:
@@ -25,7 +27,7 @@ parameters:
   values:
     - migrations:
         0: rate
-  upper_bound: 0.1
+  upper_bound: 0.01
   lower_bound: 1e-10
 
 - name: m_Int_to_CGulf
@@ -33,7 +35,7 @@ parameters:
   values:
     - migrations:
         1: rate
-  upper_bound: 0.1
+  upper_bound: 0.01
   lower_bound: 1e-10
 
 - name: m_offshore_to_int
@@ -41,7 +43,7 @@ parameters:
   values:
     - migrations:
         2: rate
-  upper_bound: 0.1
+  upper_bound: 0.01
   lower_bound: 1e-10
 
 - name: m_int_to_offshore
@@ -49,7 +51,7 @@ parameters:
   values:
     - migrations:
         3: rate
-  upper_bound: 0.1
+  upper_bound: 0.01
   lower_bound: 1e-10
 
 - name: m_offshore_to_CGulf
@@ -57,7 +59,7 @@ parameters:
   values:
     - migrations:
         4: rate
-  upper_bound: 0.1
+  upper_bound: 0.01
   lower_bound: 1e-10
 
 - name: m_CGulf_to_offshore
@@ -65,7 +67,7 @@ parameters:
   values:
     - migrations:
         5: rate
-  upper_bound: 0.1
+  upper_bound: 0.01
   lower_bound: 1e-10
 
 - name: m_offshore_to_B
@@ -73,14 +75,14 @@ parameters:
   values:
     - migrations:
         6: rate
-  upper_bound: 0.1
+  upper_bound: 0.01
   lower_bound: 1e-10
 - name: m_B_to_offshore
   description: migration B to Offshore
   values:
     - migrations:
         7: rate
-  upper_bound: 0.1
+  upper_bound: 0.01
   lower_bound: 1e-10
 
 - name: m_intermediate_to_coastal
@@ -88,7 +90,7 @@ parameters:
   values:
     - migrations:
         8: rate
-  upper_bound: 0.1
+  upper_bound: 0.01
   lower_bound: 1e-10
 
 - name: m_coastal_to_intermediate
@@ -96,7 +98,7 @@ parameters:
   values:
     - migrations:
         9: rate
-  upper_bound: 0.1
+  upper_bound: 0.01
   lower_bound: 1e-10
 constraints:
 - params: [Split1, Split2]

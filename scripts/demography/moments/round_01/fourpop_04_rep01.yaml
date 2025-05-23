@@ -1,0 +1,37 @@
+time_units: generations
+demes:
+- name: Ancestor
+  epochs:
+  - end_time: 47531
+    start_size: 4488
+- name: Offshore
+  ancestors:
+  - Ancestor
+  epochs:
+  - start_size: 2860
+- name: Coastal
+  ancestors:
+  - Ancestor
+  epochs:
+  - end_time: 34377
+    start_size: 5669
+- name: CAtlantic
+  ancestors:
+  - Coastal
+  epochs:
+  - start_size: 11963
+- name: CGulf
+  ancestors:
+  - Coastal
+  epochs:
+  - start_size: 16210
+- name: Intermediate
+  ancestors:
+  - Offshore
+  - CAtlantic
+  proportions:
+  - 0.3418660581054718
+  - 0.6581339418945282
+  start_time: 3
+  epochs:
+  - start_size: 10432
