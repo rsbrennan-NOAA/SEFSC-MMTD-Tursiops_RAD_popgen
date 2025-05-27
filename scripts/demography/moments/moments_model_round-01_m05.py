@@ -95,7 +95,8 @@ migration_names = [
 
 print(f"\nMigration rates chosen:")
 for i, name in enumerate(migration_names):
-    rate = np.random.uniform(1e-10, 0.001)
+    log_rate = np.random.uniform(np.log10(1e-10), np.log10(0.001))
+    rate = 10**log_rate
     migration_rates.append(rate)
     print(f"{name}: {rate:.2e}")
 
