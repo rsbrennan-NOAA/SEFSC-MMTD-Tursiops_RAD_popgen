@@ -8,8 +8,8 @@
 #SBATCH --cpus-per-task=1
 #SBATCH --mem=6G
 #SBATCH --partition=standard
-#SBATCH --time=5-00
-#SBATCH --array=1-80%8  # 8 models × 10 reps = 80 total jobs
+#SBATCH --time=3-00
+#SBATCH --array=1-96%8  # 8 models × 12 reps = 96 total jobs
 
 source ~/.bashrc
 mamba activate moments

@@ -52,7 +52,6 @@ current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 print(f"[{current_time}] Starting moments analysis for model {MODEL_NUMBER}, rep {REPNUMBER}")
 
 # Generate random starting values
-np.random.seed(int(REPNUMBER))  # Use rep number as seed for reproducibility
 
 # Generate hierarchical time parameters for Model 02
 # Split1 (Ancestor): randomly choose from wide range

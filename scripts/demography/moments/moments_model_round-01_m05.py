@@ -52,7 +52,6 @@ current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 print(f"[{current_time}] Starting moments analysis for model {MODEL_NUMBER}, rep {REPNUMBER}")
 
 # Generate random starting values
-np.random.seed(int(REPNUMBER))  # Use rep number as seed for reproducibility
 # Generate hierarchical time parameters
 # Split1: randomly choose from wide range
 split1_val = int(np.random.uniform(10000, 100000))
@@ -96,8 +95,7 @@ migration_names = [
 
 print(f"\nMigration rates chosen:")
 for i, name in enumerate(migration_names):
-    # Log-uniform between 1e-10 and 0.1
-    rate = np.random.uniform((1e-7), (1e-3))
+    rate = np.random.uniform(1e-10, 0.001)
     migration_rates.append(rate)
     print(f"{name}: {rate:.2e}")
 
