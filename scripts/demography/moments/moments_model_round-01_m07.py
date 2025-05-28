@@ -34,7 +34,7 @@ METHOD = "fmin"
 BASE_DEME_GRAPH_PATH = f"/home/rbrennan/Tursiops-RAD-popgen/scripts/demography/moments/fourpop_{MODEL_NUMBER}.yaml"
 REP_DEME_GRAPH_PATH = f"/home/rbrennan/Tursiops-RAD-popgen/scripts/demography/moments/round_01/fourpop_{MODEL_NUMBER}_rep{REPNUMBER}.yaml"
 OPTIONS_PATH = f"/home/rbrennan/Tursiops-RAD-popgen/scripts/demography/moments/options_fourpop_{MODEL_NUMBER}_Simple.yaml"
-OUTPUT_PATH = f"/home/rbrennan/Tursiops-RAD-popgen/analysis/moments/initialRuns/model_{MODEL_NUMBER}-bestfit_{METHOD}_downSample.yaml"
+OUTPUT_PATH = f"/home/rbrennan/Tursiops-RAD-popgen/analysis/moments/initialRuns/output_yaml/model_{MODEL_NUMBER}_rep{REPNUMBER}_{METHOD}_downSample.yaml"
 
 OUTPUT_RESULTS_FILE = f"/home/rbrennan/Tursiops-RAD-popgen/analysis/moments/initialRuns/optimization_model_{MODEL_NUMBER}_{REPNUMBER}_{METHOD}_downSample_results.txt"
 PLOT_FILE = f"/home/rbrennan/Tursiops-RAD-popgen/figures/moments/optimization_model_{MODEL_NUMBER}_{REPNUMBER}_{METHOD}_downSample.png"
