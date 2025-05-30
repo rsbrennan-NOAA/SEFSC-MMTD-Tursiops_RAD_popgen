@@ -30,6 +30,66 @@ parameters:
             0
   lower_bound: 0.01  
   upper_bound: 0.99  
+
+- name: N_Ancestor
+  description: Ancestral population size
+  values:
+    - demes:
+        Ancestor:
+          epochs:
+            0: start_size
+  lower_bound: 100
+  upper_bound: 40000
+
+- name: N_Offshore
+  description: Offshore population size
+  values:
+    - demes:
+        Offshore:
+          epochs:
+            0: start_size
+  lower_bound: 100
+  upper_bound: 40000
+
+- name: N_Intermediate
+  description: Intermediate population size
+  values:
+    - demes:
+        Intermediate:
+          epochs:
+            0: start_size
+  lower_bound: 100
+  upper_bound: 40000
+
+- name: N_Coastal
+  description: Coastal population size
+  values:
+    - demes:
+        Coastal:
+          epochs:
+            0: start_size
+  lower_bound: 100
+  upper_bound: 40000
+
+- name: N_CAtlantic
+  description: Coastal Atlantic population size
+  values:
+    - demes:
+        CAtlantic:
+          epochs:
+            0: start_size
+  lower_bound: 100
+  upper_bound: 40000
+
+- name: N_CGulf
+  description: Coastal Gulf population size
+  values:
+    - demes:
+        CGulf:
+          epochs:
+            0: start_size
+  lower_bound: 100
+  upper_bound: 40000
 constraints:
 - params: [Split1, Split2]
   constraint: greater_than
