@@ -36,15 +36,15 @@ obshet_plot_fourpop <- ggplot(fourpop,
   geom_errorbar(aes(ymin = Obs_Het-StdErr.2, ymax = Obs_Het+StdErr.2), width = 0.2) +
   theme_classic(base_size = 12) +
   ylab("Observed\nheterozygosity") +
-  scale_color_manual(values=c("#E69F00","#56B4E9", "#009E73", "#CC79A7"))+
-  scale_fill_manual(values=c("#E69F00","#56B4E9", "#009E73", "#CC79A7"))+
-  scale_shape_manual(values=c(21,22,23,24))+    
+  scale_color_manual(values=c("#A6DDF0", "#276FBF","#61BA5C", "#E2BF3C"))+
+  scale_fill_manual(values=c("#A6DDF0", "#276FBF","#61BA5C", "#E2BF3C")) +
+  scale_shape_manual(values=c(21,21,22,24))+    
   xlab("") +
   theme(axis.text.x = element_text(angle = 45, hjust = 1),
         legend.title = element_blank()) +
   guides(fill = guide_legend(override.aes = list(size = 4)),  
          shape = guide_legend(override.aes = list(size = 4)))+
-  ylim(0.1, 0.3)
+  ylim(0, 0.3)
 
 exphet_plot_fourpop <- ggplot(fourpop, 
                       aes(x = population, 
@@ -55,15 +55,15 @@ exphet_plot_fourpop <- ggplot(fourpop,
   scale_size_manual(values = c("All" = 8, "Population" = 4), guide = "none") +
   theme_classic(base_size = 12) +
   ylab("Expected\nheterozygosity") +
-  scale_color_manual(values=c("#E69F00","#56B4E9", "#009E73", "#CC79A7"))+
-  scale_fill_manual(values=c("#E69F00","#56B4E9", "#009E73", "#CC79A7"))+
-  scale_shape_manual(values=c(21,22,23,24))+  
+  scale_color_manual(values=c("#A6DDF0", "#276FBF","#61BA5C", "#E2BF3C"))+
+  scale_fill_manual(values=c("#A6DDF0", "#276FBF","#61BA5C", "#E2BF3C")) +
+  scale_shape_manual(values=c(21,21,22,24))+    
   xlab("") +
   theme(axis.text.x = element_text(angle = 45, hjust = 1),
         legend.title = element_blank()) +
   guides(fill = guide_legend(override.aes = list(size = 4)),  
          shape = guide_legend(override.aes = list(size = 4))) +
-  ylim(0.1, 0.3)
+  ylim(0, 0.3)
 
 
 
@@ -77,9 +77,9 @@ fis_plot_fourpop <- ggplot(fourpop,
   geom_errorbar(aes(ymin = Fis-StdErr.7, ymax = Fis+StdErr.7), width = 0.2) +
   theme_classic(base_size = 12) +
   ylab("Inbreeding\ncoefficient") +
-  scale_color_manual(values=c("#E69F00","#56B4E9", "#009E73", "#CC79A7"))+
-  scale_fill_manual(values=c("#E69F00","#56B4E9", "#009E73", "#CC79A7"))+
-  scale_shape_manual(values=c(21,22,23,24))+    
+  scale_color_manual(values=c("#A6DDF0", "#276FBF","#61BA5C", "#E2BF3C"))+
+  scale_fill_manual(values=c("#A6DDF0", "#276FBF","#61BA5C", "#E2BF3C")) +
+  scale_shape_manual(values=c(21,21,22,24))+    
   xlab("") +
   theme(axis.text.x = element_text(angle = 45, hjust = 1),
         legend.title = element_blank()) +
@@ -368,7 +368,8 @@ bootstrap_population <- function(pop_data) {
     population = unique(pop_data$pop),
     estimate = boot_results$t0,
     ci_lower = ci$percent[4],
-    ci_upper = ci$percent[5]
+    ci_upper = ci$normal[5]
+    ci = ci
   ))
 }
 
@@ -391,6 +392,8 @@ results$population <- factor(results$population)
 #legend_order <- c("All Populations", "Atlantic", "Dry Tortuga", "NGOMex", "WGOMex")
 #results_combined$population_legend <- factor(results_combined$population, levels = legend_order)
 
+results$population <- c("CoastAtl", "CoastGulf", "Intermediate", "Offshore")
+
 piplot <- ggplot(results, 
                  aes(x = population, 
                      y = estimate, 
@@ -401,17 +404,54 @@ piplot <- ggplot(results,
   ylab("Genetic\ndiversity") +
   #scale_color_manual(values=c("grey75","#E69F00","#56B4E9", "#009E73", "#CC79A7"))+
   #scale_fill_manual(values=c("grey75","#E69F00","#56B4E9", "#009E73", "#CC79A7"))+
-  scale_shape_manual(values=c(21,22,23,24))+    
+  scale_shape_manual(values=c(21,21,22,24))+    
   xlab("") +
+  ylim(0, 0.0015)+
   theme(axis.text.x = element_text(angle = 45, hjust = 1),
         legend.title = element_blank()) +
   guides(fill = guide_legend(override.aes = list(size = 4)),  
-         shape = guide_legend(override.aes = list(size = 4))) 
+         shape = guide_legend(override.aes = list(size = 4))) +
+  scale_fill_manual(values=c("#A6DDF0", "#276FBF","#61BA5C", "#E2BF3C"))
+  
 
 
 piplot
 
 ggsave("figures/pi_fourpop.png", h=5, w=6)
+
+
+
+
+
+
+
+### merge plots
+
+fourpop_out <- ggarrange(obshet_plot_fourpop, exphet_plot_fourpop,
+                         fis_plot_fourpop, piplot,
+                         common.legend=T, nrow=2, ncol=2, labels="AUTO")
+fourpop_out
+
+
+
+ggsave(file="figures/diversity.pdf",fourpop_out,
+       w=7, h=5)
+ggsave(file="figures/diversity.png",fourpop_out,
+       w=7, h=5)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 #-------------------------
@@ -518,46 +558,3 @@ piplot
 
 ggsave("figures/pi_sixpop.png", h=5, w=6)
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-  
-
-
-# Modify each plot to remove x-axis labels except bottom plots
-piplot_mod <- piplot + 
-  theme(axis.text.x = element_blank(),
-        axis.title.x = element_blank())
-
-obshet_plot_mod <- obshet_plot + 
-  theme(axis.text.x = element_blank(),
-        axis.title.x = element_blank())
-
-
-# Combine the plots
-grid_plots <- (guide_area() / (piplot_mod + obshet_plot_mod) / (exphet_plot + fis_plot)) +
-  plot_layout(guides = "collect", heights = (c(0.1, 1,1))) +
-  plot_annotation(tag_levels = 'A') &
-  theme(legend.position = 'top',plot.tag = element_text(face = 'bold', size=16))
-
-grid_plots
-
-ggsave(file="../figures/fig4.pdf",grid_plots,
-       w=7, h=5)
-ggsave(file="../figures/fig4.png",grid_plots,
-       w=7, h=5)

@@ -20,6 +20,8 @@ ggplot(all, aes(x = total_reads, fill = as.factor(lanes))) +
        y = "Count",
        title = "Total # of Reads by Number of Lanes")
 
+grep("b", all$sample)
+
 # there are some samples originally included that are the wrong species. we knew this ahead of time. Drop them. 
 
 ## 41 are from brazil
@@ -47,6 +49,19 @@ nrow(all5)
 # 375 of the right species
 
 all5[order(all5$total_reads),]
+
+ggplot(all5, aes(x = total_reads, fill = as.factor(lanes))) +
+  geom_histogram(position = "identity", alpha = 0.9, bins = 40) +
+  geom_vline(xintercept = 1000000, 
+             linetype = "dashed", color = "black", size=1.3) +
+  scale_fill_discrete(name = "Lanes") +
+  theme_classic(base_size = 12) +
+  labs(x = "Total Reads", 
+       y = "Count",
+       title = "Total # of Reads by Number of Lanes")
+
+table(all5$lanes)
+ggsave("figures/bam_reads_hist.png", h=3,w=4)
 
 length(all5$sample[which(all5$total_reads < 1000000)])
 all5$sample[which(all5$total_reads < 1000000)]

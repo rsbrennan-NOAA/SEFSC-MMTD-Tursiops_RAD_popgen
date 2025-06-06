@@ -50,26 +50,27 @@ pcvar
 ###------------------------------------------------------------------------
 
 # keep 200 pcs to start
-grp <- find.clusters(genl, max.n.clust=40)
+grp <- find.clusters(genl, max.n.clust=30,n.pca=200)
+grp <- find.clusters(genl, max.n.clust=30,n.pca=3)
 
 # 4 clusters
 
 # do k-1 for pca
 dapc1 <- dapc(genl, grp$grp, n.pca=3, n.da=4)
 
-#temp <- optim.a.score(dapc1)
-col.in <- c("#E69F00","#56B4E9", "#009E73", "#CC79A7")
+col.in <- c(c("#A6DDF0", "#276FBF","#B4ED50","#2E8B57", "#FFDD33", "#C49E45"))
+col.in <- c(c("#A6DDF0", "#276FBF","#FFDD33","#B4ED50"))
 scatter.dapc(dapc1)
 scatter.dapc(dapc1, grp=grp$grp)
 
-#png(file="../figures/dapc_assignments.png", h=4, w=4, units="in", res=300)
-#scatter(dapc1, grp=genl@pop, 
-#        bg="white", pch=c(16,15,18,17), col=col.in,
-#        cex=2,
-#        cstar=0,clab=0,
-#        scree.pca=FALSE,scree.da=FALSE, leg=TRUE, posi.leg="bottomleft")
-#
-#dev.off()
+png(file="figures/dapc_assignments.png", h=4, w=4, units="in", res=300)
+scatter(dapc1, grp=grp$grp, 
+        bg="white", pch=c(16,16,17,15), col=col.in,
+        cex=2,
+        cstar=0,clab=0,
+        scree.pca=TRUE,scree.da=FALSE, leg=TRUE, posi.leg="topleft")
+
+dev.off()
 
 
 # Calculate optimal number of PCs 
@@ -105,10 +106,10 @@ head(df)
 table(df$dapc_population)
 table(admix$admixture_population)
 
-df$dapc_population[df$dapc_population == 1] <- "Intermediate"
-df$dapc_population[df$dapc_population == 2] <- "Coastal_Atlantic"
-df$dapc_population[df$dapc_population == 3] <- "Coastal_Gulf"
-df$dapc_population[df$dapc_population == 4] <- "Offshore"
+df$dapc_population[df$dapc_population == 1] <- "Coastal_Atlantic"
+df$dapc_population[df$dapc_population == 2] <- "Coastal_Gulf"
+df$dapc_population[df$dapc_population == 3] <- "Offshore"
+df$dapc_population[df$dapc_population == 4] <- "Intermediate"
 
 df[which(df$dapc_population != admix$admixture_population),]
 admix[which(admix$admixture_population != df$dapc_population),]

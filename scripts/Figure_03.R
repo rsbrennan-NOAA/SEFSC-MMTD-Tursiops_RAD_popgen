@@ -19,6 +19,28 @@ library(ggdist)
    mutate(logdepth = if_else(logdepth > 0, 0, logdepth)) %>%
    mutate(sixpop = str_replace_all(sixpop, "_", "\n"))  
  
+ summary_stats <- df %>%
+   group_by(sixpop) %>%
+   summarise(
+     n = n(),
+     mean_depth = mean(corrected_depth, na.rm = TRUE),
+     min_depth = min(corrected_depth, na.rm = TRUE),
+     max_depth = max(corrected_depth, na.rm = TRUE),
+     range_depth = max_depth - min_depth,
+     sd_depth = sd(corrected_depth, na.rm = TRUE),
+     se_depth = sd_depth / sqrt(n),
+     ci_lower = mean_depth - 1.96 * se_depth,
+     ci_upper = mean_depth + 1.96 * se_depth,
+     .groups = 'drop'
+   ) %>%
+   mutate(
+     ci_95 = paste0("[", round(ci_lower, 2), ", ", round(ci_upper, 2), "]")
+   ) %>%
+   select(sixpop, n, mean_depth,,sd_depth, se_depth, min_depth, max_depth, range_depth, ci_95)
+ summary_stats
+ 
+ summary_stats$max_depth[2:6]
+ 
  df%>% filter(sixpop == "Intermediate\nAtlantic") %>%
   filter(corrected_depth > -10)
  
@@ -55,7 +77,79 @@ library(ggdist)
  depth_plot
 
 
+# repeat for distance from shore, for supplemental:
+ 
+ 
+ 
+ dat <- read.csv("analysis/distance.csv")
+ 
+ pops <- read.table("analysis/population_assignments_summary.txt", header=T)
+ 
+ df <- dat %>%
+   inner_join(pops, by = c("id" = "indiv")) %>%
+   filter(distance_to_shore != "stranding") %>%
+   mutate(distance_to_shore = as.numeric(distance_to_shore),
+          logdistance = log10(distance_to_shore)) %>%
+   mutate(sixpop = str_replace_all(sixpop, "_", "\n"))  
+ 
+ df$distance_km <- df$distance_to_shore/1000
+ 
+ summary_stats <- df %>%
+   group_by(sixpop) %>%
+   summarise(
+     n = n(),
+     mean_depth = mean(distance_km, na.rm = TRUE),
+     min_depth = min(distance_km, na.rm = TRUE),
+     max_depth = max(distance_km, na.rm = TRUE),
+     range_depth = max_depth - min_depth,
+     sd_depth = sd(distance_to_shore, na.rm = TRUE),
+     se_depth = sd_depth / sqrt(n),
+     ci_lower = mean_depth - 1.96 * se_depth,
+     ci_upper = mean_depth + 1.96 * se_depth,
+     .groups = 'drop'
+   ) %>%
+   mutate(
+     ci_95 = paste0("[", round(ci_lower, 2), ", ", round(ci_upper, 2), "]")
+   ) %>%
+   select(sixpop, n, mean_depth,,sd_depth, se_depth, min_depth, max_depth, range_depth, ci_95)
+ summary_stats
+ 
+ #df%>% filter(sixpop == "Intermediate\nAtlantic") %>%
+#   filter(corrected_depth > -10)
+ 
+ 
+ fill_colors <- c(
+   "Coastal\nAtlantic" = "#A6DDF0",
+   "Coastal\nGulf" = "#276FBF",
+   "Intermediate\nAtlantic" = "#B4ED50",
+   "Intermediate\nGulf" = "#2E8B57", 
+   "Offshore\nAtlantic" = "#FFDD33", 
+   "Offshore\nGulf" = "#C49E45"
+ )
+ 
 
+ y_breaks <- c(1,10,100,200,300)
+ y_labels <- c("1", "10", "100", "200", "300")
+ 
+dist_plot <- ggplot(df, aes(x = sixpop, y = distance_km, fill=sixpop)) +
+   geom_hline(yintercept = y_breaks, color = "grey80", linetype = "solid", linewidth = 0.3) +
+   geom_violin() +
+   #geom_swarm(overflow = "compress", color="black",size=0.5) +
+   theme_classic(base_size = 14) +
+   labs(y = "Distance from shore (km)",
+        x = NULL) +
+   scale_fill_manual(values=fill_colors) +
+   theme(legend.position = "right",
+         legend.title = element_blank(),
+         axis.text.x = element_text(angle = 45, hjust = 1)
+   )
+ 
+dist_plot
+
+ggsave("figures/distance_from_shore.png", h=4, w=7)
+ggsave("figures/distance_from_shore.pdf", h=4, w=7)
+
+ 
 
 
 # ---------------------------------------------------------------------------------

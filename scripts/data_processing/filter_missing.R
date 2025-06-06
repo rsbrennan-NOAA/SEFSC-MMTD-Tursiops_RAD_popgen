@@ -5,6 +5,12 @@ dat <- read.csv("../Tursiops-NC-PopulationAssignment-RAD/analysis/out.imiss",
 
 hist(dat$F_MISS, breaks=40)
 
+dat[grep("2Tt534",dat$INDV),]
+tout <- table(gsub("b","",dat$INDV))
+
+tout[order(tout)]
+
+dat$INDV
 dat[which(dat$F_MISS > 0.75),]
 nrow(dat[which(dat$F_MISS > 0.75),])
 # 26
@@ -15,7 +21,7 @@ stranded <- datMeta$Lab.ID[datMeta$Source == "stranding"]
 length(stranded)# 11 indivs
 
 # and add 7Tt252-rep, which is a replicate and of worse quality than the first one. 
-
+# "8Tt449b-rep" "8Tt449b", but the rep is low cov and gets dropped. 
 #rmindiv <- data.frame(d=unique(c(stranded, dat$INDV[which(dat$F_MISS > 0.75)], "7Tt252-rep")))
 rmindiv <- data.frame(d=unique(c(dat$INDV[which(dat$F_MISS > 0.75)], "7Tt252-rep")))
 table(c(stranded, dat$INDV[which(dat$F_MISS > 0.75)], "7Tt252-rep"))
@@ -23,12 +29,11 @@ nrow(rmindiv)
 # 27
 
 # three strandings are removed for data quality: 4Tt883 9Tt139 9Tt143 
-
+# 2Tt534 is duplicated, but b gets removed for quality. 
 
 
 write.table(file="scripts/rm_missing.txt",rmindiv, col.names=F, 
-  row.names=F, quote=F)
-
+        row.names=F, quote=F)
 
 
 

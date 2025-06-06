@@ -167,12 +167,6 @@ write.table(median_assignments,
 filtered_dat <- median_assignments %>%
   filter(highest_category != "Pure1" & highest_category != "Pure2")
 
-# write hybrids to drop from vcf:
-write.table(filtered_dat$indiv, 
-            file="analysis/pop_structure/newhybrids/hybrids.txt",
-            quote = F,
-            row.names = F, sep="\t", col.names=F)
-
 
 
 ##-------------------------------------------------------------------------------
@@ -304,7 +298,6 @@ out <- merge(dat, pops, by.x="Lab.ID", by.y="indiv")
 nhybs <- merge(dat, pops2, by.x="Lab.ID", by.y="indiv")
 
 
-
 F2 <- nhybs %>% filter(sig == "High_Confidence" & highest_category == "F2")
 Backcross1 <- nhybs %>% filter(sig == "High_Confidence" & highest_category == "Backcross1")
 Backcross2 <- nhybs %>% filter(sig == "High_Confidence" & highest_category == "Backcross2")
@@ -378,6 +371,84 @@ ggsave("figures/map_allpops_hybrids.pdf", p, h=4, w=5)
 ggsave("figures/map_allpops_hybrids.png", p, h=4, w=5)
 
 
+# save output:
+
+pops <- read.table("analysis/population_assignments_summary.txt", header=T)
+pops2 <- read.table("analysis/pop_structure/newhybrids/newhybrids_posteriors.txt", header=T)
+
+dat <- read.csv("Tursiops_RADseq_Metadata_new.csv")
+
+out <- merge(dat, pops, by.x="Lab.ID", by.y="indiv")
+nhybs <- merge(dat, pops2, by.x="Lab.ID", by.y="indiv")
+
+
+F2 <- nhybs %>% filter(sig == "High_Confidence" & highest_category == "F2")
+Backcross1 <- nhybs %>% filter(sig == "High_Confidence" & highest_category == "Backcross1")
+Backcross2 <- nhybs %>% filter(sig == "High_Confidence" & highest_category == "Backcross2")
+
+
+pops$newhybrids_category <- NA
+pops$newhybrids_category[pops$indiv %in% F2$Lab.ID] <- "F2"
+pops$newhybrids_category[pops$indiv %in% Backcross1$Lab.ID] <- "Backcross1"
+pops$newhybrids_category[pops$indiv %in% Backcross2$Lab.ID] <- "Backcross2"
+table(pops$newhybrids_category)
+
+
+# add in the low confidence offshore indivs that all cluster together. remember to give the rationale for this in the MS
+
+offhybs <- pops$indiv[which(pops$offshore_putative_hybrids == TRUE)]
+length(offhybs)
+# 16
+#allhybs <- nhybs[nhybs$highest_category != "Pure1" & nhybs$highest_category != "Pure2",]
+allhybs <- nhybs[nhybs$highest_category == "Backcross1" | nhybs$highest_category == "Backcross2" | nhybs$highest_category == "F2",]
+nrow(allhybs)
+#26
+highconf <- allhybs[allhybs$sig == "High_Confidence",]
+nrow(highconf)
+# 20
+
+#low_conf_offshore <- 
+
+nrow(highconf[highconf$Lab.ID %in% offhybs,])
+# 12 of the 16
+low_conf_offshore <- allhybs[allhybs$Lab.ID %in% offhybs & allhybs$sig == "Low_Confidence",]
+nrow(low_conf_offshore)
+# the other 4 are hybs, but considered low confidence. add these in
+allNewHybs <- (c(highconf$Lab.ID, low_conf_offshore$Lab.ID))
+length(allNewHybs)
+#24
+
+for(i in 1:nrow(low_conf_offshore)){
+  pops$newhybrids_category[pops$indiv == low_conf_offshore$Lab.ID[i]] <- low_conf_offshore$highest_category[i]
+}
+
+sum(table(pops$newhybrids_category))
+#24
+
+write.table(pops,"analysis/population_assignments_hybrids_summary.txt", sep="\t",
+            row.names = FALSE, quote = FALSE)
+
+# for the ones that look like hybrids, but new hybrids doesn't assign, what is going on?
+
+
+####### write a clust file without the hybrids
+
+onlyhybs <- pops[!is.na(pops$newhybrids_category),]
+
+write.table(onlyhybs$indiv,
+            file="analysis/pop_structure/newhybrids/hybrids.txt", 
+            sep="\t", quote=F, col.names=F, row.names=F)
 
 
 
+
+# write hybrids to drop from vcf:
+write.table(filtered_dat$indiv, 
+            file="analysis/pop_structure/newhybrids/hybrids.txt",
+            quote = F,
+            row.names = F, sep="\t", col.names=F)
+
+
+
+
+       

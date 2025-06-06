@@ -8,7 +8,7 @@ library(ggplot2)
 library(stringr)
 library(tidyr)
 
-dat <- snpR::read_vcf("analysis/filtered.final_ids.vcf.gz")
+dat <- snpR::read_vcf("analysis/variants/filtered.final_ids.vcf.gz")
 
 pops <- read.table("analysis/population_assignments_summary.txt", header=T)
 
@@ -46,7 +46,7 @@ melt_fst_pval <- subset(melt_fst_pval, !(Var1 != Var2 & is.na(value)))
 
 
 # save p-values
-write.csv(melt_fst_pval, file="analysis/fst_pvalues.csv", quote=F, row.names = F)
+write.csv(melt_fst_pval, file="analysis/fst_sixpop_pvalues.csv", quote=F, row.names = F)
 
 
 # convert fst to long
@@ -59,7 +59,7 @@ melt_fst <- as_tibble(dat_fst2, rownames = "Var1") %>%
 melt_fst <- subset(melt_fst, !(Var1 != Var2 & is.na(value)))
 
 # save fst
-write.csv(melt_fst, file="analysis/fst.csv", quote=F, row.names = F)
+write.csv(melt_fst, file="analysis/fst_sixpop.csv", quote=F, row.names = F)
 
 
 ##### figure ------------------------------------------------
@@ -144,8 +144,8 @@ p_fst <- ggplot(fst_plot_dat3, aes(y = Var2, x = Var1, fill = value)) +
 
 p_fst
 
-ggsave(file="figures/fst.png", h=4, w=4)
-ggsave(file="figures/fst.pdf", h=4, w=4)
+ggsave(file="figures/fst_sixpop.png", h=4, w=4)
+ggsave(file="figures/fst_sixpop.pdf", h=4, w=4)
 
 
 

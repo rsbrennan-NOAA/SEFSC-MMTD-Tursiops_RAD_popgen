@@ -49,7 +49,7 @@ library(plotly)
 graph <- read_delim("analysis/pop_structure/admixtools/graph_out.txt")
 
 # manually plot so I have control:
-
+library(magrittr)
 
 edges = graph %>% as_tibble
 names(edges)[1:2] = c('V1', 'V2')
@@ -187,7 +187,7 @@ library(vcfR)
 vcf <- read.vcfR( "analysis/variants/filtered.final_ids.vcf.gz", verbose = FALSE )
 vcf
 
-pops1 <- read.table("analysis/population_assignments_summary.txt", header=T)
+pops1 <- read.table("analysis/population_assignments_hybrids_summary.txt", header=T)
 
 pops <- data.frame(id = pops1$indiv,
                    pop = pops1$fourpop)
@@ -215,20 +215,18 @@ hi.het1 <- hybridIndex(vcfR = diff2,
 
 
 
-pops <- read.table("analysis/population_assignments_summary.txt", header=T)
+pops <- read.table("analysis/population_assignments_hybrids_summary.txt", header=T)
 #hybs <- pops$indiv[pops$offshore_putative_hybrids == TRUE]
 
 
-pops <- read.table("analysis/population_assignments_summary.txt", header=T)
-
-pops2 <- read.table("analysis/pop_structure/newhybrids/newhybrids_posteriors.txt", header=T)
+#pops2 <- read.table("analysis/pop_structure/newhybrids/newhybrids_posteriors.txt", header=T)
 
 #hybs <- pops$indiv[pops$offshore_putative_hybrids == TRUE]
-newhybrids <- pops2[pops2$sig == "High_Confidence" & pops2$highest_category != "Pure1" & pops2$highest_category != "Pure2" ,]
+#newhybrids <- pops2[pops2$sig == "High_Confidence" & pops2$highest_category != "Pure1" & pops2$highest_category != "Pure2" ,]
 
-F2 <- newhybrids$indiv[newhybrids$highest_category == "F2"]
-Backcross2  <- newhybrids$indiv[newhybrids$highest_category == "Backcross2"]
-Backcross1 <- newhybrids$indiv[newhybrids$highest_category == "Backcross1"]
+F2 <- pops$indiv[pops$newhybrids_category == "F2"]
+Backcross2  <- pops$indiv[pops$newhybrids_category == "Backcross2"]
+Backcross1 <- pops$indiv[pops$newhybrids_category == "Backcross1"]
 
 hi.het1$pop2 <- hi.het1$pop
 hi.het1$pop2[hi.het1$id %in% F2] <- "F2"
@@ -264,7 +262,8 @@ t1 <- ggplot(df, aes(x = hybrid.index, y = heterozygosity)) +
              aes(x = hybrid.index, y = heterozygosity, 
                  fill = pop, 
                  shape = pop,
-                 color= pop2), 
+                 color= pop2,
+                 stroke=1.25), 
              size = 3) + 
   # Scales
   scale_fill_manual(values = fill_colors) +
@@ -310,7 +309,7 @@ plt1
 #final_plot
 
 # Save the final combined plot
-ggsave(filename="figures/fig2_v2.pdf",
+ggsave(filename="figures/fig2_v3.pdf",
        plt1,
        height=5, width=7)
 

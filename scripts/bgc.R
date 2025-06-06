@@ -504,9 +504,9 @@ result$prop_shallow <- round(result$Shallow/result$Total,2)
 
 as.data.frame(result)
 
-# 7/21 loci on NC_047055.1  are steep outliers. 
+# 8/21 loci on NC_047055.1  are steep outliers. 
 # NC_047055.1 is the x chromosome. this is similar to pattern in gompert paper and many others
-
+sum(result$Steep)
 
 # want to look at chromosome legnth and number of outliers
 # 
@@ -610,9 +610,19 @@ for(i in 1:nrow(result)){
   result$null_shallow[i] <- mean(null_v)
 }
 
-result
+as.data.frame(result)
 
+library(googlesheets4)
+library(googledrive)
 
+# need to only do this authenticatino once
+#gs4_auth()
+#drive_auth()
+
+# Write  dataframe to a new google sjeet
+sheet_url <- gs4_create("bgc_summary", sheets = list(data = result))
+
+sheet_url
 
 # ------------------------------------------------------------------------------
 # ------------------------------------------------------------------------------

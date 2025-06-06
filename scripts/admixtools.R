@@ -453,6 +453,10 @@ plotly_graph(qpg_results$edges, highlight_unidentifiable = TRUE)
 
 
 # ------------------------------------
+# ------------------------------------
+# ------------------------------------
+# ------------------------------------
+# ------------------------------------
 
 # other approach
 
@@ -462,7 +466,7 @@ registerDoParallel(cl)
 clusterExport(cl, c("find_graphs", "f2_blocks"))
 winners <- list()
 fits <- list()
-
+nruns <- 1:10
 all_pops <- foreach(x = nruns) %dopar% {
   find_graphs(f2_blocks, max_admix=0, stop_gen2 = 30)
 }
@@ -480,11 +484,18 @@ winners$score
 whichbest <- which.min(winners$score)
 initial_graph <- fits[[1]]
 initial_graph <- fits[[whichbest]]
+#$worst_residual
+#[1] 8.174426
 
-plot_graph(initial_graph$edges, 
-           highlight_unidentifiable=FALSE)
+p <- plot_graph(initial_graph$edges, 
+           highlight_unidentifiable=FALSE, hide_weights=T)
+
+ggsave(p, h=4, w=4, file="figures/admixture_graph_m0.pdf")
+ggsave(p, h=4, w=4, file="figures/admixture_graph_m0.png")
 
 initial_graph_out <- winners$graph[[whichbest]]
+
+
 
 
 # now figure out if admixture improves the fit
@@ -520,14 +531,16 @@ winners$score
 whichbest <- which.min(winners$score)
 bestgraph <- fits[[6]]
 bestgraph <- fits[[whichbest]]
-
-plot_graph(bestgraph$edges, 
-                 highlight_unidentifiable=FALSE, 
-           textsize=4,
-           fix=T)
-
-
+#$worst_residual
+#[1] 0.004591501
 bestgraph_out_3 <- winners$graph[[whichbest]]
+
+
+p2 <- plot_graph(bestgraph$edges, 
+                 highlight_unidentifiable=FALSE, hide_weights=T)
+
+ggsave(p2, h=4, w=4, file="figures/admixture_graph_m3.pdf")
+ggsave(p2, h=4, w=4, file="figures/admixture_graph_m3.png")
 
 # ------------------------------------
 
@@ -557,12 +570,13 @@ winners$score
 whichbest <- which.min(winners$score)
 bestgraph <- fits[[6]]
 bestgraph <- fits[[whichbest]]
+# 
 
-plot_graph(bestgraph$edges, 
-           highlight_unidentifiable=FALSE, 
-           textsize=4,
-           fix=T)
+p3 <- plot_graph(bestgraph$edges, 
+                highlight_unidentifiable=FALSE, hide_weights=T)
 
+ggsave(p3, h=4, w=4, file="figures/admixture_graph_m2.pdf")
+ggsave(p3, h=4, w=4, file="figures/admixture_graph_m2.png")
 
 bestgraph_out_2 <- winners$graph[[whichbest]]
 
@@ -594,11 +608,15 @@ winners$score
 whichbest <- which.min(winners$score)
 bestgraph <- fits[[6]]
 bestgraph <- fits[[whichbest]]
+#$worst_residual
+#[1] 0.009292572
 
-plot_graph(bestgraph$edges, 
-           highlight_unidentifiable=FALSE, 
-           textsize=4,
-           fix=T)
+p4 <- plot_graph(bestgraph$edges, 
+                 highlight_unidentifiable=FALSE, hide_weights=T)
+
+ggsave(p4, h=4, w=4, file="figures/admixture_graph_m1.pdf")
+ggsave(p4, h=4, w=4, file="figures/admixture_graph_m1.png")
+
 
 write_delim(bestgraph$edges, file="analysis/pop_structure/admixtools/graph_out.txt",delim="\t", quote="none")
 
@@ -607,11 +625,19 @@ bestgraph_out_1 <- winners$graph[[whichbest]]
 
 
 # look at residuals of model
-getDZ <- function(pair, df) df[((df[,1] == pair[1] & df[,2]==pair[2]) | (df[,1] == pair[2] & df[,2] == pair[1])), c("diff", "z")]
+library(dplyr)
 
-print(plotQPgraphRes(bestgraph,
-                     oma=c(1,3,1,0)))
 
+
+#getDZ <- function(pair, df) df[((df[,1] == pair[1] & df[,2]==pair[2]) | (df[,1] == pair[2] & df[,2] == pair[1])), c("diff", "z")]
+
+#print(plotQPgraphRes(bestgraph,
+#                     oma=c(1,3,1,0)))
+
+library(ggpubr)
+
+ggsave("figures/admixture_graphs_all.png",ggarrange(p,p4, p3, p2, labels="AUTO"),
+       h=6, w=6)
 
 # compare 3 vs 2 vs 1
 
