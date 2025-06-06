@@ -14,8 +14,11 @@ mamba activate easySFS
 
 cd ~/Tursiops-RAD-popgen/analysis/moments
 
+grep -v -f ~/Tursiops-RAD-popgen/analysis/pop_structure/newhybrids/hybrids.txt ~/Tursiops-RAD-popgen/analysis/pop_structure/sixpop.clust |\
+     grep -v "Aduncus"  > ~/Tursiops-RAD-popgen/analysis/pop_structure/sixpop_subset_noHybrids.clust
+
 echo "four population start"
 
-~/bin/easySFS/easySFS.py  -i ~/Tursiops-RAD-popgen/analysis/variants/filtered.final.noMAF.vcf.gz -p ~/Tursiops-RAD-popgen/analysis/pop_structure/fourpop_all_noHybrids.clust -a -f -o ~/Tursiops-RAD-popgen/analysis/moments/fourpop_sfs_downsample --order Coastal_Atlantic,Coastal_Gulf,Intermediate,Offshore  --proj 20,20,20,20
+~/bin/easySFS/easySFS.py -i ~/Tursiops-RAD-popgen/analysis/variants/filtered.final.noMAF.vcf.gz -p ~/Tursiops-RAD-popgen/analysis/pop_structure/fourpop_all_noHybrids.clust -a -y -f -o ~/Tursiops-RAD-popgen/analysis/moments/fourpop_sfs_downsample --order Coastal_Atlantic,Coastal_Gulf,Intermediate,Offshore -y --proj 20,20,20,20
 
 echo "four population done"

@@ -29,8 +29,8 @@ MODEL_NUMBER = args.model_number
 REPNUMBER = args.rep_number 
 
 # Define parameters
-PERTURB = 1  # 
-MAXITER = 50   # Increased iterations for Round 4
+PERTURB = 3  # 
+MAXITER = 5   #
 METHOD = "fmin"
 
 def get_best_rep_for_model(model_number):
@@ -81,7 +81,7 @@ print(f"Using best fit from model {MODEL_NUMBER}, rep {BEST_REP}")
 
 # Load the SFS
 print(f"\nLoading SFS...")
-fs = moments.Spectrum.from_file("/home/rbrennan/Tursiops-RAD-popgen/analysis/moments/fourpop_sfs/dadi/Coastal_Atlantic-Coastal_Gulf-Intermediate-Offshore.sfs")
+fs = moments.Spectrum.from_file("/home/rbrennan/Tursiops-RAD-popgen/analysis/moments/fourpop_sfs_equalSS/dadi/Coastal_Atlantic-Coastal_Gulf-Intermediate-Offshore.sfs")
 
 # Fix population IDs order
 new_pop_ids = ['CAtlantic', 'CGulf', 'Intermediate', 'Offshore']

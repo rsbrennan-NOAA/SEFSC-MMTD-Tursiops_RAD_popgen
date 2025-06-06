@@ -12,13 +12,12 @@
 source ~/.bashrc
 mamba activate easySFS
 
-# remove the hybrids from the clust file:
 grep -v -f ~/Tursiops-RAD-popgen/analysis/pop_structure/newhybrids/hybrids.txt ~/Tursiops-RAD-popgen/analysis/pop_structure/fourpop.clust |\
      grep -v "Aduncus"  > ~/Tursiops-RAD-popgen/analysis/pop_structure/fourpop_subset_noHybrids.clust
 
 echo "four population start"
 
-~/bin/easySFS/easySFS.py  -i ~/Tursiops-RAD-popgen/analysis/variants/filtered.fourpop_ids.noMAF.vcf.gz -p ~/Tursiops-RAD-popgen/analysis/pop_structure/fourpop_subset_noHybrids.clust --preview -a
+~/bin/easySFS/easySFS.py  -i ~/Tursiops-RAD-popgen/analysis/variants/filtered.fourpop_ids.noMAF.vcf.gz -p ~/Tursiops-RAD-popgen/analysis/pop_structure/fourpop_subset_noHybrids.clust -y --preview -a
 
 echo "four population done"
 

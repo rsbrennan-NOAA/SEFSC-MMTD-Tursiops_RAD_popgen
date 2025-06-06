@@ -9,7 +9,7 @@
 #SBATCH --mem=8G
 #SBATCH --partition=standard
 #SBATCH --time=7-00
-#SBATCH --array=1-80%20  # 8 models × 10 reps = 80 total jobs
+#SBATCH --array=81-160%20  # 8 models × 10 reps = 80 total jobs
 
 source ~/.bashrc
 mamba activate moments
