@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Moments demographic inference for Tursiops populations - Round 4
-Uses best-fit parameters from Round 2 as starting points with perturbation
+Moments demographic inference
+Uses best-fit parameters from previous round as starting points with perturbation
 """
 
 import moments
@@ -18,25 +18,34 @@ import csv
 import argparse
 import yaml
 
+
 # Parse command-line arguments
-parser = argparse.ArgumentParser(description="Run Round 4 demographic inference")
+parser = argparse.ArgumentParser(description="Run demographic inference with configurable parameters")
 parser.add_argument("model_number", help="Model number to specify the model (e.g., '01', '02').")
 parser.add_argument("rep_number", help="Repetition number for the model run.")
+parser.add_argument("round_number", type=int, help="Current round number.")
+parser.add_argument("perturb", type=int, help="Perturbation parameter.")
+parser.add_argument("maxiter", type=int, help="Maximum iterations.")
+parser.add_argument("method", help="Optimization method (e.g., 'fmin').")
+parser.add_argument("sfs_file", help="Path to the SFS file.")
 
 args = parser.parse_args()
 
 MODEL_NUMBER = args.model_number 
 REPNUMBER = args.rep_number 
+CURRENT_ROUND = args.round_number
+PERTURB = args.perturb
+MAXITER = args.maxiter
+METHOD = args.method
+SFS_FILE = args.sfs_file
 
-# Define parameters
-PERTURB = 3  # 
-MAXITER = 5   #
-METHOD = "fmin"
+# Calculate previous round after getting current round from arguments
+PREVIOUS_ROUND = CURRENT_ROUND - 1
+
 
 def get_best_rep_for_model(model_number):
-    """find the best rep from Round 3"""
-    # Read the summary file for this model from Round 1
-    summary_file = f"/home/rbrennan/Tursiops-RAD-popgen/analysis/moments/round3/model_{MODEL_NUMBER}_fmin_downSample_summary.csv"
+    """find the best rep from previous round"""
+    summary_file = f"/home/rbrennan/Tursiops-RAD-popgen/analysis/moments/round{PREVIOUS_ROUND}/model_{MODEL_NUMBER}_{METHOD}_downSample_summary.csv"
     df = pd.read_csv(summary_file)
     
     # Find the run with highest log-likelihood
@@ -47,24 +56,24 @@ def get_best_rep_for_model(model_number):
     best_rep_int = int(float(best_rep))  #both int and float
     best_rep_str = str(best_rep_int).zfill(2)
     
-    print(f"Best rep for model {model_number} from round 2: {best_rep_int} (LL: {best_row['LogLikelihood']:.1f})")
+    print(f"Best rep for model {model_number} from round {PREVIOUS_ROUND}: {best_rep_int} (LL: {best_row['LogLikelihood']:.1f})")
     return best_rep_str
 
 
 BEST_REP = get_best_rep_for_model(MODEL_NUMBER)
 
-BEST_YAML_PATH = f"/home/rbrennan/Tursiops-RAD-popgen/analysis/moments/round3/output_yaml/model_{MODEL_NUMBER}_rep{BEST_REP}_{METHOD}_downSample-Round3.yaml"
-OPTIONS_PATH = f"/home/rbrennan/Tursiops-RAD-popgen/scripts/demography/moments/options_fourpop_{MODEL_NUMBER}_Simple.yaml"
-OUTPUT_PATH = f"/home/rbrennan/Tursiops-RAD-popgen/analysis/moments/round4/output_yaml/model_{MODEL_NUMBER}_rep{REPNUMBER}_{METHOD}_downSample-Round4.yaml"
 
-OUTPUT_RESULTS_FILE = f"/home/rbrennan/Tursiops-RAD-popgen/analysis/moments/round2/optimization_model_{MODEL_NUMBER}_{REPNUMBER}_{METHOD}_downSample_results.txt"
-PLOT_FILE = f"/home/rbrennan/Tursiops-RAD-popgen/figures/moments/round4/round3_optimization_model_{MODEL_NUMBER}_{REPNUMBER}_{METHOD}_downSample.png"
-SUMMARY_FILE = f"/home/rbrennan/Tursiops-RAD-popgen/analysis/moments/round4/model_{MODEL_NUMBER}_{METHOD}_downSample_summary.csv"
+BEST_YAML_PATH = f"/home/rbrennan/Tursiops-RAD-popgen/analysis/moments/round{PREVIOUS_ROUND}/output_yaml/model_{MODEL_NUMBER}_rep{BEST_REP}_{METHOD}_downSample-Round{PREVIOUS_ROUND}.yaml"
+OPTIONS_PATH = f"/home/rbrennan/Tursiops-RAD-popgen/scripts/demography/moments/options_fourpop_{MODEL_NUMBER}_Simple.yaml"
+OUTPUT_PATH = f"/home/rbrennan/Tursiops-RAD-popgen/analysis/moments/round{CURRENT_ROUND}/output_yaml/model_{MODEL_NUMBER}_rep{REPNUMBER}_{METHOD}_downSample-Round{CURRENT_ROUND}.yaml"
+
+PLOT_FILE = f"/home/rbrennan/Tursiops-RAD-popgen/figures/moments/round{CURRENT_ROUND}/round{CURRENT_ROUND}_optimization_model_{MODEL_NUMBER}_{REPNUMBER}_{METHOD}_downSample.png"
+SUMMARY_FILE = f"/home/rbrennan/Tursiops-RAD-popgen/analysis/moments/round{CURRENT_ROUND}/model_{MODEL_NUMBER}_{METHOD}_downSample_summary.csv"
 
 # Create output directories
-os.makedirs("/home/rbrennan/Tursiops-RAD-popgen/analysis/moments/round4", exist_ok=True)
-os.makedirs("/home/rbrennan/Tursiops-RAD-popgen/analysis/moments/round4/output_yaml", exist_ok=True)
-os.makedirs("/home/rbrennan/Tursiops-RAD-popgen/figures/moments/round4/", exist_ok=True)
+os.makedirs(f"/home/rbrennan/Tursiops-RAD-popgen/analysis/moments/round{CURRENT_ROUND}", exist_ok=True)
+os.makedirs(f"/home/rbrennan/Tursiops-RAD-popgen/analysis/moments/round{CURRENT_ROUND}/output_yaml", exist_ok=True)
+os.makedirs(f"/home/rbrennan/Tursiops-RAD-popgen/figures/moments/round{CURRENT_ROUND}/", exist_ok=True)
 
 # Print file paths for verification
 print(f"Best YAML file: {BEST_YAML_PATH}")
@@ -74,14 +83,14 @@ print(f"Output file: {OUTPUT_PATH}")
 # Record start time
 start_time = time.time()
 current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-print(f"[{current_time}] Starting Round 4 run for model {MODEL_NUMBER}, rep {REPNUMBER}")
+print(f"[{current_time}] Starting Round {CURRENT_ROUND} run for model {MODEL_NUMBER}, rep {REPNUMBER}")
 
 # Load best YAML file from previous round
-print(f"Using best fit from model {MODEL_NUMBER}, rep {BEST_REP}")
+print(f"Using best fit from Round {PREVIOUS_ROUND} model {MODEL_NUMBER}, rep {BEST_REP}")
 
 # Load the SFS
 print(f"\nLoading SFS...")
-fs = moments.Spectrum.from_file("/home/rbrennan/Tursiops-RAD-popgen/analysis/moments/fourpop_sfs_equalSS/dadi/Coastal_Atlantic-Coastal_Gulf-Intermediate-Offshore.sfs")
+fs = moments.Spectrum.from_file(SFS_FILE)
 
 # Fix population IDs order
 new_pop_ids = ['CAtlantic', 'CGulf', 'Intermediate', 'Offshore']
@@ -89,7 +98,7 @@ fs = moments.Spectrum(fs, pop_ids=new_pop_ids)
 print(f"Population IDs: {fs.pop_ids}")
 
 # Run optimization
-print(f"\nStarting Round 4 demographic model optimization for model {MODEL_NUMBER}, rep {REPNUMBER}")
+print(f"\nStarting Round {CURRENT_ROUND} model optimization for model {MODEL_NUMBER}, rep {REPNUMBER}")
 print(f"Using {MAXITER} iterations with {PERTURB} perturbation")
 
 ret = moments.Demes.Inference.optimize(
@@ -144,7 +153,7 @@ end_time = time.time()
 end_time_print = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 elapsed_time = end_time - start_time
 
-print(f"\nRound 3 analysis for model {MODEL_NUMBER}, rep {REPNUMBER} ended at {end_time_print}")
+print(f"\nRound {CURRENT_ROUND} analysis for model {MODEL_NUMBER}, rep {REPNUMBER} ended at {end_time_print}")
 print(f"Analysis completed in {elapsed_time / 3600:.2f} hours")
 
 # Generate plot
@@ -152,10 +161,10 @@ print(f"\nGenerating demographic plot...")
 graph = demes.load(OUTPUT_PATH)
 fig = plt.figure(figsize=(10, 8))
 demesdraw.tubes(graph, ax=fig.add_subplot(111))
-plt.title(f"Round 2 - Model {MODEL_NUMBER}, Rep {REPNUMBER}\nLog-likelihood: {-LL:.1f}")
+plt.title(f"Round {CURRENT_ROUND} - Model {MODEL_NUMBER}, Rep {REPNUMBER}\nLog-likelihood: {-LL:.1f}")
 plt.savefig(PLOT_FILE, dpi=300, bbox_inches='tight')
 print(f"Saved plot to {PLOT_FILE}")
 plt.close()
 
 
-print(f"\nRound 4 complete for model {MODEL_NUMBER}, rep {REPNUMBER}")
+print(f"\nRound {CURRENT_ROUND} complete for model {MODEL_NUMBER}, rep {REPNUMBER}")

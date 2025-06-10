@@ -25,7 +25,7 @@ echo "start merge"
 #bcftools concat -f $OUTDIR/vcf_list.txt -O z -o $OUTDIR/variants_raw_merged.vcf.gz
 
 # index
-tabix -p vcf $OUTDIR/variants_raw_merged.vcf.gz
+#tabix -p vcf $OUTDIR/variants_raw_merged.vcf.gz
 
 echo "done with merge"
 
@@ -43,7 +43,7 @@ INDIR=~/Tursiops-RAD-popgen/analysis/variants/aduncus/
 
 echo "starting first missingness filter"
 
-bcftools view -i 'F_MISSING = 0 && FMT/DP >= 10' -Oz -o ${INDIR}/filtered.1.vcf.gz ${INDIR}/variants_raw_merged.vcf.gz
+bcftools view -i 'F_MISSING <= 0.4 && FMT/DP >= 5' -Oz -o ${INDIR}/filtered.1.vcf.gz ${INDIR}/variants_raw_merged.vcf.gz
 
 # Index the output
 bcftools index -t ${INDIR}/filtered.1.vcf.gz
@@ -64,13 +64,11 @@ echo "Number of variants after primitives step: ${NUM_VARIANTS2}"
 echo "start 2nd filtering"
 
 vcftools --gzvcf ${INDIR}/filtered.2.vcf.gz \
-    --minDP 10 \
-    --maxDP 150 \
+    --maxDP 800 \
     --remove-indels \
     --max-alleles 2 \
     --min-alleles 2 \
-    --minQ 30 \
-    --max-missing 1.0 \
+    --minQ 20 \
     --recode --recode-INFO-all --stdout | \
     bgzip > ${INDIR}/aduncus.vcf.gz
 

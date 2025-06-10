@@ -23,38 +23,68 @@ cd ~/Tursiops-RAD-popgen/analysis/variants
 
 # remove x chrom
 
-vcftools --gzvcf ~/Tursiops-RAD-popgen/analysis/variants/filtered.final_ids.vcf.gz --not-chr NC_047055.1 --recode --recode-INFO-all --stdout |  bgzip > ~/Tursiops-RAD-popgen/analysis/variants/filtered.final_ids_noX.vcf.gz
+#vcftools --gzvcf ~/Tursiops-RAD-popgen/analysis/variants/filtered.final_ids.vcf.gz --not-chr NC_047055.1 --recode --recode-INFO-all --stdout |  bgzip > ~/Tursiops-RAD-popgen/analysis/variants/filtered.final_ids_noX.vcf.gz
 
-tabix filtered.final_ids_noX.vcf.gz
+#tabix filtered.final_ids_noX.vcf.gz
 
 # get rad positions
-bcftools query -f '%CHROM\t%POS\n' filtered.final_ids_noX.vcf.gz > rad_positions.txt
+bcftools query -f '%CHROM\t%POS\n' filtered_lenient.final_ids_LDthin.vcf.gz > rad_positions.txt
 
 # keep only rad positions
 bcftools view -R rad_positions.txt ~/Tursiops-RAD-popgen/analysis/variants/aduncus/aduncus.vcf.gz |bgzip > ~/Tursiops-RAD-popgen/analysis/variants/aduncus/aduncus_radsites.vcf.gz
 tabix ~/Tursiops-RAD-popgen/analysis/variants/aduncus/aduncus_radsites.vcf.gz
 
+zcat ~/Tursiops-RAD-popgen/analysis/variants/aduncus/aduncus_radsites.vcf.gz | grep -v "^#" | wc -l
+# 2364
+
 #merge
-bcftools merge ~/Tursiops-RAD-popgen/analysis/variants/aduncus/aduncus_radsites.vcf.gz filtered.final_ids_noX.vcf.gz | bgzip > tursiops_aduncus_1.vcf.gz
+
+bcftools merge ~/Tursiops-RAD-popgen/analysis/variants/aduncus/aduncus_radsites.vcf.gz filtered_lenient.final_ids_LDthin.vcf.gz| bgzip > tursiops_aduncus_1.vcf.gz
 tabix tursiops_aduncus_1.vcf.gz
 
 zcat tursiops_aduncus_1.vcf.gz | grep -v '^#' | wc -l
+# 7557
 
 # keep only the ones with sites in aduncus:
 bcftools query -f '%CHROM\t%POS\n' ~/Tursiops-RAD-popgen/analysis/variants/aduncus/aduncus_radsites.vcf.gz > rad_positions_aduncus.txt
-bcftools view -R rad_positions_aduncus.txt tursiops_aduncus_1.vcf.gz |bgzip > tursiops_aduncus.vcf.gz
-tabix tursiops_aduncus.vcf.gz
-zcat tursiops_aduncus.vcf.gz | grep -v '^#' | wc -l
-#2795
-
-#LD thin:
-
-plink --vcf tursiops_aduncus.vcf.gz \
-        --indep-pairwise 50 5 0.2 --allow-extra-chr --double-id \
-        --out variants_tursiops_aduncus_pruned
-#Pruning complete.  1505 of 2795 variants removed.
-# make thinned vcf
-vcftools --gzvcf tursiops_aduncus.vcf.gz --snps variants_tursiops_aduncus_pruned.prune.in  --recode --recode-INFO-all --stdout | \
-        bgzip > tursiops_aduncus_LDthin.vcf.gz
+bcftools view -R rad_positions_aduncus.txt tursiops_aduncus_1.vcf.gz |bgzip > tursiops_aduncus_lenient_noMissing.vcf.gz
+zcat tursiops_aduncus_noMissing.vcf.gz | grep -v '^#' | wc -l
+cp tursiops_aduncus_1.vcf.gz tursiops_aduncus_lenient_All.vcf.gz 
+# 
 
 bcftools index -t tursiops_aduncus_LDthin.vcf.gz
+
+
+######
+# original set:
+
+
+# get rad positions
+bcftools query -f '%CHROM\t%POS\n' filtered.final_ids_LDthin.vcf.gz > rad_positions.txt
+cat rad_positions.txt | wc -l
+# 4495
+
+# keep only rad positions
+bcftools view -R rad_positions.txt ~/Tursiops-RAD-popgen/analysis/variants/aduncus/aduncus.vcf.gz |bgzip > ~/Tursiops-RAD-popgen/analysis/variants/aduncus/aduncus_radsites.vcf.gz
+tabix ~/Tursiops-RAD-popgen/analysis/variants/aduncus/aduncus_radsites.vcf.gz
+
+zcat ~/Tursiops-RAD-popgen/analysis/variants/aduncus/aduncus_radsites.vcf.gz | grep -v "^#" | wc -l
+# 2364
+
+#merge
+
+bcftools merge ~/Tursiops-RAD-popgen/analysis/variants/aduncus/aduncus_radsites.vcf.gz filtered.final_ids_LDthin.vcf.gz| bgzip > tursiops_aduncus_All.vcf.gz
+tabix tursiops_aduncus_All.vcf.gz
+
+zcat tursiops_aduncus_All.vcf.gz | grep -v '^#' | wc -l
+# 4495
+
+# keep only the ones with sites in aduncus:
+bcftools query -f '%CHROM\t%POS\n' ~/Tursiops-RAD-popgen/analysis/variants/aduncus/aduncus_radsites.vcf.gz > rad_positions_aduncus.txt
+bcftools view -R rad_positions_aduncus.txt tursiops_aduncus_All.vcf.gz |bgzip > tursiops_aduncus_noMissing.vcf.gz
+zcat tursiops_aduncus_noMissing.vcf.gz | grep -v '^#' | wc -l
+cp tursiops_aduncus_1.vcf.gz tursiops_aduncus_lenient_All.vcf.gz 
+# 
+
+bcftools index -t tursiops_aduncus_LDthin.vcf.gz
+
