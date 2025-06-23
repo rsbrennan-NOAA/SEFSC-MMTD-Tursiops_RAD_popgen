@@ -1,4 +1,6 @@
+# Tursiops popgen and hybridization
 
+## Analysis
 
 ### alignment and variant calling
 
@@ -16,7 +18,7 @@ Initial map and calculation of depth, distance from shore: `map.R`
 
 Map with population assignments, from population structure analyses below: `map_populations.R`
 
-### population structure:
+### population structure
 
 - Admixture: `admixture.sh` + `admixture.R`
 - DAPC: `dapc.R`
@@ -35,8 +37,8 @@ Map with population assignments, from population structure analyses below: `map_
 - Freebayes with all sites output: `freebayes_allsites.sh`
 - concat and filter: `data_processing/filter_cat_allSites.nf`
 
-- Genetic diversity: 
-  - `pixy_fourpop.sh` + 
+- Genetic diversity:  
+  - `pixy_fourpop.sh` +  
   - Heterozygosity and FIS: `Fis_het.sh`
   - plot and analyze: `diversity.R`
 
@@ -44,22 +46,20 @@ Map with population assignments, from population structure analyses below: `map_
 
 - f stats and admixture graphs: `admixtools.R`
 - ABBA/BABA: `dstats.sh` and `dstats.R`
-- Treemix: `treemix.md`. Note there are references to other scripts in here. 
+- Treemix: `treemix.md`. Note there are references to other scripts in here.  
 - New Hybrids: `to_newhybrids.sh`, `newhybrids.sh`, `newhybrids.R`
 - triangle plot: `triangle_plot.R`
 - bgc: `bgc.R`
 
-### Figures:
+### Figures
 
-Fig. 1: `Figure_01.R`
-Fig. 2: `Figure_02.R`
-Fig. 3: `Figure_03.R`
+Fig. 1: `Figure_01.R`  
+Fig. 2: `Figure_02.R`  
+Fig. 3: `Figure_03.R`  
 
 #### Supplemental figures
 
-Still need to add where/how these are generated. 
-
-
+Still need to add where/how these are generated.  
 
 ---
 
