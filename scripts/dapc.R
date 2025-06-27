@@ -51,24 +51,23 @@ pcvar
 
 # keep 200 pcs to start
 grp <- find.clusters(genl, max.n.clust=30,n.pca=200)
-grp <- find.clusters(genl, max.n.clust=30,n.pca=3)
 
 # 4 clusters
 
 # do k-1 for pca
 dapc1 <- dapc(genl, grp$grp, n.pca=3, n.da=4)
 
-col.in <- c(c("#A6DDF0", "#276FBF","#B4ED50","#2E8B57", "#FFDD33", "#C49E45"))
+#col.in <- c(c("#A6DDF0", "#276FBF","#B4ED50","#2E8B57", "#FFDD33", "#C49E45"))
 col.in <- c(c("#A6DDF0", "#276FBF","#FFDD33","#B4ED50"))
-scatter.dapc(dapc1)
+#scatter.dapc(dapc1)
 scatter.dapc(dapc1, grp=grp$grp)
 
-png(file="figures/dapc_assignments.png", h=4, w=4, units="in", res=300)
+pdf(file="figures/dapc_assignments.pdf", h=4, w=4)
 scatter(dapc1, grp=grp$grp, 
         bg="white", pch=c(16,16,17,15), col=col.in,
         cex=2,
         cstar=0,clab=0,
-        scree.pca=TRUE,scree.da=FALSE, leg=TRUE, posi.leg="topleft")
+        scree.pca=FALSE,scree.da=FALSE, leg=TRUE, posi.leg="topleft")
 
 dev.off()
 
