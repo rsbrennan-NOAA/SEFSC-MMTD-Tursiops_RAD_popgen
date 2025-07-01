@@ -137,7 +137,7 @@ admix_plot <- ggplot(pdat$eg, aes(x = x, xend = xend, y = y, yend = yend)) +
         axis.ticks = element_blank(), legend.position = "none") +
   #scale_linetype_manual(values = c("admix" = "dashed", "normal" = "solid")) +
   
-  scale_fill_manual(values=c("#A6DDF0", "#276FBF","#61BA5C", "#E2BF3C")) +
+  scale_fill_manual(values=c("#4782d4", "#e1526b","#61BA5C", "#E2BF3C")) +
   
   geom_label(data = pdat$nodes, 
              aes_string(label = "name", 
@@ -241,8 +241,8 @@ hybsOnly <- df[which(df$pop2 == "F2" | df$pop2 == "Backcross1" | df$pop2 == "Bac
 
 
 fill_colors <- c(
-  "Coastal_Atlantic" = "#A6DDF0",
-  "Coastal_Gulf" = "#276FBF",
+  "Coastal_Atlantic" = "#4782d4",
+  "Coastal_Gulf" = "#e1526b",
   "Intermediate_Atlantic" = "#B4ED50",
   "Intermediate_Gulf" = "#2E8B57", 
   "Offshore_Atlantic" = "#FFDD33", 
@@ -309,7 +309,7 @@ plt1
 #final_plot
 
 # Save the final combined plot
-ggsave(filename="figures/fig2_v3.pdf",
+ggsave(filename="figures/manuscript/fig2_v4.pdf",
        plt1,
        height=5, width=7)
 

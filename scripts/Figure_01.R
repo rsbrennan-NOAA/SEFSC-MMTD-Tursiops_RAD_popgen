@@ -49,10 +49,18 @@ out <- merge(dat, pops, by.x="Lab.ID", by.y="indiv")
 #1B9E77
 #66A61E
 
+desired_order <- c("Coastal_Atlantic", "Offshore_Gulf", "Intermediate_Gulf", "Coastal_Gulf",
+                   "Offshore_Atlantic", "Intermediate_Atlantic")
+
+# Arrange data in this order
+df_sorted <- out %>%
+  arrange(factor(sixpop, levels = (desired_order)))
+
+
 p1 <- ggplot() +
   geom_sf(data = world, fill = "grey90", color = "grey70") +
   geom_sf(data = usa, fill = NA, color = "grey70") +
-  geom_point(data = out, 
+  geom_point(data = df_sorted, 
              aes(x = Long, y = Lat, fill=sixpop, shape=sixpop),
              size = 2.5,
              alpha=1,
@@ -71,7 +79,7 @@ p1 <- ggplot() +
   #scale_shape_manual(values=c(21,22,23,24)) +
   #scale_fill_manual(values=c("#56B4E9","#004488","#66A61E","#F0B800")) +
   scale_shape_manual(values=c(21,21,22,22,24,24))+
-  scale_fill_manual(values=c("#A6DDF0", "#276FBF","#B4ED50","#2E8B57", "#FFDD33", "#C49E45")) +
+  scale_fill_manual(values=c("#4782d4", "#e1526b","#B4ED50","#2E8B57", "#FFDD33", "#C49E45")) +
   coord_sf(xlim = c(-100, -64), ylim = c(23, 42), expand = FALSE)+
   annotation_scale()
   
@@ -80,6 +88,41 @@ p1
 
 ggsave("figures/map_allpops.pdf", p1, h=4, w=5)
 ggsave("figures/map_allpops.png", p1, h=4, w=5)
+
+
+
+p1_facet <- ggplot() +
+  geom_sf(data = world, fill = "grey90", color = "grey70") +
+  geom_sf(data = usa, fill = NA, color = "grey70") +
+  geom_point(data = df_sorted, 
+             aes(x = Long, y = Lat, fill=sixpop, shape=sixpop),
+             size = 2.5,
+             alpha=1,
+             color="black") +
+  facet_wrap(~sixpop, nrow=3) +
+  coord_sf() +
+  theme_bw() +
+  theme(
+    #panel.background = element_rect(fill = "white"),
+    panel.grid = element_blank(),
+    #axis.text = element_blank(),
+    #axis.ticks = element_blank()
+    legend.position = "top",
+    legend.title=element_blank()) +
+  xlab("Longitude")+
+  ylab("Latitude") +
+  #scale_shape_manual(values=c(21,22,23,24)) +
+  #scale_fill_manual(values=c("#56B4E9","#004488","#66A61E","#F0B800")) +
+  scale_shape_manual(values=c(21,21,22,22,24,24))+
+  scale_fill_manual(values=c("#4782d4", "#e1526b","#B4ED50","#2E8B57", "#FFDD33", "#C49E45")) +
+  coord_sf(xlim = c(-100, -64), ylim = c(23, 42), expand = FALSE)+
+  annotation_scale()
+
+
+p1_facet
+
+ggsave("figures/manuscript/map_facet.pdf", p1_facet, h=9, w=7)
+ggsave("figures/manuscript/map_facet.png", p1_facet, h=9, w=7)
 
 
 
@@ -175,12 +218,12 @@ df <- merge(dat, pops, by.x="IDs", by.y="indiv")
 # with shapes
 p2 <- ggplot(df, aes(PC1, PC2, fill=sixpop, shape=sixpop)) +
   geom_point(size=3, color="black") +
-  xlab(paste0("PC1: ",round(eig[1], 2),"% variance")) +
-  ylab(paste0("PC2: ",round(eig[2], 2),"% variance")) +
+  xlab(paste0("PC1: ",round(eig[1], 0),"% variance")) +
+  ylab(paste0("PC2: ",round(eig[2], 0),"% variance")) +
   theme_classic() +
   #ggtitle('PCA: DAPC populations')+
   scale_shape_manual(values=c(21,21,22,22,24,24))+
-  scale_fill_manual(values=c("#A6DDF0", "#276FBF","#B4ED50","#2E8B57", "#FFDD33", "#C49E45"))
+  scale_fill_manual(values=c("#4782d4", "#e1526b","#B4ED50","#2E8B57", "#FFDD33", "#C49E45"))
   #guides(fill=guide_legend(override.aes=list(shape=21)))
 
 p2
@@ -279,8 +322,8 @@ p3 <-
         strip.background = element_blank()) +
   scale_color_manual(values = c("black","grey55"),
                      name = "Population") +
-  scale_color_manual(values=c("#A6DDF0", "#276FBF","#B4ED50","#2E8B57", "#FFDD33", "#C49E45")) +
-  scale_fill_manual(values=c("#A6DDF0", "#276FBF","#61BA5C", "#E2BF3C"))+
+  scale_color_manual(values=c("#4782d4", "#e1526b","#B4ED50","#2E8B57", "#FFDD33", "#C49E45")) +
+  scale_fill_manual(values=c("#4782d4", "#e1526b","#61BA5C", "#E2BF3C"))+
   facet_wrap(~k,ncol=1)
 p3
 
@@ -299,7 +342,7 @@ p_out <- ggarrange(p1,p_out1, nrow=2, labels=c("A", "", ""), common.legend=F,
 p_out
 #widths = c(1, 0.75)
 
-ggsave(filename="figures/Fig_01.pdf", p_out, h=135, w=170, units= "mm")
-ggsave(filename="figures/Fig_01.png", p_out, h=5, w=7)
+ggsave(filename="figures/Fig_01-v2.pdf", p_out, h=135, w=170, units= "mm")
+ggsave(filename="figures/Fig_01-v2.png", p_out, h=5, w=7)
 
 
