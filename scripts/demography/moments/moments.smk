@@ -1,277 +1,143 @@
-# snakemake pipeline of moments.
-
-#mamba activate snakemake_9.5.1
-# --dry-run
-
-
-# Snakemake pipeline for moments demographic modeling
-# Converted from SLURM array job
+# moments analysis
+# Each round waits for the previous round to complete
 
 # Configuration
-MODELS = [f"{i:02d}" for i in range(1, 9)]  # Models 01-08
-REPS = [f"{i:02d}" for i in range(1, 25)]   # Reps 01-24 (192 total jobs / 8 models = 24 reps per model)
-METHOD = "fmin"  # Optimization method
-ROUND4_REPS = [f"{i:02d}" for i in range(1, 11)]   # Reps 01-10
+MODEL_NUMBER = "07"
+METHOD = "fmin"
+RUN_NAME = "run2"  
 
+SFS_FILE_DOWNSAMPLE = "/home/rbrennan/Tursiops-RAD-popgen/analysis/moments/fourpop_sfs_downsample/dadi/Coastal_Atlantic-Coastal_Gulf-Intermediate-Offshore.sfs"
+SFS_FILE_EQUALSS = "/home/rbrennan/Tursiops-RAD-popgen/analysis/moments/fourpop_sfs_equalSS/dadi/Coastal_Atlantic-Coastal_Gulf-Intermediate-Offshore.sfs"
+SCRIPT_DIR = "/home/rbrennan/Tursiops-RAD-popgen/scripts/demography/moments"
+ANALYSIS_DIR = "/home/rbrennan/Tursiops-RAD-popgen/analysis/moments"
 
-# Paths
-ANALYSIS_DIR = "~/Tursiops-RAD-popgen/analysis/moments/"
-SCRIPT_DIR = "~/Tursiops-RAD-popgen/scripts/demography/moments/"
-LOG_DIR = "~/Tursiops-RAD-popgen/logout/"
+# Define rep counts for each round
+ROUND1_REPS = [f"{i:02d}" for i in range(1, 81)]   # 80 reps
+ROUND2_REPS = [f"{i:02d}" for i in range(1, 41)]   # 40 reps  
+ROUND3_REPS = [f"{i:02d}" for i in range(1, 11)]   # 10 reps
+ROUND4_REPS = [f"{i:02d}" for i in range(1, 21)]   # 20 reps
+
+# Target rule - run all rounds
 rule all:
     input:
-        # Round 3 outputs (Round 1 and 2 will run automatically as dependencies)
-        expand("~/Tursiops-RAD-popgen/analysis/moments/round4/output_yaml/model_{model}_rep{rep}_{method}_downSample-Round4.yaml",
-               model=MODELS, rep=ROUND4_REPS, method=METHOD),
-        expand("~/Tursiops-RAD-popgen/analysis/moments/round4/model_{model}_{method}_downSample_summary.csv",
-               model=MODELS, method=METHOD)
+        f"{ANALYSIS_DIR}/mod7_expansion_{RUN_NAME}"
 
-rule run_moments_model_round1:
+# Round 1: 80 reps with random starting values
+rule round1:
     output:
-        yaml_out = f"~/Tursiops-RAD-popgen/analysis/moments/round_1/output_yaml/model_{{model}}_rep{{rep}}_{METHOD}_downSample.yaml",
-        plot = f"~/Tursiops-RAD-popgen/figures/moments/optimization_model_{{model}}_{{rep}}_{METHOD}_downSample.png",
-        rep_yaml = "~/Tursiops-RAD-popgen/scripts/demography/moments/round_1/fourpop_{model}_rep{rep}.yaml"
-        # with f strings, will replace the {} immediately. So the doubles are escaped, remain for wildcard to be replaced later
-        # with regulat, they are not replaced immediately. 
-    params:
-        model = "{model}", # will replace in the script below, not here. 
-        rep = "{rep}",
-        analysis_dir = ANALYSIS_DIR, # this is a python variable, so use it directly.
-        script_path = f"{SCRIPT_DIR}moments_model_round-01_m{{model}}.py" # this is a mix of python vairable and snakemake wildcard
+        f"{ANALYSIS_DIR}/mod7_expansion/output_yaml/model_{MODEL_NUMBER}_rep{{rep}}_{METHOD}_downSample.yaml"
     log:
-        "~/Tursiops-RAD-popgen/logout/moments_round_1_m{model}_r{rep}.log"
+        f"{ANALYSIS_DIR}/mod7_expansion/logs/round1_model_{MODEL_NUMBER}_rep{{rep}}.log"
+    name: "mts_r1"
+    params:
+        rep = "{rep}",
+        model = MODEL_NUMBER,
+        script = f"{SCRIPT_DIR}/moments_mod7_expansion_round-01.py",
     conda:
         "moments"
     resources:
         mem_mb = 6000,
-        runtime = 4320,  # 3 days in minutes
-        cpus_per_task = 1
+        runtime = "24h",
+        cpus_per_task = 1,
+        slurm_partition = "standard",
+        slurm_extra = "--output=/home/rbrennan/Tursiops-RAD-popgen/logout/moments_round1_%j.out --error=/home/rbrennan/Tursiops-RAD-popgen/logout/moments_round1_%j.err"
     shell:
         """
-        cd {params.analysis_dir}
-        echo "model number: {params.model}" > {log}
-        echo "rep number: {params.rep}" >> {log}
-        echo "Starting analysis at $(date)" >> {log}
-        
-        python -u {params.script_path} {params.model} {params.rep} >> {log} 2>&1
-        
-        echo "Finished analysis at $(date)" >> {log}
+        cd {ANALYSIS_DIR}
+        python -u {params.script} {params.model} {params.rep}
         """
 
-
-# Rule to ensure Round 1 CSV summary files are complete
-rule complete_round1_summary:
+# Round 2: 40 reps (waits for all round 1 to finish)
+rule round2:
     input:
-        # This rule triggers after all Round 1 reps for a model are done
-        yaml_files = expand("~/Tursiops-RAD-popgen/analysis/moments/initialRuns/output_yaml/model_{{model}}_rep{rep}_{method}_downSample.yaml", 
-                           rep=REPS, method=METHOD)
+        expand(f"{ANALYSIS_DIR}/mod7_expansion/output_yaml/model_{MODEL_NUMBER}_rep{{r1_rep}}_{METHOD}_downSample.yaml",
+               r1_rep=ROUND1_REPS)
     output:
-        summary = f"~/Tursiops-RAD-popgen/analysis/moments/round_1/model_{{model}}_{METHOD}_downSample_summary.csv"
-    params:
-        expected_reps = len(REPS)
-    shell:
-        """
-        # csv is made by the python scripts
-        # This rule makes sure all reps are completed before considering the step done
-        # check if the file exists and has the expected number of rows (header + reps)
-        if [ -f {output.summary} ]; then
-            EXPECTED_ROWS=$(($(({params.expected_reps})) + 1))  # number of reps + header
-            ACTUAL_ROWS=$(wc -l < {output.summary})
-            if [ $ACTUAL_ROWS -eq $EXPECTED_ROWS ]; then
-                echo "Round 1 summary file {output.summary} is complete with $ACTUAL_ROWS rows"
-                touch {output.summary} # to mark the file as edited.
-            else
-                echo "Warning: Round 1 summary file {output.summary} has only $ACTUAL_ROWS rows, expected $EXPECTED_ROWS"
-                exit 1
-            fi
-        else
-            echo "Error: Round 1 summary file {output.summary} does not exist"
-            exit 1
-        fi
-        """
-
-# Rule for running round 2
-rule run_moments_model_round2:
-    input:
-        # Round 2 depends on the Round 1 summary file to find best parameters
-        round1_summary = f"~/Tursiops-RAD-popgen/analysis/moments/initialRuns/model_{{model}}_{METHOD}_downSample_summary.csv"
-    output:
-        yaml_out = f"~/Tursiops-RAD-popgen/analysis/moments/round2/output_yaml/model_{{model}}_rep{{rep}}_{METHOD}_downSample-Round2.yaml",
-        plot = f"~/Tursiops-RAD-popgen/figures/moments/round2/round2_optimization_model_{{model}}_{{rep}}_{METHOD}_downSample.png"
-    params:
-        model = "{model}",
-        rep = "{rep}",
-        analysis_dir = ANALYSIS_DIR,
-        script_path = f"{SCRIPT_DIR}moments_model_round-02.py"
+        f"{ANALYSIS_DIR}/mod7_expansion/round2/output_yaml/model_{MODEL_NUMBER}_rep{{rep}}_{METHOD}_downSample-Round2.yaml"
+    name: "mts_r2"
     log:
-        "~/Tursiops-RAD-popgen/logout/moments_round2_m{model}_r{rep}.log"
+        f"{ANALYSIS_DIR}/mod7_expansion/logs/round2_model_{MODEL_NUMBER}_rep{{rep}}.log"
+    params:
+        rep = "{rep}",
+        model = MODEL_NUMBER,
+        script = f"{SCRIPT_DIR}/moments_mod7_expansion_round-02.py",
     conda:
         "moments"
     resources:
         mem_mb = 8000,
-        runtime = 4320,  # 3 days in minutes
-        cpus_per_task = 1 
+        runtime = "24h",
+        cpus_per_task = 1,
+        slurm_partition = "standard",
+        slurm_extra = "--output=/home/rbrennan/Tursiops-RAD-popgen/logout/moments_round2_rep%j.out --error=/home/rbrennan/Tursiops-RAD-popgen/logout/moments_round2_rep%j.err"
     shell:
         """
-        cd {params.analysis_dir}
-        echo "Round 2 - model number: {params.model}" > {log}
-        echo "Round 2 - rep number: {params.rep}" >> {log}
-        echo "Starting Round 2 analysis at $(date)" >> {log}
-        
-        python -u {params.script_path} {params.model} {params.rep} >> {log} 2>&1
-        
-        echo "Finished Round 2 analysis at $(date)" >> {log}
+        cd {ANALYSIS_DIR}
+        python -u {params.script} {params.model} {params.rep}
         """
 
-
-# make sure csv done:
-rule complete_round2_summary:
+# Round 3: 10 reps (waits for all round 2 to finish)
+rule round3:
     input:
-        yaml_files = expand("~/Tursiops-RAD-popgen/analysis/moments/round2/output_yaml/model_{{model}}_rep{rep}_{method}_downSample-Round2.yaml", 
-                           rep=REPS, method=METHOD)# this makes sure all the yaml files exist
+        expand(f"{ANALYSIS_DIR}/mod7_expansion/round2/output_yaml/model_{MODEL_NUMBER}_rep{{r2_rep}}_{METHOD}_downSample-Round2.yaml",
+               r2_rep=ROUND2_REPS)
     output:
-        summary = f"~/Tursiops-RAD-popgen/analysis/moments/round2/model_{{model}}_{METHOD}_downSample_summary.csv"
-    params:
-        expected_reps = len(REPS)
-    shell:
-        """
-        if [ -f {output.summary} ]; then
-            EXPECTED_ROWS=$(($(({params.expected_reps})) + 1))  # number of reps + header
-            ACTUAL_ROWS=$(wc -l < {output.summary})
-            if [ $ACTUAL_ROWS -eq $EXPECTED_ROWS ]; then
-                echo "Round 2 summary file {output.summary} is complete with $ACTUAL_ROWS rows"
-                touch {output.summary}
-            else
-                echo "Warning: Round 2 summary file {output.summary} has only $ACTUAL_ROWS rows, expected $EXPECTED_ROWS"
-                exit 1
-            fi
-        else
-            echo "Error: Round 2 summary file {output.summary} does not exist"
-            exit 1
-        fi
-        """
-
-
-# Rule for running round 3
-rule run_moments_model_round3:
-    input:
-        # Round 2 depends on the Round 1 summary file to find best parameters
-        round2_summary = f"~/Tursiops-RAD-popgen/analysis/moments/round2/model_{{model}}_{METHOD}_downSample_summary.csv"
-    output:
-        yaml_out = f"~/Tursiops-RAD-popgen/analysis/moments/round3/output_yaml/model_{{model}}_rep{{rep}}_{METHOD}_downSample-Round3.yaml",
-        plot = f"~/Tursiops-RAD-popgen/figures/moments/round3/round3_optimization_model_{{model}}_{{rep}}_{METHOD}_downSample.png"
-    params:
-        model = "{model}",
-        rep = "{rep}",
-        analysis_dir = ANALYSIS_DIR,
-        script_path = f"{SCRIPT_DIR}moments_model_round-03.py"
+        f"{ANALYSIS_DIR}/mod7_expansion/round3/output_yaml/model_{MODEL_NUMBER}_rep{{rep}}_{METHOD}_downSample-Round3.yaml"
+    name: "mts_r3"
     log:
-        "~/Tursiops-RAD-popgen/logout/moments_round3_m{model}_r{rep}.log"
+        f"{ANALYSIS_DIR}/mod7_expansion/logs/round3_model_{MODEL_NUMBER}_rep{{rep}}.log"
     conda:
-        "moments"
-    resources:
-        mem_mb = 8000,  # Increased memory
-        runtime = 4320,
-        cpus_per_task  = 1
-    shell:
-        """
-        cd {params.analysis_dir}
-        echo "Round 3 - model number: {params.model}" > {log}
-        echo "Round 3 - rep number: {params.rep}" >> {log}
-        echo "Starting Round 3 analysis at $(date)" >> {log}
-        
-        python -u {params.script_path} {params.model} {params.rep} >> {log} 2>&1
-        
-        echo "Finished Round 3 analysis at $(date)" >> {log}
-        """
-
-
-# make sure csv done:
-rule complete_round3_summary:
-    input:
-        yaml_files = expand("~/Tursiops-RAD-popgen/analysis/moments/round3/output_yaml/model_{{model}}_rep{rep}_{method}_downSample-Round3.yaml", 
-                           rep=REPS, method=METHOD)# this makes sure all the yaml files exist
-    output:
-        summary = f"~/Tursiops-RAD-popgen/analysis/moments/round3/model_{{model}}_{METHOD}_downSample_summary.csv"
+        "moments"  # environment name
     params:
-        expected_reps = len(REPS)
-    shell:
-        """
-        if [ -f {output.summary} ]; then
-            EXPECTED_ROWS=$(($(({params.expected_reps})) + 1))  # number of reps + header
-            ACTUAL_ROWS=$(wc -l < {output.summary})
-            if [ $ACTUAL_ROWS -eq $EXPECTED_ROWS ]; then
-                echo "Round 3 summary file {output.summary} is complete with $ACTUAL_ROWS rows"
-                touch {output.summary}
-            else
-                echo "Warning: Round 3 summary file {output.summary} has only $ACTUAL_ROWS rows, expected $EXPECTED_ROWS"
-                exit 1
-            fi
-        else
-            echo "Error: Round 3 summary file {output.summary} does not exist"
-            exit 1
-        fi
-        """
-
-
-# Rule for running round 4
-rule run_moments_model_round4:
-    input:
-        # Round 4 depends on the Round 3 summary file to find best parameters
-        round3_summary = f"~/Tursiops-RAD-popgen/analysis/moments/round3/model_{{model}}_{METHOD}_downSample_summary.csv"
-    output:
-        yaml_out = f"~/Tursiops-RAD-popgen/analysis/moments/round4/output_yaml/model_{{model}}_rep{{rep}}_{METHOD}_downSample-Round4.yaml",
-        plot = f"~/Tursiops-RAD-popgen/figures/moments/round4/round4_optimization_model_{{model}}_{{rep}}_{METHOD}_downSample.png"
-    params:
-        model = "{model}",
         rep = "{rep}",
-        analysis_dir = ANALYSIS_DIR,
-        script_path = f"{SCRIPT_DIR}moments_model_round-04-allSFS.py"
-    log:
-        "~/Tursiops-RAD-popgen/logout/moments_round4_m{model}_r{rep}.log"
-    conda:
-        "moments"
+        model = MODEL_NUMBER,
+        script = f"{SCRIPT_DIR}/moments_mod7_expansion_round-03_plus.py",
     resources:
-        mem_mb = 10000,  # Increased memory
-        runtime = 7200,
-        cpus_per_task  = 1,
-        round_4_runs = 1
+        mem_mb = 8000,
+        runtime = "24h",
+        cpus_per_task = 1,
+        slurm_partition = "standard",
+        slurm_extra = "--output=/home/rbrennan/Tursiops-RAD-popgen/logout/moments_round3_%j.out --error=/home/rbrennan/Tursiops-RAD-popgen/logout/moments_round3_%j.err"
     shell:
         """
-        cd {params.analysis_dir}
-        echo "Round 4 - model number: {params.model}" > {log}
-        echo "Round 4 - rep number: {params.rep}" >> {log}
-        echo "Starting Round 4 analysis at $(date)" >> {log}
-        
-        python -u {params.script_path} {params.model} {params.rep} >> {log} 2>&1
-        
-        echo "Finished Round 4 analysis at $(date)" >> {log}
+        python -u {params.script} {params.model} {params.rep} 3 2 5 {METHOD} {SFS_FILE_EQUALSS}
         """
 
-
-# make sure csv done:
-rule complete_round4_summary:
+# Round 4: 20 reps (waits for all round 3 to finish)
+rule round4:
     input:
-        yaml_files = expand("~/Tursiops-RAD-popgen/analysis/moments/round4/output_yaml/model_{{model}}_rep{rep}_{method}_downSample-Round4.yaml", 
-                           rep=ROUND4_REPS, method=METHOD)# this makes sure all the yaml files exist
+        expand(f"{ANALYSIS_DIR}/mod7_expansion/round3/output_yaml/model_{MODEL_NUMBER}_rep{{r3_rep}}_{METHOD}_downSample-Round3.yaml",
+               r3_rep=ROUND3_REPS)
     output:
-        summary = f"~/Tursiops-RAD-popgen/analysis/moments/round4/model_{{model}}_{METHOD}_downSample_summary.csv"
+        f"{ANALYSIS_DIR}/mod7_expansion/round4/output_yaml/model_{MODEL_NUMBER}_rep{{rep}}_{METHOD}_downSample-Round4.yaml"
+    name: "mts_r4"
+    log:
+        f"{ANALYSIS_DIR}/mod7_expansion/logs/round4_model_{MODEL_NUMBER}_rep{{rep}}.log"
+    conda:
+        "moments"  
     params:
-        expected_reps = len(ROUND4_REPS)
+        rep = "{rep}",
+        model = MODEL_NUMBER,
+        script = f"{SCRIPT_DIR}/moments_mod7_expansion_round-03_plus.py",
+    resources:
+        mem_mb = 8000,
+        runtime = "24h",
+        cpus_per_task = 1,
+        slurm_partition = "standard",
+        slurm_extra = "--output=/home/rbrennan/Tursiops-RAD-popgen/logout/moments_round4_%j.out --error=/home/rbrennan/Tursiops-RAD-popgen/logout/moments_round4_%j.err"
     shell:
         """
-        if [ -f {output.summary} ]; then
-            EXPECTED_ROWS=$(($(({params.expected_reps})) + 1))  # number of reps + header
-            ACTUAL_ROWS=$(wc -l < {output.summary})
-            if [ $ACTUAL_ROWS -eq $EXPECTED_ROWS ]; then
-                echo "Round 4 summary file {output.summary} is complete with $ACTUAL_ROWS rows"
-                touch {output.summary}
-            else
-                echo "Warning: Round 4 summary file {output.summary} has only $ACTUAL_ROWS rows, expected $EXPECTED_ROWS"
-                exit 1
-            fi
-        else
-            echo "Error: Round 4 summary file {output.summary} does not exist"
-            exit 1
+        python -u {params.script} {params.model} {params.rep} 4 1 5 {METHOD} {SFS_FILE_EQUALSS}
+        """
+# Final step: rename the directory
+rule rename_final:
+    input:
+        expand(f"{ANALYSIS_DIR}/mod7_expansion/round4/output_yaml/model_{MODEL_NUMBER}_rep{{rep}}_{METHOD}_downSample-Round4.yaml",
+               rep=ROUND4_REPS)
+    output:
+        directory(f"{ANALYSIS_DIR}/mod7_expansion_{RUN_NAME}")
+    shell:
+        """
+        if [ -d {ANALYSIS_DIR}/mod7_expansion ]; then
+            mv {ANALYSIS_DIR}/mod7_expansion {ANALYSIS_DIR}/mod7_expansion_{RUN_NAME}
         fi
         """

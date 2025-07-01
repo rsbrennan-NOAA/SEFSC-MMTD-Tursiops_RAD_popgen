@@ -8,4 +8,7 @@
 source ~/.bashrc
 conda activate snakemake-9.6.2
 
-snakemake --profile slurm -s moments.smk
+cd /home/rbrennan/Tursiops-RAD-popgen/scripts/demography/moments
+snakemake --profile slurm -s moments.smk --unlock
+
+snakemake --profile slurm -s moments.smk --rerun-incomplete --retries 2

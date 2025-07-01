@@ -1,0 +1,187 @@
+parameters:
+- name: Split1
+  description: Time of first split
+  values:
+    - demes:
+        Ancestor:
+          epochs:
+            0: end_time
+  lower_bound: 1000
+  upper_bound: 80000
+- name: Split2
+  description: Time of coastal split
+  values:
+    - demes:
+        Coastal:
+          epochs:
+            1: end_time
+- name: Admix_Time
+  description: Time of admixture event
+  values:
+    - demes:
+        Intermediate:
+          start_time
+- name: Admix_Prop
+  description: Admixture proportion from Offshore
+  values:
+    - demes:
+        Intermediate:
+          proportions:
+            0
+  lower_bound: 0.01  
+  upper_bound: 0.99  
+- name: m_CGulf_to_Int
+  description: Migration rate from CGulf to Intermediate
+  values:
+    - migrations:
+        0: rate
+  upper_bound: 0.01
+  lower_bound: 1e-10
+
+- name: m_Int_to_CGulf
+  description: Migration rate from Intermediate to CGulf
+  values:
+    - migrations:
+        1: rate
+  upper_bound: 0.01
+  lower_bound: 1e-10
+
+- name: m_Off_to_Int
+  description: Migration rate from Offshore to Intermediate
+  values:
+    - migrations:
+        2: rate
+  upper_bound: 0.01
+  lower_bound: 1e-10
+
+- name: m_Int_to_Off
+  description: Migration rate from Intermediate to Offshore
+  values:
+    - migrations:
+        3: rate
+  upper_bound: 0.01
+  lower_bound: 1e-10
+
+- name: m_CGulf_to_Off
+  description: Migration rate from CGulf to Offshore
+  values:
+    - migrations:
+        4: rate
+  upper_bound: 0.01
+  lower_bound: 1e-10
+
+- name: m_Off_to_CGulf
+  description: Migration rate from Offshore to CGulf
+  values:
+    - migrations:
+        5: rate
+  upper_bound: 0.01
+  lower_bound: 1e-10
+
+- name: m_Coast_to_Off
+  description: Migration rate from Coastal to Offshore
+  values:
+    - migrations:
+        6: rate
+  upper_bound: 0.01
+  lower_bound: 1e-10
+
+- name: m_Off_to_Coast
+  description: Migration rate from Offshore to Coastal
+  values:
+    - migrations:
+        7: rate
+  upper_bound: 0.01
+  lower_bound: 1e-10
+
+- name: N_Ancestor
+  description: Ancestral population size
+  values:
+    - demes:
+        Ancestor:
+          epochs:
+            0: start_size
+  lower_bound: 100
+  upper_bound: 40000
+
+- name: N_Offshore
+  description: Offshore population size
+  values:
+    - demes:
+        Offshore:
+          epochs:
+            0: start_size
+  lower_bound: 100
+  upper_bound: 40000
+
+- name: N_Intermediate
+  description: Intermediate population size
+  values:
+    - demes:
+        Intermediate:
+          epochs:
+            0: start_size
+  lower_bound: 100
+  upper_bound: 40000
+
+- name: N_Coastal_ancestral
+  description: Coastal pop size during bottleneck (right after split)
+  values:
+   - demes:
+       Coastal:
+         epochs:
+           0: start_size  # Bottleneck size immediately after split
+  lower_bound: 50
+  upper_bound: 2000
+
+- name: N_Coastal_expansion
+  description: Coastal pop size after expansion (current)
+  values:
+    - demes:
+        Coastal:
+          epochs:
+            1: end_size  # Final expanded size
+  lower_bound: 5000
+  upper_bound: 40000
+
+- name: Coastal_expansion_time
+  description: When expansion began (bottleneck duration)
+  values:
+    - demes:
+        Coastal:
+          epochs:
+            0: end_time  # When expansion epoch ends (recent)
+  lower_bound: 100
+  upper_bound: 80000
+
+- name: N_CAtlantic
+  description: Coastal Atlantic population size
+  values:
+    - demes:
+        CAtlantic:
+          epochs:
+            0: start_size
+  lower_bound: 100
+  upper_bound: 40000
+
+- name: N_CGulf
+  description: Coastal Gulf population size
+  values:
+    - demes:
+        CGulf:
+          epochs:
+            0: start_size
+  lower_bound: 100
+  upper_bound: 40000
+
+constraints:
+- params: [Split1, Split2]
+  constraint: greater_than
+- params: [Split1, Admix_Time]
+  constraint: greater_than
+- params: [Split2, Admix_Time]
+  constraint: greater_than
+- params: [Coastal_expansion_time, Split2]
+  constraint: greater_than
+- params: [Split1, Coastal_expansion_time]
+  constraint: greater_than

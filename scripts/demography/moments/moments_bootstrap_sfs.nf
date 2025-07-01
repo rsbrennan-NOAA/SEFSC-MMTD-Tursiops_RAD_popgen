@@ -13,7 +13,7 @@ params.pop_order = "Coastal_Atlantic,Coastal_Gulf,Intermediate,Offshore"
 params.chunks_dir = "${HOME}/Tursiops-RAD-popgen/analysis/moments/chunks"
 params.num_parts = 5
 
-// Print parameters to console
+// Print parameters
 log.info """\
         BOOTSTRAP VCF for moments
         --------------------------------------------
@@ -27,7 +27,6 @@ log.info """\
         proj            : ${params.proj}
         pop_order       : ${params.pop_order}
         """
-        .stripIndent()
 
 process PROCESSVCF {
     tag "process_vcf"
@@ -47,10 +46,10 @@ process PROCESSVCF {
     module load bio/bedtools/2.31.1
     module load bio/vcftools/0.1.16
 
-    # Extract header from VCF
+    # get header from VCF
     zcat ${vcf} | grep "^#" > header.txt
     
-    # Extract chromosomes from VCF
+    # get chromosomes from VCF
     zcat ${vcf} | grep -v "^#" | cut -f1 | sort | uniq > chromosomes.txt
     
     # Process each chromosome
@@ -61,7 +60,7 @@ process PROCESSVCF {
         # Calculate chunk sizes
         PART_SIZE=\$((CHR_LENGTH / ${params.num_parts}))
         
-        # Create modified chromosome name
+        # fix chromosome name to remove the "."
         modChr=\$(echo \$chromosome | tr '.' '_')
         
   # Create chunks
@@ -87,7 +86,7 @@ process PROCESSVCF {
     """
 }
 
-// Generate bootstrap replicates
+// generate bootstrap replicates
 process GENBOOTSTRAP {
     tag "bootstrap_${bootstrap_id}" //  each bootstrap replicate gets labeled with its number 
     publishDir "${params.output_dir}/vcfs", mode: 'copy'
@@ -105,16 +104,14 @@ process GENBOOTSTRAP {
     # Start with header, then will append variants after
     cat ${header} > bootstrap_${bootstrap_id}.vcf
     
-    # Store chunk files in an array using the chunks variable
-    chunk_files=(${chunks})
-    num_chunks=\${#chunk_files[@]}
+    # Count chunks and sample with replacement  
+    num_chunks=$(echo ${chunks} | wc -w)
     
     # Sample chunks with replacement
     for j in \$(seq 1 \$num_chunks); do
         # Select a random chunk
-        random_index=\$((RANDOM % num_chunks))
-        random_chunk=\${chunk_files[\$random_index]}
-        
+        random_chunk=\$(shuf -n1 -e ${chunks})
+       
         # Append to bootstrap file
         grep -v "^#" \$random_chunk >> bootstrap_${bootstrap_id}.vcf
     done
@@ -160,7 +157,7 @@ workflow {
     // Process VCF to get header and chunks
     processvcf_results = PROCESSVCF(vcf_ch, genome_ch)
    
-    // Process channels for bootstrap generation
+    // Process channels for bootstraps
     chunks_processed = processvcf_results.chunks
                             .flatten()
                             .filter { it.toString().endsWith('.vcf') }

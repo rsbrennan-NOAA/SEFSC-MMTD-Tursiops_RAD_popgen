@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Moments demographic inference for Tursiops populations - Model 03
+Moments demographic inference for Tursiops populations - Model 07- expansion
 """
 
 import moments
@@ -17,28 +17,28 @@ import argparse
 import yaml
 
 # Parse command-line arguments
-parser = argparse.ArgumentParser(description="Run demographic inference for Tursiops populations.")
+parser = argparse.ArgumentParser(description="Run demographic inference for model 7 with expansion for coastal.")
 parser.add_argument("model_number", help="Model number to specify the model (e.g., '01', '02').")
 parser.add_argument("rep_number", help="Repetition number for the model run.")  # REPNUMBER as string
 
 args = parser.parse_args()
 
-MODEL_NUMBER = args.model_number 
+MODEL_NUMBER = "07"
 REPNUMBER = args.rep_number 
 
 # define file paths
 PERTURB = 0
-MAXITER = 15
+MAXITER = 5
 METHOD = "fmin"
 
-BASE_DEME_GRAPH_PATH = f"/home/rbrennan/Tursiops-RAD-popgen/scripts/demography/moments/fourpop_{MODEL_NUMBER}.yaml"
-REP_DEME_GRAPH_PATH = f"/home/rbrennan/Tursiops-RAD-popgen/scripts/demography/moments/round_01/fourpop_{MODEL_NUMBER}_rep{REPNUMBER}.yaml"
-OPTIONS_PATH = f"/home/rbrennan/Tursiops-RAD-popgen/scripts/demography/moments/options_fourpop_{MODEL_NUMBER}_Simple.yaml"
-OUTPUT_PATH = f"/home/rbrennan/Tursiops-RAD-popgen/analysis/moments/initialRuns/output_yaml/model_{MODEL_NUMBER}_rep{REPNUMBER}_{METHOD}_downSample.yaml"
+BASE_DEME_GRAPH_PATH = f"/home/rbrennan/Tursiops-RAD-popgen/scripts/demography/moments/fourpop_07_expansion.yaml"
+REP_DEME_GRAPH_PATH = f"/home/rbrennan/Tursiops-RAD-popgen/scripts/demography/moments/expansion/fourpop_{MODEL_NUMBER}_rep{REPNUMBER}.yaml"
+OPTIONS_PATH = f"/home/rbrennan/Tursiops-RAD-popgen/scripts/demography/moments/options_fourpop_{MODEL_NUMBER}_expansion.yaml"
+OUTPUT_PATH = f"/home/rbrennan/Tursiops-RAD-popgen/analysis/moments/mod7_expansion/output_yaml/model_{MODEL_NUMBER}_rep{REPNUMBER}_{METHOD}_downSample.yaml"
 
-OUTPUT_RESULTS_FILE = f"/home/rbrennan/Tursiops-RAD-popgen/analysis/moments/initialRuns/optimization_model_{MODEL_NUMBER}_{REPNUMBER}_{METHOD}_downSample_results.txt"
-PLOT_FILE = f"/home/rbrennan/Tursiops-RAD-popgen/figures/moments/optimization_model_{MODEL_NUMBER}_{REPNUMBER}_{METHOD}_downSample.png"
-SUMMARY_FILE = f"/home/rbrennan/Tursiops-RAD-popgen/analysis/moments/initialRuns/model_{MODEL_NUMBER}_{METHOD}_downSample_summary.csv"
+OUTPUT_RESULTS_FILE = f"/home/rbrennan/Tursiops-RAD-popgen/analysis/moments/mod7_expansion/optimization_model_{MODEL_NUMBER}_{REPNUMBER}_{METHOD}_downSample_results.txt"
+PLOT_FILE = f"/home/rbrennan/Tursiops-RAD-popgen/figures/moments/mod7_expansion/optimization_model_{MODEL_NUMBER}_{REPNUMBER}_{METHOD}_downSample.png"
+SUMMARY_FILE = f"/home/rbrennan/Tursiops-RAD-popgen/analysis/moments/mod7_expansion/model_{MODEL_NUMBER}_{METHOD}_downSample_summary.csv"
 
 # Print file paths for verification
 print(f"Deme graph file: {BASE_DEME_GRAPH_PATH}")
@@ -78,6 +78,15 @@ n_intermediate = int(np.random.uniform(100, 30000))
 n_catlantic = int(np.random.uniform(100, 30000))
 n_cgulf = int(np.random.uniform(100, 30000))
 
+# Generate coastal expansion parameters
+n_coastal_bottleneck = int(np.random.uniform(50, 2000))      # Small bottleneck size
+n_coastal_expansion = int(np.random.uniform(5000, 30000))    # Large expansion size
+expansion_time_val = int(np.random.uniform(split2_val, split1_val))
+
+print(f"n_coastal_bottleneck : {n_coastal_bottleneck}")
+print(f"n_coastal_expansion: {n_coastal_expansion}")
+print(f"Coastal_expansion_time: {expansion_time_val}")
+
 print(f"\nPopulation sizes chosen:")
 print(f"N_Ancestor: {n_ancestor}")
 print(f"N_Offshore: {n_offshore}")
@@ -85,6 +94,22 @@ print(f"N_Coastal: {n_coastal}")
 print(f"N_Intermediate: {n_intermediate}")
 print(f"N_CAtlantic: {n_catlantic}")
 print(f"N_CGulf: {n_cgulf}")
+
+
+# Generate random migration rates (8 migration parameters)
+migration_rates = []
+migration_names = [
+    "m_CGulf_to_Int", "m_Int_to_CGulf", "m_Off_to_Int", "m_Int_to_Off",
+    "m_CGulf_to_Off", "m_Off_to_CGulf", "m_Coast_to_Off", "m_Off_to_Coast"
+]
+
+print(f"\nMigration rates chosen:")
+for i, name in enumerate(migration_names):
+    log_rate = np.random.uniform(np.log10(1e-10), np.log10(0.001))
+    rate = 10**log_rate
+    migration_rates.append(rate)
+    print(f"{name}: {rate:.2e}")
+
 
 # Load and modify the base YAML file
 print(f"\nCreating replicate-specific YAML file...")
@@ -98,9 +123,6 @@ for deme in yaml_data['demes']:
         deme['epochs'][0]['start_size'] = n_ancestor
     elif deme['name'] == 'Offshore':
         deme['epochs'][0]['start_size'] = n_offshore
-    elif deme['name'] == 'Coastal':
-        deme['epochs'][0]['end_time'] = split2_val
-        deme['epochs'][0]['start_size'] = n_coastal
     elif deme['name'] == 'CAtlantic':
         deme['epochs'][0]['start_size'] = n_catlantic
     elif deme['name'] == 'CGulf':
@@ -109,7 +131,20 @@ for deme in yaml_data['demes']:
         deme['start_time'] = admix_time_val
         deme['proportions'] = [admix_prop_val, 1-admix_prop_val]
         deme['epochs'][0]['start_size'] = n_intermediate
-        
+    elif deme['name'] == 'Coastal':
+        deme['epochs'][0]['end_time'] = expansion_time_val
+        deme['epochs'][0]['start_size'] = n_coastal_bottleneck  # Use bottleneck variable
+        deme['epochs'][0]['end_size'] = n_coastal_bottleneck    # Use bottleneck variable
+        deme['epochs'][1]['end_time'] = split2_val
+        deme['epochs'][1]['start_size'] = n_coastal_bottleneck  # Start expansion from bottleneck
+        deme['epochs'][1]['end_size'] = n_coastal_expansion     # Use expansion variable
+
+
+# Update migration rates - convert to Python float to avoid numpy serialization
+for i, migration in enumerate(yaml_data['migrations']):
+    migration['rate'] = float(migration_rates[i])  # Add float() conversion
+
+
 # Save the modified YAML for this replicate
 with open(REP_DEME_GRAPH_PATH, 'w') as f:
     yaml.dump(yaml_data, f, default_flow_style=False, sort_keys=False, width=float('inf'))

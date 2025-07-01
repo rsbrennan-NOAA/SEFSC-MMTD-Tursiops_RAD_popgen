@@ -117,8 +117,8 @@ print(f"Created replicate-specific YAML: {REP_DEME_GRAPH_PATH}")
 
 # load the sfs 
 print(f"Loading SFS")
-fs = moments.Spectrum.from_file("/home/rbrennan/Tursiops-RAD-popgen/analysis/moments/fourpop_sfs_equalSS/dadi/Coastal_Atlantic-Coastal_Gulf-Intermediate-Offshore.sfs")
-    
+fs = moments.Spectrum.from_file("/home/rbrennan/Tursiops-RAD-popgen/analysis/moments/fourpop_sfs_downsample/dadi/Coastal_Atlantic-Coastal_Gulf-Intermediate-Offshore.sfs")
+
 # pop ids are in wrong order- fix them
 new_pop_ids = ['CAtlantic', 'CGulf', 'Intermediate', 'Offshore']
 fs = moments.Spectrum(fs, pop_ids=new_pop_ids)
