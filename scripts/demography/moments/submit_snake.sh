@@ -8,6 +8,8 @@
 source ~/.bashrc
 conda activate snakemake-9.6.2
 
+mkdir -p /home/rbrennan/Tursiops-RAD-popgen/analysis/moments/mod7_expansion/
+
 cd /home/rbrennan/Tursiops-RAD-popgen/scripts/demography/moments
 snakemake --profile slurm -s moments.smk --unlock
 

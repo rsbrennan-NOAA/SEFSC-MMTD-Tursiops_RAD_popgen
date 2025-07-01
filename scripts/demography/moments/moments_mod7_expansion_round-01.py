@@ -55,7 +55,7 @@ print(f"[{current_time}] Starting moments analysis for model {MODEL_NUMBER}, rep
 
 # Generate hierarchical time parameters for Model 02
 # Split1 (Ancestor): randomly choose from wide range
-split1_val = int(np.random.uniform(10000, 100000))
+split1_val = int(np.random.uniform(10000, 80000))
 print(f"Split1 chosen: {split1_val}")
 
 # Split2 (Coastal): randomly choose between 1000 and Split1
