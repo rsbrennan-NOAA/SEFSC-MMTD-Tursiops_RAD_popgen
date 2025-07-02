@@ -58,13 +58,13 @@ grp <- find.clusters(genl, max.n.clust=30,n.pca=200)
 dapc1 <- dapc(genl, grp$grp, n.pca=3, n.da=4)
 
 #col.in <- c(c("#A6DDF0", "#276FBF","#B4ED50","#2E8B57", "#FFDD33", "#C49E45"))
-col.in <- c(c("#A6DDF0", "#276FBF","#FFDD33","#B4ED50"))
+col.in <- c(c("#e1526b", "#E2BF3C","#61BA5C","#4782d4"))
 #scatter.dapc(dapc1)
 scatter.dapc(dapc1, grp=grp$grp)
 
 pdf(file="figures/dapc_assignments.pdf", h=4, w=4)
 scatter(dapc1, grp=grp$grp, 
-        bg="white", pch=c(16,16,17,15), col=col.in,
+        bg="white", pch=c(16,17, 15, 16), col=col.in,
         cex=2,
         cstar=0,clab=0,
         scree.pca=FALSE,scree.da=FALSE, leg=TRUE, posi.leg="topleft")
