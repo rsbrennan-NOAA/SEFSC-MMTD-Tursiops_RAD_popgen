@@ -12,8 +12,8 @@ SCRIPT_DIR = "/home/rbrennan/Tursiops-RAD-popgen/scripts/demography/moments"
 ANALYSIS_DIR = "/home/rbrennan/Tursiops-RAD-popgen/analysis/moments"
 
 # Define rep counts for each round
-ROUND1_REPS = [f"{i:02d}" for i in range(1, 41)]   # 80 reps
-ROUND2_REPS = [f"{i:02d}" for i in range(1, 21)]   # 40 reps  
+ROUND1_REPS = [f"{i:02d}" for i in range(1, 41)]   # 40 reps
+ROUND2_REPS = [f"{i:02d}" for i in range(1, 21)]   # 20 reps  
 ROUND3_REPS = [f"{i:02d}" for i in range(1, 11)]   # 10 reps
 ROUND4_REPS = [f"{i:02d}" for i in range(1, 21)]   # 20 reps
 
