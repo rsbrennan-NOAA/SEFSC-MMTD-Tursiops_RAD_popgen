@@ -31,7 +31,7 @@ PERTURB = 0
 MAXITER = 5
 METHOD = "fmin"
 
-BASE_DEME_GRAPH_PATH = f"/home/rbrennan/Tursiops-RAD-popgen/scripts/demography/moments/fourpop_07_Simple.yaml"
+BASE_DEME_GRAPH_PATH = f"/home/rbrennan/Tursiops-RAD-popgen/scripts/demography/moments/fourpop_07.yaml"
 REP_DEME_GRAPH_PATH = f"/home/rbrennan/Tursiops-RAD-popgen/scripts/demography/moments/simple/fourpop_{MODEL_NUMBER}_rep{REPNUMBER}.yaml"
 OPTIONS_PATH = f"/home/rbrennan/Tursiops-RAD-popgen/scripts/demography/moments/options_fourpop_{MODEL_NUMBER}_Simple.yaml"
 OUTPUT_PATH = f"/home/rbrennan/Tursiops-RAD-popgen/analysis/moments/mod7_simple/output_yaml/model_{MODEL_NUMBER}_rep{REPNUMBER}_{METHOD}_downSample.yaml"
@@ -39,6 +39,13 @@ OUTPUT_PATH = f"/home/rbrennan/Tursiops-RAD-popgen/analysis/moments/mod7_simple/
 OUTPUT_RESULTS_FILE = f"/home/rbrennan/Tursiops-RAD-popgen/analysis/moments/mod7_simple/optimization_model_{MODEL_NUMBER}_{REPNUMBER}_{METHOD}_downSample_results.txt"
 PLOT_FILE = f"/home/rbrennan/Tursiops-RAD-popgen/figures/moments/mod7_simple/optimization_model_{MODEL_NUMBER}_{REPNUMBER}_{METHOD}_downSample.png"
 SUMMARY_FILE = f"/home/rbrennan/Tursiops-RAD-popgen/analysis/moments/mod7_simple/model_{MODEL_NUMBER}_{METHOD}_downSample_summary.csv"
+
+
+# Create output directories if they don't exist
+os.makedirs("/home/rbrennan/Tursiops-RAD-popgen/analysis/moments/mod7_simple", exist_ok=True)
+os.makedirs("/home/rbrennan/Tursiops-RAD-popgen/analysis/moments/mod7_simple/output_yaml", exist_ok=True)
+os.makedirs("/home/rbrennan/Tursiops-RAD-popgen/figures/moments/mod7_simple", exist_ok=True)
+
 
 # Print file paths for verification
 print(f"Deme graph file: {BASE_DEME_GRAPH_PATH}")

@@ -139,8 +139,18 @@ rule rename_final:
                rep=ROUND4_REPS)
     output:
         directory(f"{ANALYSIS_DIR}/mod7_simple_{RUN_NAME}")
+    log:
+        f"{ANALYSIS_DIR}/mod7_expansion/logs/rename_{MODEL_NUMBER}_simple_{RUN_NAME}.log"
+    resources:
+        mem_mb = 6000,
+        runtime = "24h",
+        cpus_per_task = 1,
+        slurm_partition = "standard",
+        slurm_extra = "--output=/home/rbrennan/Tursiops-RAD-popgen/logout/moments_rename_%j.out --error=/home/rbrennan/Tursiops-RAD-popgen/logout/moments_rename_%j.err"
     shell:
         """
+        sleep 60
+
         if [ -d {ANALYSIS_DIR}/mod7_simple ]; then
             mv {ANALYSIS_DIR}/mod7_simple {ANALYSIS_DIR}/mod7_simple_{RUN_NAME}
         fi

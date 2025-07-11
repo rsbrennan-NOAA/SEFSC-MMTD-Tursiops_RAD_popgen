@@ -73,6 +73,9 @@ rule round2:
     retries: 2
     shell:
         """
+        mkdir -p $(dirname {output})
+        mkdir -p $(dirname {log})
+        
         cd {ANALYSIS_DIR}
         python -u {params.script} {params.model} {params.rep}
         """
@@ -95,7 +98,7 @@ rule round3:
         script = f"{SCRIPT_DIR}/moments_mod7_expansion_round-03_plus.py",
     resources:
         mem_mb = 8000,
-        runtime = "24h",
+        runtime = "30h",
         cpus_per_task = 1,
         slurm_partition = "standard",
         slurm_extra = "--output=/home/rbrennan/Tursiops-RAD-popgen/logout/moments_round3_%j.out --error=/home/rbrennan/Tursiops-RAD-popgen/logout/moments_round3_%j.err"
@@ -123,7 +126,7 @@ rule round4:
         script = f"{SCRIPT_DIR}/moments_mod7_expansion_round-03_plus.py",
     resources:
         mem_mb = 8000,
-        runtime = "24h",
+        runtime = "30h",
         cpus_per_task = 1,
         slurm_partition = "standard",
         slurm_extra = "--output=/home/rbrennan/Tursiops-RAD-popgen/logout/moments_round4_%j.out --error=/home/rbrennan/Tursiops-RAD-popgen/logout/moments_round4_%j.err"
@@ -139,8 +142,19 @@ rule rename_final:
                rep=ROUND4_REPS)
     output:
         directory(f"{ANALYSIS_DIR}/mod7_expansion_{RUN_NAME}")
+    log:
+        f"{ANALYSIS_DIR}/mod7_expansion/logs/rename_{MODEL_NUMBER}_expansion_{RUN_NAME}.log"
+    resources:
+        mem_mb = 6000,
+        runtime = "1h",
+        cpus_per_task = 1,
+        slurm_partition = "standard",
+        slurm_extra = "--output=/home/rbrennan/Tursiops-RAD-popgen/logout/moments_rename_%j.out --error=/home/rbrennan/Tursiops-RAD-popgen/logout/moments_rename_%j.err"
+    retries: 2
     shell:
         """
+        sleep 60
+
         if [ -d {ANALYSIS_DIR}/mod7_expansion ]; then
             mv {ANALYSIS_DIR}/mod7_expansion {ANALYSIS_DIR}/mod7_expansion_{RUN_NAME}
         fi

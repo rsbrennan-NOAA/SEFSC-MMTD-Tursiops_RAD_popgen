@@ -40,6 +40,13 @@ OUTPUT_RESULTS_FILE = f"/home/rbrennan/Tursiops-RAD-popgen/analysis/moments/mod7
 PLOT_FILE = f"/home/rbrennan/Tursiops-RAD-popgen/figures/moments/mod7_expansion/optimization_model_{MODEL_NUMBER}_{REPNUMBER}_{METHOD}_downSample.png"
 SUMMARY_FILE = f"/home/rbrennan/Tursiops-RAD-popgen/analysis/moments/mod7_expansion/model_{MODEL_NUMBER}_{METHOD}_downSample_summary.csv"
 
+# Create output directories if they don't exist
+os.makedirs("/home/rbrennan/Tursiops-RAD-popgen/analysis/moments/mod7_expansion", exist_ok=True)
+os.makedirs("/home/rbrennan/Tursiops-RAD-popgen/analysis/moments/mod7_expansion/output_yaml", exist_ok=True)
+os.makedirs("/home/rbrennan/Tursiops-RAD-popgen/figures/moments/mod7_expansion", exist_ok=True)
+
+
+
 # Print file paths for verification
 print(f"Deme graph file: {BASE_DEME_GRAPH_PATH}")
 print(f"rep deme file: {REP_DEME_GRAPH_PATH}")
