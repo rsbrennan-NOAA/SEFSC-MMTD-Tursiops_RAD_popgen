@@ -1,17 +1,23 @@
 library(ggplot2)
+library(dplyr)
 library(tidyr)
+library(stringr)
 library(ggbeeswarm)
 library(ggdist)
 
 
 # maintenance of species boundaries
 
+dat1 <- read.csv("analysis/distance.csv")
 
- dat <- read.csv("depths.csv")
-
- pops <- read.table("analysis/population_assignments_summary.txt", header=T)
+dat <- read.csv("depths.csv")
  
- df <- dat %>%
+all <- merge(dat1, dat, by="id")
+head(all)
+
+pops <- read.table("analysis/population_assignments_summary.txt", header=T)
+ 
+df <- dat %>%
    inner_join(pops, by = c("id" = "indiv")) %>%
    filter(corrected_depth != "stranding") %>%
    mutate(corrected_depth = as.numeric(corrected_depth),
@@ -54,8 +60,8 @@ library(ggdist)
    "Offshore\nGulf" = "#C49E45"
  )
  
- y_breaks <- c(0, -log10(10), -log10(100), -log10(500), -log10(1000), -log10(2000), -log10(3000))
- y_labels <- c("1", "10", "100", "500", "1000", "2000", "3000")
+ y_breaks <- c(0, -log10(10), -log10(100), -log10(200), -log10(500), -log10(1000), -log10(2000), -log10(3000))
+ y_labels <- c("1", "10", "100", "200", "500", "1000", "2000", "3000")
 
  depth_plot <- ggplot(df, aes(x = sixpop, y = logdepth, fill=sixpop)) +
    geom_hline(yintercept = y_breaks, color = "grey80", linetype = "solid", linewidth = 0.3) +
@@ -451,7 +457,7 @@ nonsigCenter2 <- o$center[,3] >= .5
    #annotate("point", x = -Inf, y = -Inf, color = "firebrick3", size = 3, shape = 19) +
    
    labs(x = "Chromosome", 
-        y = "Log gradient (v)") +
+        y = "Log cline\nslope") +
    theme_classic(base_size = 12) +
    theme(
      legend.position = "none",
@@ -482,7 +488,7 @@ nonsigCenter2 <- o$center[,3] >= .5
  
  
  
- 
+ library(ggpubr)
  plt1 <- ggarrange(depth_plot, p, common.legend=FALSE, nrow=1, labels="AUTO",
                    widths=c(1.7, 1))
  plt1
