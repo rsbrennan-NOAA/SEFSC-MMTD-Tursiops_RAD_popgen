@@ -101,20 +101,20 @@ process GENBOOTSTRAP {
     
     script:
     """
-    # Start with header, then will append variants after
-    cat ${header} > bootstrap_${bootstrap_id}.vcf
+# Start with header, then will append variants after
+cat ${header} > bootstrap_${bootstrap_id}.vcf
+
+# Count chunks and sample with replacement  
+num_chunks=\$(echo ${chunks} | wc -w)
+
+# Sample chunks with replacement
+for j in \$(seq 1 \$num_chunks); do
+    # Select a random chunk
+    random_chunk=\$(shuf -n1 -e ${chunks})
     
-    # Count chunks and sample with replacement  
-    num_chunks=$(echo ${chunks} | wc -w)
-    
-    # Sample chunks with replacement
-    for j in \$(seq 1 \$num_chunks); do
-        # Select a random chunk
-        random_chunk=\$(shuf -n1 -e ${chunks})
-       
-        # Append to bootstrap file
-        grep -v "^#" \$random_chunk >> bootstrap_${bootstrap_id}.vcf
-    done
+    # Append to bootstrap file
+    grep -v "^#" \$random_chunk >> bootstrap_${bootstrap_id}.vcf
+done
     """
 }
 
@@ -165,7 +165,7 @@ workflow {
 
     // Generate bootstrap replicates
    bootstrap_results = GENBOOTSTRAP(
-    chunks_processed, 
+    chunks_processed,
     processvcf_results.header, 
     bootstrap_ids_ch
 ) 

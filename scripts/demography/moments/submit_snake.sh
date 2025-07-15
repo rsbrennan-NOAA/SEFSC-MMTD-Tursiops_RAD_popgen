@@ -18,16 +18,16 @@ mkdir -p /home/rbrennan/Tursiops-RAD-popgen/analysis/moments/mod7_expansion/outp
 
 snakemake --profile slurm -s moments.smk --unlock
 
-snakemake --profile slurm -s moments.smk --rerun-incomplete --retries 2 --config run_name="run_4"
+snakemake --profile slurm -s moments.smk --rerun-incomplete --retries 2 --config run_name="run_6"
 
-# expansion run 4:
+# expansion run 5:
 
 mkdir -p /home/rbrennan/Tursiops-RAD-popgen/analysis/moments/mod7_expansion/
 mkdir -p /home/rbrennan/Tursiops-RAD-popgen/analysis/moments/mod7_expansion/output_yaml
 
 snakemake --profile slurm -s moments.smk --unlock
 
-snakemake --profile slurm -s moments.smk --rerun-incomplete --retries 2 --config run_name="run_5"
+snakemake --profile slurm -s moments.smk --rerun-incomplete --retries 2 --config run_name="run_7"
 
 # simple run 1
 
