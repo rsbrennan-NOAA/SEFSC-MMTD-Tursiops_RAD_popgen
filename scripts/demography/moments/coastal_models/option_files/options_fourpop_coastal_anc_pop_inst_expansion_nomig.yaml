@@ -1,0 +1,100 @@
+parameters:
+- name: N_Ancestor
+  description: Ancestor pop size before any changes.
+  values:
+    - demes:
+        Ancestor:
+          epochs:
+            0: start_size
+  lower_bound: 500
+  upper_bound: 40000
+
+- name: N_bottleneck
+  description: Size of the ancestor during the bottleneck.
+  values:
+    - demes:
+        Ancestor:
+          epochs:
+            1: start_size
+  lower_bound: 50
+  upper_bound: 5000
+
+- name: T_bottleneck
+  description: Time the bottleneck begins.
+  values:
+    - demes:
+        Ancestor:
+          epochs:
+            0: end_time
+  lower_bound: 5000
+  upper_bound: 50000
+
+- name: T_split
+  description: Time of the split into CAtlantic and CGulf.
+  values:
+    - demes:
+        Ancestor:
+          epochs:
+            1: end_time
+  lower_bound: 500
+  upper_bound: 20000
+
+- name: N_CGulf_start
+  description: CGulf population size after split (inherited from ancestor).
+  values:
+    - demes:
+        CGulf:
+          epochs:
+            0: start_size
+  lower_bound: 50
+  upper_bound: 5000
+
+- name: N_CAtlantic_start
+  description: CAtlantic population size after split (inherited from ancestor).
+  values:
+    - demes:
+        CAtlantic:
+          epochs:
+            0: start_size
+  lower_bound: 50
+  upper_bound: 5000
+
+- name: T_expansion
+  description: Time when instant population expansion occurs.
+  values:
+    - demes:
+        CAtlantic:
+          epochs:
+            0: end_time
+    - demes:
+        CGulf:
+          epochs:
+            0: end_time
+  lower_bound: 100
+  upper_bound: 15000
+
+- name: N_CAtlantic_end
+  description: CAtlantic final population size after expansion.
+  values:
+    - demes:
+        CAtlantic:
+          epochs:
+            1: start_size
+  lower_bound: 100
+  upper_bound: 40000
+
+- name: N_CGulf_end
+  description: CGulf final population size after expansion.
+  values:
+    - demes:
+        CGulf:
+          epochs:
+            1: start_size
+  lower_bound: 100
+  upper_bound: 40000
+
+constraints:
+- params: [T_bottleneck, T_split]
+  constraint: greater_than
+- params: [T_split, T_expansion]
+  constraint: greater_than

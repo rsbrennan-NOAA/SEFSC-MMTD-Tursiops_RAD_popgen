@@ -1,0 +1,90 @@
+parameters:
+- name: N_Ancestor
+  description: Ancestor pop size before any changes.
+  values:
+    - demes:
+        Ancestor:
+          epochs:
+            0: start_size
+  lower_bound: 500
+  upper_bound: 40000
+
+- name: N_bottleneck
+  description: Size of the ancestor during the bottleneck.
+  values:
+    - demes:
+        Ancestor:
+          epochs:
+            1: start_size
+    - demes:
+        Ancestor:
+          epochs:
+            2: start_size
+  lower_bound: 50
+  upper_bound: 5000
+
+- name: N_expansion
+  description: Final size of the ancestor after expansion.
+  values:
+    - demes:
+        Ancestor:
+          epochs:
+            2: end_size
+  lower_bound: 5000
+  upper_bound: 50000
+
+- name: T_bottleneck
+  description: Time the bottleneck begins.
+  values:
+    - demes:
+        Ancestor:
+          epochs:
+            0: end_time
+  lower_bound: 10000
+  upper_bound: 100000
+
+- name: T_expansion
+  description: Time the expansion begins from the bottleneck.
+  values:
+    - demes:
+        Ancestor:
+          epochs:
+            1: end_time
+  lower_bound: 1000
+  upper_bound: 50000
+
+- name: T_split
+  description: Time of the split into CAtlantic and CGulf.
+  values:
+    - demes:
+        Ancestor:
+          epochs:
+            2: end_time
+  lower_bound: 500
+  upper_bound: 20000
+
+- name: N_CAtlantic
+  description: CAtlantic population size.
+  values:
+    - demes:
+        CAtlantic:
+          epochs:
+            0: start_size
+  lower_bound: 100
+  upper_bound: 40000
+
+- name: N_CGulf
+  description: CGulf population size.
+  values:
+    - demes:
+        CGulf:
+          epochs:
+            0: start_size
+  lower_bound: 100
+  upper_bound: 40000
+
+constraints:
+- params: [T_bottleneck, T_expansion]
+  constraint: greater_than
+- params: [T_expansion, T_split]
+  constraint: greater_than
