@@ -12,5 +12,5 @@
 source ~/.bashrc
 mamba activate moments
 
-python -u ~/Tursiops-RAD-popgen/scripts/demography/moments/momemts_bootstrap_confInt.py
+python -u ~/Tursiops-RAD-popgen/scripts/demography/moments/moments_bootstrap_confInt.py
 

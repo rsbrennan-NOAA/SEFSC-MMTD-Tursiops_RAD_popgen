@@ -79,7 +79,7 @@ parameters:
     - demes:
         CAtlantic:
           epochs:
-            1: start_size
+            1: end_size
   lower_bound: 100
   upper_bound: 40000
 
@@ -89,12 +89,12 @@ parameters:
     - demes:
         CGulf:
           epochs:
-            1: start_size
+            1: end_size
   lower_bound: 100
   upper_bound: 40000
 
 constraints:
 - params: [T_bottleneck, T_split]
   constraint: greater_than
-- params: [T_split, T_expansion]
+- params: [T_split, T_expansion_start]
   constraint: greater_than

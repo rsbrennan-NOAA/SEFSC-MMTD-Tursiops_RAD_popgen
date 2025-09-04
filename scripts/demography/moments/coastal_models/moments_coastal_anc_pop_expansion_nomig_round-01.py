@@ -102,7 +102,7 @@ for deme in yaml_data['demes']:
     elif deme['name'] == 'CAtlantic':
         # Epoch 0: Constant size after split until expansion
         deme['epochs'][0]['end_time'] = expansion_start_val
-        deme['epochs'][0]['start_size'] = n_catlantic_start  # NEW
+        deme['epochs'][0]['start_size'] = n_catlantic_start 
         # Epoch 1: Expansion to final size
         deme['epochs'][1]['end_size'] = n_catlantic_end 
     elif deme['name'] == 'CGulf':

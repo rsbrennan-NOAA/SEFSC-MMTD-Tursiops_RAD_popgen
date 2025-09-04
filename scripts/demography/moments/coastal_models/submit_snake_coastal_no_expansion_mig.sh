@@ -8,7 +8,7 @@
 source ~/.bashrc
 conda activate snakemake-9.6.2
 
-MODEL="coastal_anc_pop_expansion_nomig"
+MODEL="coastal_no_expansion_mig"
 
 cd /home/rbrennan/Tursiops-RAD-popgen/scripts/demography/moments/coastal_models
 for run_num in {1..20}; do
@@ -20,8 +20,8 @@ for run_num in {1..20}; do
     mkdir -p /home/rbrennan/Tursiops-RAD-popgen/analysis/moments/${MODEL}/output_yaml
     
     # Unlock and run snakemake
-    snakemake --profile slurm -s moments_coastal_generic.smk --unlock
-    snakemake --profile slurm -s moments_coastal_generic.smk --rerun-incomplete --retries 2 --jobs 8 \
+    snakemake --profile slurm -s moments_${MODEL}.smk --unlock
+    snakemake --profile slurm -s moments_coastal_generic.smk --rerun-incomplete --retries 2 --jobs 5 \
         --config model_name="${MODEL}" run_name="run${run_num}"
     
     echo "Completed ${MODEL} run${run_num}"
