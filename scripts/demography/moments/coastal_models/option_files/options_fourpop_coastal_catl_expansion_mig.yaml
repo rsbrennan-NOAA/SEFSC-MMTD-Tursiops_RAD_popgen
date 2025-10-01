@@ -1,0 +1,82 @@
+parameters:
+- name: N_Ancestor
+  description: Ancestor pop size.
+  values:
+    - demes:
+        Ancestor:
+          epochs:
+            0: start_size
+  lower_bound: 500
+  upper_bound: 40000
+
+- name: T_split
+  description: Time of the split into CAtlantic and CGulf.
+  values:
+    - demes:
+        Ancestor:
+          epochs:
+            0: end_time
+  lower_bound: 300
+  upper_bound: 5000
+
+- name: N_CGulf_start
+  description: CGulf population size after split.
+  values:
+    - demes:
+        CGulf:
+          epochs:
+            0: start_size
+  lower_bound: 500
+  upper_bound: 40000
+
+- name: N_CAtlantic_start
+  description: CAtlantic population size after split.
+  values:
+    - demes:
+        CAtlantic:
+          epochs:
+            0: start_size
+  lower_bound: 500
+  upper_bound: 40000
+
+- name: T_population_change_CAtlantic
+  description: Time when CAtlantic population instantly changes to final size.
+  values:
+    - demes:
+        CAtlantic:
+          epochs:
+            0: end_time
+  lower_bound: 0
+  upper_bound: 4500
+
+- name: N_CAtlantic_final
+  description: CAtlantic final population size after instant change.
+  values:
+    - demes:
+        CAtlantic:
+          epochs:
+            1: end_size
+  lower_bound: 100
+  upper_bound: 40000
+
+- name: m_Catl_Cgulf
+  description: migration rate between CAtl to CGulf
+  values:
+    - migrations:
+        0: rate
+  upper_bound: 0.01
+  lower_bound: 1e-7
+
+- name: m_Cgulf_Catl
+  description: migration rate between CGulf to CAtl
+  values:
+    - migrations:
+        1: rate
+  upper_bound: 0.01
+  lower_bound: 1e-7
+
+constraints:
+- params: [T_split, T_population_change_CAtlantic]
+  constraint: greater_than
+- params: [N_CAtlantic_start, N_CAtlantic_final]
+  constraint: less_than

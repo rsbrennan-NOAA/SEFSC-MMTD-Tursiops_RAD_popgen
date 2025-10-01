@@ -79,6 +79,31 @@ print(f"[{current_time}] Starting Round 2 run for model, rep {REPNUMBER}")
 # Load best YAML file from Round 1
 print(f"Using best fit from model, rep {BEST_REP}")
 
+def clean_yaml(yaml_path):
+    """Remove explicit start_size from CAtlantic Epoch 1 for specific models that need it"""
+    if MODEL_NAME not in ["coastal_catl_expansion_mig"]:
+        return  # Only apply to this specific model
+        
+    with open(yaml_path, 'r') as f:
+        yaml_data = yaml.safe_load(f)
+    
+    cleaned = False
+    for deme in yaml_data['demes']:
+        if deme['name'] == 'CAtlantic' and len(deme['epochs']) > 1:
+            # Remove start_size from Epoch 1 if it exists
+            if 'start_size' in deme['epochs'][1]:
+                del deme['epochs'][1]['start_size']
+                print(f"Removed explicit start_size from CAtlantic Epoch 1")
+                cleaned = True
+
+    with open(yaml_path, 'w') as f:
+        yaml.dump(yaml_data, f, default_flow_style=False, sort_keys=False, width=float('inf'))
+
+print(f"Using best fit from model, rep {BEST_REP}")
+clean_yaml(BEST_YAML_PATH)
+
+
+
 # Load the SFS
 print(f"\nLoading SFS...")
 fs = moments.Spectrum.from_file("/home/rbrennan/Tursiops-RAD-popgen/analysis/moments/fourpop_sfs_equalSS/dadi/Coastal_Atlantic-Coastal_Gulf.sfs")

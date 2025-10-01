@@ -1,0 +1,25 @@
+time_units: generations
+demes:
+  - name: Ancestor
+    epochs:
+      - end_time: 5000
+        start_size: 10000 
+  - name: CGulf
+    ancestors: [Ancestor]
+    epochs:
+      - start_size: 10000
+  - name: CAtlantic
+    ancestors: [Ancestor]
+    epochs:
+      - end_time: 500
+        start_size: 10000
+      - end_time: 0
+        end_size: 15000
+
+migrations:
+  - source: CAtlantic 
+    dest: CGulf
+    rate: 1e-4
+  - source: CGulf 
+    dest: CAtlantic
+    rate: 1.1e-4

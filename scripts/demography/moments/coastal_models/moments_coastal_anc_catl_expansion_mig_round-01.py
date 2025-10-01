@@ -17,7 +17,7 @@ import argparse
 import yaml
 
 # Parse command-line arguments
-parser = argparse.ArgumentParser(description="Run demographic inference for coastal split only. Ancestral expansion with migration")
+parser = argparse.ArgumentParser(description="")
 parser.add_argument("rep_number", help="Repetition number for the model run.")  # REPNUMBER as string
 parser.add_argument("model_name", help="Model name (e.g., 'coastal_anc_expansion_mig').")
 
@@ -60,31 +60,30 @@ print(f"[{current_time}] Starting moments analysis for coastal, rep {REPNUMBER}"
 
 # Generate random starting values
 
-# Generate hierarchical time parameters for Model 02
-# Split1 (Ancestor): randomly choose from wide range
-split1_val = int(np.random.uniform(500, 5000))
-expansion_time_val = int(np.random.uniform(split1_val, 20000))
-bottleneck_time_val = int(np.random.uniform(expansion_time_val, 20000))
+# Bottleneck start
+bottleneck_time_val = int(np.random.uniform(5000, 50000))
+# Split time (must be < bottleneck_time)
+split_time_val = int(np.random.uniform(500, min(20000, bottleneck_time_val)))
+# Expansion start: when descendant populations start expanding (must be < split_time)
+expansion_start_val = int(np.random.uniform(300, min(15000, split_time_val)))
 
 print(f"Bottleneck time: {bottleneck_time_val}")
-print(f"Expansion time: {expansion_time_val}")
-print(f"Split time: {split1_val}")
-# Generate coastal expansion parameters
-n_coastal_bottleneck = int(np.random.uniform(50, 2000))      # Small bottleneck size
-n_coastal_expansion = int(np.random.uniform(5000, 40000))    # Large expansion size
+print(f"Split time: {split_time_val}")
+print(f"Expansion start time: {expansion_start_val}")
 
-print(f"n_coastal_bottleneck : {n_coastal_bottleneck}")
-print(f"n_coastal_expansion: {n_coastal_expansion}")
-print(f"Coastal_expansion_time: {expansion_time_val}")
+n_ancestor = int(np.random.uniform(500, 40000)) # Ancestor initial size
+n_bottleneck = int(np.random.uniform(100, 5000)) # Bottleneck size
+n_cgulf_start = int(np.random.uniform(50, 5000))  
+n_catlantic_start = int(np.random.uniform(50, 5000))
+n_catlantic_end = int(np.random.uniform(n_bottleneck, 40000)) # CAtlantic final size
+n_cgulf_end = int(np.random.uniform(n_bottleneck, 40000)) # CGulf final size
 
-n_ancestor = int(np.random.uniform(100, 30000))
-n_catlantic = int(np.random.uniform(100, 30000))
-n_cgulf = int(np.random.uniform(100, 30000))
-
-print(f"\nPopulation sizes chosen:")
 print(f"N_Ancestor: {n_ancestor}")
-print(f"N_CAtlantic: {n_catlantic}")
-print(f"N_CGulf: {n_cgulf}")
+print(f"N_bottleneck: {n_bottleneck}")
+print(f"N_CGulf_start: {n_cgulf_start}")
+print(f"N_CAtlantic_start: {n_catlantic_start}")
+print(f"N_CAtlantic_end: {n_catlantic_end}")
+print(f"N_CGulf_end: {n_cgulf_end}")
 
 # Load and modify the base YAML file
 print(f"\nCreating replicate-specific YAML file...")
@@ -94,20 +93,24 @@ with open(BASE_DEME_GRAPH_PATH, 'r') as f:
 # Update the YAML with random starting values
 for deme in yaml_data['demes']:
     if deme['name'] == 'Ancestor':
-        # Epoch 0: Ancient constant population using n_ancestor
+        # Epoch 0: Initial population before bottleneck
         deme['epochs'][0]['end_time'] = bottleneck_time_val
-        deme['epochs'][0]['start_size'] = n_ancestor
-        # Epoch 1: Bottleneck using n_coastal_bottleneck
-        deme['epochs'][1]['end_time'] = expansion_time_val
-        deme['epochs'][1]['start_size'] = n_coastal_bottleneck
-        # Epoch 2: Expansion, from bottleneck size to expansion size
-        deme['epochs'][2]['end_time'] = split1_val
-        deme['epochs'][2]['start_size'] = n_coastal_bottleneck
-        deme['epochs'][2]['end_size'] = n_coastal_expansion
+        deme['epochs'][0]['start_size'] = n_ancestor   
+        # Epoch 1: Bottleneck continues until split
+        deme['epochs'][1]['end_time'] = split_time_val 
+        deme['epochs'][1]['start_size'] = n_bottleneck 
     elif deme['name'] == 'CAtlantic':
-        deme['epochs'][0]['start_size'] = n_catlantic
+        # Epoch 0: Constant size after split until expansion
+        deme['epochs'][0]['end_time'] = expansion_start_val
+        deme['epochs'][0]['start_size'] = n_catlantic_start 
+        # Epoch 1: Expansion to final size
+        deme['epochs'][1]['end_size'] = n_catlantic_end 
     elif deme['name'] == 'CGulf':
-        deme['epochs'][0]['start_size'] = n_cgulf
+        # Epoch 0: Constant size after split until expansion
+        deme['epochs'][0]['end_time'] = expansion_start_val 
+        deme['epochs'][0]['start_size'] = n_cgulf_start
+        # Epoch 1: Expansion to final size
+        deme['epochs'][1]['end_size'] = n_cgulf_end   
 
 
 # Save the modified YAML for this replicate

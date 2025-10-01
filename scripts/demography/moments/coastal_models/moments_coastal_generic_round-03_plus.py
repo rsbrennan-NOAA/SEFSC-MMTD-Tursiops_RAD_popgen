@@ -88,6 +88,29 @@ start_time = time.time()
 current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 print(f"[{current_time}] Starting Round {CURRENT_ROUND} run for, rep {REPNUMBER}")
 
+def clean_yaml(yaml_path):
+    """Remove explicit start_size from CAtlantic Epoch 1 for specific models that need it"""
+    if MODEL_NAME not in ["coastal_catl_expansion_mig"]:
+        return  # Only apply to this specific model
+        
+    with open(yaml_path, 'r') as f:
+        yaml_data = yaml.safe_load(f)
+    
+    cleaned = False
+    for deme in yaml_data['demes']:
+        if deme['name'] == 'CAtlantic' and len(deme['epochs']) > 1:
+            # Remove start_size from Epoch 1 if it exists
+            if 'start_size' in deme['epochs'][1]:
+                del deme['epochs'][1]['start_size']
+                print(f"Removed explicit start_size from CAtlantic Epoch 1")
+                cleaned = True
+
+    with open(yaml_path, 'w') as f:
+        yaml.dump(yaml_data, f, default_flow_style=False, sort_keys=False, width=float('inf'))
+
+clean_yaml(BEST_YAML_PATH)
+
+
 # Load best YAML file from previous round
 print(f"Using best fit from Round {PREVIOUS_ROUND}, rep {BEST_REP}")
 

@@ -1,0 +1,56 @@
+parameters:
+- name: N_Ancestor
+  description: Ancestor pop size before any changes.
+  values:
+    - demes:
+        Ancestor:
+          epochs:
+            0: start_size
+  lower_bound: 500
+  upper_bound: 40000
+
+- name: T_split
+  description: Time of the split into CAtlantic and CGulf.
+  values:
+    - demes:
+        Ancestor:
+          epochs:
+            0: end_time
+  lower_bound: 500
+  upper_bound: 20000
+
+- name: N_CAtlantic
+  description: CAtlantic population size.
+  values:
+    - demes:
+        CAtlantic:
+          epochs:
+            0: start_size
+  lower_bound: 100
+  upper_bound: 40000
+
+- name: N_CGulf
+  description: CGulf population size.
+  values:
+    - demes:
+        CGulf:
+          epochs:
+            0: start_size
+  lower_bound: 100
+  upper_bound: 40000
+
+- name: m_Catl_Cgulf
+  description: migration rate between CAtl to CGulf
+  values:
+    - migrations:
+        0: rate
+  upper_bound: 0.01
+  lower_bound: 1e-7
+
+- name: m_Cgulf_Catl
+  description: migration rate between CGulf to CAtl
+  values:
+    - migrations:
+        1: rate
+  upper_bound: 0.01
+  lower_bound: 1e-7

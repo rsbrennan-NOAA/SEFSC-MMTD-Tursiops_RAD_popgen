@@ -1,0 +1,24 @@
+time_units: generations
+demes:
+  - name: Ancestor
+    epochs:
+      - end_time: 1000
+        start_size: 10000 
+  - name: CGulf
+    ancestors: [Ancestor]
+    epochs:
+      - end_time: 800  # pre-bottleneck period
+        start_size: 10000 # maintain ancestor size
+      - end_time: 500   # bottleneck period  
+        start_size: 1000  # bottleneck size
+      - end_time: 0  # post-bottleneck expansion
+        start_size: 10000  # expanded size
+  - name: CAtlantic
+    ancestors: [Ancestor]
+    epochs:
+      - end_time: 800 # pre-bottleneck period
+        start_size: 10000 # maintain ancestor size
+      - end_time: 500  # bottleneck period  
+        start_size: 1000 # bottleneck size
+      - end_time: 0   # post-bottleneck expansion
+        start_size: 10000 # expanded size

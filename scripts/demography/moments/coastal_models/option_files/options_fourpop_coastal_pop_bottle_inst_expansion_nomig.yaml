@@ -1,0 +1,110 @@
+parameters:
+- name: N_Ancestor
+  description: Ancestor pop size.
+  values:
+    - demes:
+        Ancestor:
+          epochs:
+            0: start_size
+  lower_bound: 500
+  upper_bound: 40000
+
+- name: T_split
+  description: Time of the split into CAtlantic and CGulf.
+  values:
+    - demes:
+        Ancestor:
+          epochs:
+            0: end_time
+  lower_bound: 300
+  upper_bound: 20000
+
+- name: T_bottleneck_start_CGulf
+  description: Time when bottleneck begins in CGulf population.
+  values:
+    - demes:
+        CGulf:
+          epochs:
+            0: end_time
+  lower_bound: 100
+  upper_bound: 20000
+
+- name: T_bottleneck_start_CAtlantic
+  description: Time when bottleneck begins in CAtlantic population.
+  values:
+    - demes:
+        CAtlantic:
+          epochs:
+            0: end_time
+  lower_bound: 100
+  upper_bound: 20000
+
+- name: T_bottleneck_end_CGulf
+  description: Time when bottleneck ends in CGulf population.
+  values:
+    - demes:
+        CGulf:
+          epochs:
+            1: end_time
+  lower_bound: 200
+  upper_bound: 10000
+
+- name: T_bottleneck_end_CAtlantic
+  description: Time when bottleneck ends in CAtlantic population.
+  values:
+    - demes:
+        CAtlantic:
+          epochs:
+            1: end_time
+  lower_bound: 200
+  upper_bound: 10000
+
+- name: N_CGulf_bottleneck
+  description: CGulf population size during bottleneck.
+  values:
+    - demes:
+        CGulf:
+          epochs:
+            1: start_size
+  lower_bound: 50
+  upper_bound: 5000
+
+- name: N_CAtlantic_bottleneck
+  description: CAtlantic population size during bottleneck.
+  values:
+    - demes:
+        CAtlantic:
+          epochs:
+            1: start_size
+  lower_bound: 50
+  upper_bound: 5000
+
+- name: N_CGulf_final
+  description: CGulf final population size after expansion.
+  values:
+    - demes:
+        CGulf:
+          epochs:
+            2: start_size
+  lower_bound: 100
+  upper_bound: 40000
+
+- name: N_CAtlantic_final
+  description: CAtlantic final population size after expansion.
+  values:
+    - demes:
+        CAtlantic:
+          epochs:
+            2: start_size
+  lower_bound: 100
+  upper_bound: 40000
+
+constraints:
+- params: [T_split, T_bottleneck_start_CGulf]
+  constraint: greater_than
+- params: [T_split, T_bottleneck_start_CAtlantic]
+  constraint: greater_than
+- params: [T_bottleneck_start_CGulf, T_bottleneck_end_CGulf]
+  constraint: greater_than
+- params: [T_bottleneck_start_CAtlantic, T_bottleneck_end_CAtlantic]
+  constraint: greater_than

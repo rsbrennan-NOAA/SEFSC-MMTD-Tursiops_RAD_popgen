@@ -20,8 +20,8 @@ for run_num in {1..20}; do
     mkdir -p /home/rbrennan/Tursiops-RAD-popgen/analysis/moments/${MODEL}/output_yaml
     
     # Unlock and run snakemake
-    snakemake --profile slurm -s moments_${MODEL}.smk --unlock
-    snakemake --profile slurm -s moments_coastal_generic.smk --rerun-incomplete --retries 2 --jobs 5 \
+    snakemake --profile slurm -s moments_coastal_generic.smk --unlock
+    snakemake --profile slurm -s moments_coastal_generic.smk --rerun-incomplete --retries 2 --jobs 12 \
         --config model_name="${MODEL}" run_name="run${run_num}"
     
     echo "Completed ${MODEL} run${run_num}"

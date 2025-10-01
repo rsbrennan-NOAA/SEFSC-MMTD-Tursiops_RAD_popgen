@@ -48,6 +48,8 @@ import glob
 import pandas as pd
 import moments
 import matplotlib.pyplot as plt
+import demes
+import demesdraw
 
 BASE_DIR = "analysis/moments"
 ROUND = 4
@@ -72,7 +74,7 @@ MODELS = [
 ]
 
 def find_run_directories(base_path, prefix):
-    """Find all run directories with the specified prefix"""
+    """find all run directories with the prefix"""
     pattern = f"{prefix}_run*"
     search_pattern = os.path.join(base_path, pattern)
     run_dirs = glob.glob(search_pattern)
@@ -83,7 +85,7 @@ def find_run_directories(base_path, prefix):
 
 
 def get_best_run_for_model(model_name, base_path, round_num=4):
-    """Find the best run across all run directories for a given model"""
+    """find the best run across all run directories for a given model"""
     run_dirs = find_run_directories(base_path, model_name)
     
     best_overall_ll = float('-inf')
@@ -92,13 +94,14 @@ def get_best_run_for_model(model_name, base_path, round_num=4):
     for dir_path in run_dirs:
         result = get_best_run_for_directory(dir_path, model_name)
         if result:
-            run, ll = result
+            run, best_row, ll = result  
             if ll > best_overall_ll:
                 best_overall_ll = ll
                 best_overall_info = {
                     'model': model_name,
                     'directory': dir_path,
                     'run': run,
+                    'best_row': best_row,
                     'log_likelihood': ll
                 }
     
@@ -108,7 +111,7 @@ def get_best_run_for_model(model_name, base_path, round_num=4):
     return best_overall_info
 
 def get_best_run_for_directory(dir_path, model_name):
-    """Find the best run from a model directory"""
+    """find the best run from a model directory"""
     summary_file = os.path.join(dir_path, f"round{ROUND}", f"{model_name}_fmin_summary.csv")
     
     if not os.path.exists(summary_file):
@@ -124,7 +127,7 @@ def get_best_run_for_directory(dir_path, model_name):
     best_row = df.loc[df['LogLikelihood'].idxmax()]
     best_run = best_row['Run']
     
-    return best_run, best_rep, best_row['LogLikelihood']
+    return best_run, best_row, best_row['LogLikelihood']
 
 # test
 best_runs_per_model = {}
@@ -175,7 +178,7 @@ def find_overall_best_model(best_runs_dict):
     
     return best_overall
 
-# Find the overall best model
+# find the overall best model
 overall_best = find_overall_best_model(best_runs_per_model)
 
 
