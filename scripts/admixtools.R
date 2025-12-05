@@ -298,9 +298,9 @@ f4_result <- f4(f2_blocks,
 
 f4_result <- f4(f2_blocks,
                 pop1 = "Aduncus",  # Outgroup
-                pop2 = "Coastal_Gulf",  # P1 in your DSuite output
-                pop3 = "Offshore",  # P2 in your DSuite output
-                pop4 = "Intermediate")  # P3 in your DSuite output
+                pop2 = "Coastal_Gulf",  # P1 in  DSuite output
+                pop3 = "Offshore",  # P2 in  DSuite output
+                pop4 = "Intermediate")  # P3 in  DSuite output
 
 f4_result
 print(f4_result)
@@ -421,19 +421,19 @@ f2_blocks = f2_from_precomp(my_f2_dir)
 #The best-fit graph was estimated using five independent runs of command 
 #find_graphs(stop_gen2 = 1000, numgraphs = 100, plusminus_generations = 20). 
 #Confidence intervals were estimated using qpgraph_resample_snps with 100 bootstraps. The above methods used statistics (such as f2, f3, and D-statistics) estimated from individual SNPs.
-  outgraph <- find_graphs(f2_blocks,
+outgraph <- find_graphs(f2_blocks,
                           stop_gen2 = 15, 
                         numgraphs = 10, 
-                        plusminus_generations = 5, 
-                        numadmix=0
-                        #max_admix = 1)
+                        plusminus_generations = 5,
+                        numadmix=0,
+                        max_admix = 1)
   
-  winner = outgraph %>% slice_min(score)
+winner = outgraph %>% slice_min(score)
   
-  qpgraph(f2_blocks, winner, return_fstats=TRUE)
+qpgraph(f2_blocks, winner, return_fstats=TRUE)
   
-    outgraph %>% slice_min(score)
-  plot_graph(winner$edges[[1]])
+outgraph %>% slice_min(score)
+plot_graph(winner$edges[[1]])
   
   write_tsv(winner$edges[[1]], 'fourpop_edges.tsv')
   write_lines(paste0('score\t', winner$score[[1]]),'fourpop_score.tsv')
@@ -458,10 +458,11 @@ plotly_graph(qpg_results$edges, highlight_unidentifiable = TRUE)
 # ------------------------------------
 # ------------------------------------
 
-# other approach
-
+# other approach. this is what I actually use
+library(foreach)
+library(doParallel)
 cl <- makeCluster(10)
-registerDoParallel(cl)
+#registerDoParallel(cl)
 
 clusterExport(cl, c("find_graphs", "f2_blocks"))
 winners <- list()
@@ -500,8 +501,6 @@ initial_graph_out <- winners$graph[[whichbest]]
 
 # now figure out if admixture improves the fit
 # with admixture:
-library(foreach)
-library(doParallel)
 
 nruns <- 1:10
 
@@ -624,6 +623,7 @@ bestgraph_out_1 <- winners$graph[[whichbest]]
 
 
 
+
 # look at residuals of model
 library(dplyr)
 
@@ -677,3 +677,10 @@ plot_graph(bestgraph_out_2,
 
 
 #https://link.springer.com/article/10.1186/s12862-023-02195-x#Fig3
+
+
+# get bootstrap ci of best model:
+
+fits = qpgraph_resample_snps(f2_blocks, bestgraph_out_1, boot = 100)
+fits %>% summarize_fits() %>% plotly_graph(print_highlow = TRUE)
+

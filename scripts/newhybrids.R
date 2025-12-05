@@ -406,6 +406,8 @@ nrow(allhybs)
 highconf <- allhybs[allhybs$sig == "High_Confidence",]
 nrow(highconf)
 # 20
+allhybs %>% group_by(sixpop, highest_category, sig) %>% summarise(count = n())
+
 
 #low_conf_offshore <- 
 
@@ -429,7 +431,7 @@ write.table(pops,"analysis/population_assignments_hybrids_summary.txt", sep="\t"
             row.names = FALSE, quote = FALSE)
 
 # for the ones that look like hybrids, but new hybrids doesn't assign, what is going on?
-
+# they're mostly just low confidence. 
 
 ####### write a clust file without the hybrids
 
