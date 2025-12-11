@@ -230,6 +230,12 @@ table(micro_matched_RAD$fourpop.y,
       micro_matched_RAD$ClumppK4.0.50.cutoff, 
       useNA = "ifany")
 
+#                     1   2   3   4 unassigned
+#Coastal_Atlantic   0   0 164   1          1
+#Coastal_Gulf       0  38   1   7          0
+#Intermediate       0   0   0  59          1
+#Offshore          65   0   0   0          6
+
 
 micro_matched_RAD$combined_category <- paste(micro_matched_RAD$fourpop.y, 
                                              micro_matched_RAD$newhybrids_category, 
@@ -240,7 +246,15 @@ table(micro_matched_RAD$combined_category,
                               micro_matched_RAD$ClumppK4.0.50.cutoff, 
                               useNA = "ifany")
 
-
+#                            1   2   3   4 unassigned
+# Coastal_Atlantic          0   0 164   1          1
+# Coastal_Gulf              0  38   1   7          0
+# Intermediate              0   0   0  51          1
+# Intermediate_Backcross2   0   0   0   4          0
+# Intermediate_F2           0   0   0   4          0
+# Offshore                 55   0   0   0          0
+# Offshore_Backcross1       3   0   0   0          3
+# Offshore_F2               7   0   0   0          3
 
 #---------------------------------------------------------
 # now read in entire microsat dataset:
@@ -380,7 +394,7 @@ p <- ggplot() +
   #           color="black", shape=21, fill="#e1526b") +
   #geom_point(data=pccoord_subset_CA, aes(x=PC1, y=PC2, shape=RAD_fourpop, fill=RAD_fourpop, size="RADseq"),
   #           color="black", shape=21, fill="#4782d4") +
-  scale_fill_manual(values = c( "1" = "#FFDD33", "2" = "#e1526b", "3" = "#4782d4", "4" = "#B4ED50", "5" = "grey"),
+  scale_fill_manual(values = c( "1" = "#FFDD33", "2" = "#e1526b", "3" = "#4782d4", "4" = "#61BA5C", "5" = "grey"),
                     labels = c("1" = "Offshore", "2" = "Coastal Gulf", "3" = "Coastal Atlantic", "4" = "Intermediate", "5" = "Not genotyped"),
                     breaks = c("3", "2", "4", "1", "5"),
                     name = "Genotype group") +
@@ -390,18 +404,159 @@ p <- ggplot() +
                      name = "Genotype group") +
   scale_size_manual(values = c("microsatellite" = 3, "RADseq" = 6),
                     name = "Genotype method") +
-  theme_classic(base_size=14) +
+  theme_classic() +
   guides(fill = guide_legend(override.aes = list(shape = c(21,21,22,24,16))),
-         shape = guide_legend(override.aes = list(fill = c("#4782d4", "#e1526b", "#B4ED50", "#FFDD33", "grey"),
+         shape = guide_legend(override.aes = list(fill = c("#4782d4", "#e1526b", "#61BA5C", "#FFDD33", "grey"),
                                                   size=4)),
          size = guide_legend(override.aes = list(fill = "black", color = "black", shape = 21)))
 
 p
 
 ggsave("figures/morphology_pca_micros.png", p, h=4, w=6)
+ggsave("figures/morphology_pca_micros.pdf", p, h=2.75, w=4.5)
 
 
 pccoord_subset
+
+
+#---------------------------------------------------------
+# make it the 6 pop, equivalent to the genetics pca.
+
+dat <- read.csv("metadata_FINAL.csv")
+
+# First need to make map to make sure I'm assigning things to the correct location:
+# Get the world map data
+world <- ne_countries(scale = "medium", returnclass = "sf")
+
+# read in locations
+usa <- st_as_sf(maps::map("state", fill=TRUE, plot =FALSE))
+
+#----------------------------------------------
+# add pop colors
+
+# coastal
+#56B4E9
+#004488
+
+#Offshore:
+#F0B800
+#B65A00
+
+#intermediate:
+#1B9E77
+#66A61E
+other_data$region <- "Atlantic"
+other_data$region[other_data$Long < -81] <- "Gulf"
+other_data$fourpop <- NA
+other_data$fourpop[other_data$ClumppK4.0.50.cutoff =="1"] <- "Offshore"
+other_data$fourpop[other_data$ClumppK4.0.50.cutoff =="2"] <- "Coastal_Gulf"
+other_data$fourpop[other_data$ClumppK4.0.50.cutoff =="3"] <- "Coastal_Atlantic"
+other_data$fourpop[other_data$ClumppK4.0.50.cutoff =="4"] <- "Intermediate"
+  
+other_data$sixpop <- paste(other_data$fourpop, other_data$region, sep= "_")
+table(other_data$sixpop)
+
+other_data$sixpop <- gsub("Coastal_Atlantic_Atlantic", "Coastal_Atlantic",other_data$sixpop)
+other_data$sixpop <- gsub("Coastal_Gulf_Gulf", "Coastal_Gulf",other_data$sixpop)
+
+ggplot() +
+  geom_sf(data = world, fill = "grey90", color = "grey70") +
+  geom_sf(data = usa, fill = NA, color = "grey70") +
+  geom_point(data = other_data, 
+             aes(x = Long, y = Lat, color=sixpop, shape=sixpop),
+             #aes(x = Long, y = Lat),
+             size = 2.5,
+             alpha=1) +
+  coord_sf() +
+  theme_bw() +
+  theme(
+    #panel.background = element_rect(fill = "white"),
+    panel.grid = element_blank(),
+    #axis.text = element_blank(),
+    #axis.ticks = element_blank()
+    legend.position = "left",
+    legend.title=element_blank()) +
+  xlab("Longitude")+
+  ylab("Latitude") +
+  #scale_shape_manual(values=c(21,22,23,24)) +
+  #scale_fill_manual(values=c("#56B4E9","#004488","#66A61E","#F0B800")) +
+  #scale_shape_manual(values=c(21,21,22,22,24,24))+
+  #scale_fill_manual(values=c("#4782d4", "#e1526b","#B4ED50","#2E8B57", "#FFDD33", "#C49E45")) +
+  coord_sf(xlim = c(-100, -70), ylim = c(22, 35), expand = FALSE)+
+  annotation_scale()
+
+
+# ggsave("figures/map_allpops.pdf", p1, h=4, w=5)
+# ggsave("figures/map_allpops.png", p1, h=4, w=5)
+
+# flip the x axis so it corresponds to genetics pca
+
+none_data$PC1 <- none_data$PC1*-1
+other_data$PC1 <- other_data$PC1*-1
+
+p_m_sixpop <- ggplot() +
+  geom_point(data = none_data, aes(x=PC1, y=PC2, fill=group, shape=group), color="grey",size = 2.5) +
+  geom_point(data = other_data, aes(x=PC1, y=PC2, fill=sixpop, shape=sixpop),color="black",size = 2.5) +
+  #geom_point(data=pccoord_subset_CG, aes(x=PC1, y=PC2, shape=RAD_fourpop, fill=RAD_fourpop, size="RADseq"),
+  #           color="black", shape=21, fill="#e1526b") +
+  #geom_point(data=pccoord_subset_CA, aes(x=PC1, y=PC2, shape=RAD_fourpop, fill=RAD_fourpop, size="RADseq"),
+  #           color="black", shape=21, fill="#4782d4") +
+  scale_fill_manual(values = c( "Coastal_Atlantic" = "#4782d4", "Coastal_Gulf" = "#e1526b", 
+                                "Intermediate_Atlantic" = "#B4ED50", "Intermediate_Gulf" = "#2E8B57", 
+                                "Offshore_Atlantic" = "#FFDD33",
+                                "5" = "grey"),
+                    labels = c("Coastal_Atlantic" = "Coastal Atlantic", "Coastal_Gulf" = "Coastal Gulf", 
+                    "Intermediate_Atlantic" = "Intermediate Atlantic", "Intermediate_Gulf" = "Intermediate Gulf", 
+                    "Offshore_Atlantic" = "Offshore Atlantic",
+                    "5" = "Not genotyped"),
+                    breaks = c("Coastal_Atlantic", "Coastal_Gulf", "Intermediate_Atlantic", "Intermediate_Gulf",
+                               "Offshore_Atlantic", "5"),
+                    name = "Genotype group") +
+
+  scale_shape_manual(values=c("Coastal_Atlantic"=21, "Coastal_Gulf"=21, 
+                              "Intermediate_Atlantic" = 22, "Intermediate_Gulf" = 22, 
+                              "Offshore_Atlantic" = 24,
+                              "5"=16),
+                     labels = c("Coastal_Atlantic" = "Coastal Atlantic", "Coastal_Gulf" = "Coastal Gulf", 
+                                "Intermediate_Atlantic" = "Intermediate Atlantic", "Intermediate_Gulf" = "Intermediate Gulf", 
+                                "Offshore_Atlantic" = "Offshore Atlantic",
+                                "5" = "Not genotyped"),                    
+                     breaks = c("Coastal_Atlantic", "Coastal_Gulf", "Intermediate_Atlantic", "Intermediate_Gulf",
+                                "Offshore_Atlantic", "5"),
+                     name = "Genotype group") +
+  #scale_size_manual(values = c("microsatellite" = 3, "RADseq" = 6),
+  #                  name = "Genotype method") +
+  theme_classic() +
+  guides(fill = guide_legend(override.aes = list(shape = c(21,21,22,22,24,16))),
+         shape = guide_legend(override.aes = list(fill = c("#4782d4", "#e1526b","#B4ED50", "#2E8B57", "#FFDD33", "grey"),
+                                                  size=4)),
+         size = guide_legend(override.aes = list(fill = "black", color = "black", shape = 21)))
+
+p_m_sixpop
+
+#ggsave("figures/morphology_pca_micros.png", p, h=4, w=6)
+#ggsave("figures/morphology_pca_micros.pdf", p, h=2.75, w=4.5)
+
+
+pccoord_subset
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 #------------------------------------------------------------------------#------------------------------------------------------------------------#------------------------------------------------------------------------
 #------------------------------------------------------------------------
@@ -701,8 +856,8 @@ micro_out_morph[micro_out_morph$`# of Loci` == 14,]
 
 
 
-29Tt101
-26Tt338
+# 29Tt101
+# 26Tt338
 
 allsamp[grep("29Tt100",allsamp$Lab_ID),]
 allsamp[grep("4Tt037",allsamp$Lab_ID),]
@@ -886,29 +1041,3 @@ allsamp[grep("USNM504482",allsamp$Field_ID),]
 
 # Catalog_num is sometimes used instead of field number in ana's table. 
 # so then I can't directly compare even to our RAD data. 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
