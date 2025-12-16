@@ -10,8 +10,10 @@ library(dplyr)
 
 grouping <- read_csv("analysis/trees/RADseq_mtDNA_labels.csv")
 tree <- read.tree(file="./analysis/trees/Run7.treefile")
+#tree <- read.tree(file="./analysis/trees/Run8.treefile")
+grouping$sixpop <- paste0(grouping$fourpop ,grouping$region...6)
 haplotype_counts <- grouping %>%
-  count(Haplotype, fourpop, name = "n")
+  count(Haplotype, sixpop, name = "n")
 
 
 # Create the base tree plot
@@ -44,7 +46,8 @@ p2 <- p +
     mapping = aes(
       y = Haplotype,
       x = n,
-      fill = fourpop
+      #fill = fourpop
+      fill = sixpop
     ),
     offset = 0.01,
     pwidth = 0.4,
@@ -53,21 +56,29 @@ p2 <- p +
   # set colors
     scale_fill_manual(
     name = "Population",
-    values = c("#4782d4", "#e1526b", "#61BA5C", "#E2BF3C", "grey45", "black")
+    values = c("#4782d4", "#e1526b", "#61BA5C", "#E2BF3C", "grey45", "black",
+               "purple", "orange", "tan4")
   ) +
-  geom_nodepoint(data = plot_data, 
-                 aes(subset = bootstrap > 70, color = bootstrap), 
-                 size = 3.5, alpha = 1) +
+  #geom_nodepoint(data = plot_data, 
+  #               aes(subset = bootstrap > 70, color = bootstrap), 
+  #              #aes( color = bootstrap), 
+  #               size = 3.5, alpha = 1) +
+  geom_nodelab(data = plot_data, 
+              # aes(subset = bootstrap > 70, label = bootstrap), 
+               aes(label = bootstrap), 
+               #aes( color = bootstrap), 
+               size = 3, alpha = 1,
+               nudge_x = -.0035, nudge_y = 1.1) +
   scale_color_gradient(
     name = "Bootstrap (%)",
-    low = "black",
+    low = "red",
     high = "green"
   )+
   theme_tree() 
   #geom_text2(aes(label = node, subset = !isTip), hjust = -0.3, size = 3) 
   #geom_tiplab(size = 1)
 
-
+p2
 p3 <- collapse(p2,node = 84,mode = "max",fill="transparent",
            color="black",size=0.1)
 
