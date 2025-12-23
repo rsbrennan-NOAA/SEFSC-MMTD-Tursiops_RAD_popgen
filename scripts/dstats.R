@@ -18,7 +18,7 @@ write.table(dstat_four,"analysis/pop_structure/dstats/dstats_fourpop.txt",
 gs4_auth()
 drive_auth()
 
-# Write  dataframe to a new google sjeet
+# write to a new google sjeet
 sheet_url <- gs4_create("dstat_fourpop", sheets = list(data = dstat_four))
 
 sheet_url

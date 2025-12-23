@@ -20,9 +20,9 @@ library(grid)
 #Adapted from R functions written by Zecca, Labra and Grassi (2019).
 library(BITEV2)
 
-setwd("~/projects/Tursiops_RAD_popgen/analysis/pop_structure/treemix/fourpop/bootstrap")
+setwd("~/Documents/projects/Tursiops_RAD_popgen/analysis/pop_structure/treemix/fourpop/bootstrap")
 #folder with all TreeMix outputs from the final runs
-source("~/projects/Tursiops_RAD_popgen/scripts/TreeMix_functions.R") #path to required functions for this analysis
+source("~/Documents/projects/Tursiops_RAD_popgen/scripts/TreeMix_functions.R") #path to required functions for this analysis
 
 maxLL("fourpop_treemix_bootrep_", nt=100, uel=FALSE)
 #cfTrees("fourpop_treemix_bootrep_", nt=100, p=1, m='PH85')                        
