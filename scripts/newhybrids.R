@@ -406,16 +406,17 @@ nrow(allhybs)
 highconf <- allhybs[allhybs$sig == "High_Confidence",]
 nrow(highconf)
 # 20
-allhybs %>% group_by(sixpop, highest_category, sig) %>% summarise(count = n())
+allhybs %>% group_by(sixpop, highest_category, sig) %>% 
+  summarise(count = n())
 
 
 #low_conf_offshore <- 
 
 nrow(highconf[highconf$Lab.ID %in% offhybs,])
 # 12 of the 16
-low_conf_offshore <- allhybs[allhybs$Lab.ID %in% offhybs & allhybs$sig == "Low_Confidence",]
+low_conf_offshore <- allhybs[allhybs$sig == "Low_Confidence",]
 nrow(low_conf_offshore)
-# the other 4 are hybs, but considered low confidence. add these in
+# the other 6 are hybs, but considered low confidence. add these in
 allNewHybs <- (c(highconf$Lab.ID, low_conf_offshore$Lab.ID))
 length(allNewHybs)
 #24
@@ -425,7 +426,7 @@ for(i in 1:nrow(low_conf_offshore)){
 }
 
 sum(table(pops$newhybrids_category))
-#24
+#26
 
 write.table(pops,"analysis/population_assignments_hybrids_summary.txt", sep="\t",
             row.names = FALSE, quote = FALSE)

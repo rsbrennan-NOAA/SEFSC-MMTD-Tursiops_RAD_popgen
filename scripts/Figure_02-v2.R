@@ -46,7 +46,7 @@ library(tidyverse)
 library(igraph)
 library(plotly)
 
-graph <- read_delim("analysis/pop_structure/admixtools/graph_out.txt")
+graph <- read_delim("~/Documents/projects/Tursiops_RAD_popgen/analysis/pop_structure/admixtools/graph_out.txt")
 
 # manually plot so I have control:
 library(magrittr)
@@ -175,7 +175,7 @@ ggsave("figures/admix_graph.pdf", h=3, w=4)
 # ------------------------------------------------------------------------------
 # triangle plot
 
-setwd("~/projects/Tursiops_RAD_popgen/")
+setwd("~/Documents/projects/Tursiops_RAD_popgen/")
 
 ##-------------------------------------------------------------------------------
 ##-------------------------------------------------------------------------------
@@ -292,7 +292,7 @@ t2 <- t1 + theme(legend.position = "none")
 
 
 ggsave(filename="figures/triangle_hybrids_legend.pdf",t1, w=8.0, h=3.5)
-ggsave(filename="figures/triangle_hybrids.pdf",t2, w=3.6, h=3.5)
+ggsave(filename="figures/triangle_hybrids.pdf",t2, w=4, h=3.5)
 
 
 
@@ -309,7 +309,7 @@ plt1
 #final_plot
 
 # Save the final combined plot
-ggsave(filename="figures/manuscript/fig2_v4.pdf",
+ggsave(filename="figures/manuscript/fig2_v5.pdf",
        plt1,
        height=5, width=7)
 
