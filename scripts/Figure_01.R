@@ -334,15 +334,29 @@ p3
 #ggsave("figures/Admixture_plot.pdf", combined_plot, width = 7, height = 8, units="in")
 #ggsave("figures/Admixture_plot.png", combined_plot, width = 7, height = 8, units="in")
 
-p_out1 <- ggarrange(p2, p3, ncol = 2, nrow = 1, labels=c("B", "C"), 
-                    common.legend = T, legend = "none")
+p_out1 <- ggarrange(p2, p3, ncol = 2, nrow = 1, labels=c("C", "D"), 
+                    common.legend = T, legend = "none",
+                    widths = c(0.5, 0.5))
+p_no_legend <- p_m_sixpop + theme(legend.position = "none")
+
+p1_no_legend <- p1 + theme(legend.position = "none")
+p_morph <- ggarrange(p1_no_legend, p_no_legend,
+                     labels=c("A", "B"),
+                     heights = c(0.5, 0.5),
+                     widths = c(0.6, 0.4))
+
+p_morph
 
 p_out <- ggarrange(p1,p_out1, nrow=2, labels=c("A", "", ""), common.legend=F,
                    heights = c(0.5, 0.5))
-p_out
+
+p_out_morph <- ggarrange(p_morph,p_out1, nrow=2, common.legend=F,
+                   heights = c(0.5, 0.5))
+p_out_morph
+#p_out
 #widths = c(1, 0.75)
 
-ggsave(filename="figures/Fig_01-v2.pdf", p_out, h=135, w=170, units= "mm")
-ggsave(filename="figures/Fig_01-v2.png", p_out, h=5, w=7)
+ggsave(filename="figures/Fig_01-v3.pdf", p_out_morph, h=135, w=170, units= "mm")
+ggsave(filename="figures/Fig_01-v3.png", p_out_morph, h=5, w=7)
 
 
