@@ -337,6 +337,87 @@ p3
 p_out1 <- ggarrange(p2, p3, ncol = 2, nrow = 1, labels=c("C", "D"), 
                     common.legend = T, legend = "none",
                     widths = c(0.5, 0.5))
+# add in morphology:
+
+merged_micro_morph_PCA_unique <- read.csv("analysis/micro_morph_PCA_plotting.csv")
+
+none_data <- merged_micro_morph_PCA_unique[is.na(merged_micro_morph_PCA_unique$ClumppK4.0.50.cutoff), ]
+other_data <- merged_micro_morph_PCA_unique[!(is.na(merged_micro_morph_PCA_unique$ClumppK4.0.50.cutoff)), ]
+
+
+fill_colors <- c(
+  "Coastal\nAtlantic" = "#4782d4",
+  "Coastal\nGulf" = "#e1526b",
+  "Intermediate\nAtlantic" = "#B4ED50",
+  "Intermediate\nGulf" = "#2E8B57", 
+  "Offshore\nAtlantic" = "#FFDD33", 
+  "Offshore\nGulf" = "#C49E45"
+)
+none_data$group <- "5"  
+dat <- read.csv("metadata_FINAL.csv")
+
+
+other_data$region <- "Atlantic"
+other_data$region[other_data$Long < -81] <- "Gulf"
+other_data$fourpop <- NA
+other_data$fourpop[other_data$ClumppK4.0.50.cutoff =="1"] <- "Offshore"
+other_data$fourpop[other_data$ClumppK4.0.50.cutoff =="2"] <- "Coastal_Gulf"
+other_data$fourpop[other_data$ClumppK4.0.50.cutoff =="3"] <- "Coastal_Atlantic"
+other_data$fourpop[other_data$ClumppK4.0.50.cutoff =="4"] <- "Intermediate"
+
+other_data$sixpop <- paste(other_data$fourpop, other_data$region, sep= "_")
+table(other_data$sixpop)
+
+other_data$sixpop <- gsub("Coastal_Atlantic_Atlantic", "Coastal_Atlantic",other_data$sixpop)
+other_data$sixpop <- gsub("Coastal_Gulf_Gulf", "Coastal_Gulf",other_data$sixpop)
+
+# flip the x axis so it corresponds to genetics pca
+
+none_data$PC1 <- none_data$PC1*-1
+other_data$PC1 <- other_data$PC1*-1
+
+p_m_sixpop <- ggplot() +
+  geom_point(data = none_data, aes(x=PC1, y=PC2, fill=group, shape=group), color="grey",size = 2.5) +
+  geom_point(data = other_data, aes(x=PC1, y=PC2, fill=sixpop, shape=sixpop),color="black",size = 2.5) +
+  #geom_point(data=pccoord_subset_CG, aes(x=PC1, y=PC2, shape=RAD_fourpop, fill=RAD_fourpop, size="RADseq"),
+  #           color="black", shape=21, fill="#e1526b") +
+  #geom_point(data=pccoord_subset_CA, aes(x=PC1, y=PC2, shape=RAD_fourpop, fill=RAD_fourpop, size="RADseq"),
+  #           color="black", shape=21, fill="#4782d4") +
+  scale_fill_manual(values = c( "Coastal_Atlantic" = "#4782d4", "Coastal_Gulf" = "#e1526b", 
+                                "Intermediate_Atlantic" = "#B4ED50", "Intermediate_Gulf" = "#2E8B57", 
+                                "Offshore_Atlantic" = "#FFDD33",
+                                "5" = "grey"),
+                    labels = c("Coastal_Atlantic" = "Coastal Atlantic", "Coastal_Gulf" = "Coastal Gulf", 
+                               "Intermediate_Atlantic" = "Intermediate Atlantic", "Intermediate_Gulf" = "Intermediate Gulf", 
+                               "Offshore_Atlantic" = "Offshore Atlantic",
+                               "5" = "Not genotyped"),
+                    breaks = c("Coastal_Atlantic", "Coastal_Gulf", "Intermediate_Atlantic", "Intermediate_Gulf",
+                               "Offshore_Atlantic", "5"),
+                    name = "Genotype group") +
+  
+  scale_shape_manual(values=c("Coastal_Atlantic"=21, "Coastal_Gulf"=21, 
+                              "Intermediate_Atlantic" = 22, "Intermediate_Gulf" = 22, 
+                              "Offshore_Atlantic" = 24,
+                              "5"=16),
+                     labels = c("Coastal_Atlantic" = "Coastal Atlantic", "Coastal_Gulf" = "Coastal Gulf", 
+                                "Intermediate_Atlantic" = "Intermediate Atlantic", "Intermediate_Gulf" = "Intermediate Gulf", 
+                                "Offshore_Atlantic" = "Offshore Atlantic",
+                                "5" = "Not genotyped"),                    
+                     breaks = c("Coastal_Atlantic", "Coastal_Gulf", "Intermediate_Atlantic", "Intermediate_Gulf",
+                                "Offshore_Atlantic", "5"),
+                     name = "Genotype group") +
+  #scale_size_manual(values = c("microsatellite" = 3, "RADseq" = 6),
+  #                  name = "Genotype method") +
+  theme_classic() +
+  guides(fill = guide_legend(override.aes = list(shape = c(21,21,22,22,24,16))),
+         shape = guide_legend(override.aes = list(fill = c("#4782d4", "#e1526b","#B4ED50", "#2E8B57", "#FFDD33", "grey"),
+                                                  size=4)),
+         size = guide_legend(override.aes = list(fill = "black", color = "black", shape = 21)))
+
+p_m_sixpop
+
+
+# now merge
 p_no_legend <- p_m_sixpop + theme(legend.position = "none")
 
 p1_no_legend <- p1 + theme(legend.position = "none")

@@ -430,20 +430,72 @@ geom_tiplab() +
   theme_tree2() 
 
 
-pout <- p %<+% grouping + 
-  geom_tiplab(aes(color=group), size=0.9) +
-  theme(legend.position="right")+ 
-  #geom_text( show.legend  = F ) +
-  geom_tippoint(aes(color=group), size=0.9) +
-  guides(colour = guide_legend(override.aes = list(size=2))) +
-  scale_color_manual(values = c("A_hudsonica" = "#1B9E77",
-                                "A_lilljeborgi" = "#D95F02",
-                                "F" = "#7570B3",
-                                "IV" = "#E7298A",
-                                "out_group" = "#666666",
-                                "S" = "#66A61E",
-                                "SB" = "#E6AB02",
-                                "X" = "#A6761D"),
-                     na.value = "black")
 
-ggsave(pout, file="./output/tree_plot.pdf", h=13, w=10)
+
+
+
+#--------------------------------------------------------------------------
+#--------------------------------------------------------------------------
+#--------------------------------------------------------------------------
+#--------------------------------------------------------------------------
+# cophylo tree
+# https://github.com/rapidspeciation/mechanitis_melinaea/blob/main/scripts/cophylo%20plot.R
+require("ape")
+require(phytools)
+
+#### Read in the data ####
+# #note: the tip-labels have been renamed to include species and location of the individuals to aid the plotting
+mech<-read.tree("~/Phylo.Mech.base.thin500.minGQ10.PhyloInd.ALL.wB.treefile.renamed")
+
+# mt tree:
+grouping <- read_csv("analysis/trees/RADseq_mtDNA_labels.csv")
+mech_mt <- read.tree(file="./analysis/trees/Run7.treefile")
+
+mech_mt <- read.tree(file="./analysis/trees/Run9.treefile")
+
+grouping_for_plot <- grouping %>%
+  mutate(label = indiv) %>%
+  select(label, fourpop)
+
+# rad tree:
+grouping <- read_csv("analysis/trees/RADseq_mtDNA_labels.csv")
+mech <- read.tree(file="./analysis/trees/Run2.treefile")
+
+grouping_for_plot <- grouping %>%
+  mutate(label = indiv) %>%
+  select(label, fourpop)
+
+
+
+# Root Mechanitis on Forbestra
+mech <- midpoint.root(mech)
+mech_mt <- midpoint.root(mech_mt)
+
+# Ladderize the trees
+mech<-ladderize(mech)
+mech_mt<-ladderize(mech_mt)
+
+mech$tip.label
+mech_mt$tip.label
+
+# Get a dataframe with the association (here just twice the same individual)
+assoc<-cbind(mech$tip.label, mech$tip.label)
+scale_color_manual(values=c("#4782d4", "#e1526b","#61BA5C", "#E2BF3C", "grey45", "black"))+
+  
+speciesCol<-as.data.frame(assoc[,1])
+colnames(speciesCol) <- "label"
+grouping_for_plot$col <- ifelse(grepl(grouping_for_plot$fourpop,pattern="Coastal_Atlantic"),"#4782d4",
+                                ifelse(grepl(grouping_for_plot$fourpop,pattern="Coastal_Gulf"),"#e1526b",
+                                       ifelse(grepl(grouping_for_plot$fourpop,pattern="Intermediate"),"#61BA5C",
+                                              ifelse(grepl(grouping_for_plot$fourpop,pattern="Offshore"),"#E2BF3C",
+                                                     ifelse(grepl(grouping_for_plot$fourpop,pattern="PutHyb_Intermediate"),"grey45",
+                                                            ifelse(grepl(grouping_for_plot$fourpop,pattern="PutHyb_Offshore"),"black","white"
+                                                              ))))))
+colsin <- speciesCol %>%
+  left_join(grouping_for_plot, by = "label")
+
+obj<-cophylo(mech,mech_mt,assoc=assoc,cex=0.1)
+plot.cophylo(obj,link.type="curved",link.lwd=1,fsize=0.3,pts=F,ftype="off",
+             link.lty="solid",link.col=colsin$col)
+
+
