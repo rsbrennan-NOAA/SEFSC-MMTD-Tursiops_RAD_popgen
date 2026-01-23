@@ -1,8 +1,5 @@
 #figure 1
 
-
-#A
-
 #map with populations
 
 library(ggplot2)
@@ -12,7 +9,7 @@ library(rnaturalearthdata)
 library(tidyverse)
 library(ggspatial)
 library(marmap)
-library(RColorBrewer)
+#library(RColorBrewer)
 library(ggpubr)
 
 
@@ -148,9 +145,10 @@ filename = "analysis/variants/filtered.final_ids_LDthin"
 filename.gds = paste0(filename, ".gds")
 filename.vcf.gz = paste0(filename, ".vcf.gz")
 # Convert VCF to GDS
+# run this the first time only
 SeqArray::seqVCF2GDS(vcf.fn = filename.vcf.gz, out.fn = filename.gds, storage.option="ZIP_RA")
 
-gdsin = SeqArray::seqOpen(filename.gds)
+#gdsin = SeqArray::seqOpen(filename.gds)
 #SeqArray::seqClose(filename.gds)
 
 print(paste0("The number of SAMPLES in data: ", length(c(SeqArray::seqGetData(gdsin, "sample.id")))))
@@ -177,13 +175,14 @@ samp_in <- SeqArray::seqGetData(gdsin, "sample.id")
 sexsnp <- snp_in_all[which(SeqArray::seqGetData(gdsin, "chromosome") == "NC_047055.1")]
 length(sexsnp)
 
-snp_in <- snp_in_all[which(SeqArray::seqGetData(gdsin, "chromosome") != "NC_047055.1")]
+snp_in <- as.character(snp_in_all[which(SeqArray::seqGetData(gdsin, "chromosome") != "NC_047055.1")])
 length(snp_in)
 
 
 pca.out = SNPRelate::snpgdsPCA(autosome.only = F, gdsin, num.thread=2, 
-                               remove.monosnp = T, maf = 0.05,
-                               snp.id=snp_in) # filtering for pruned SNPs
+                               remove.monosnp = F, maf = 0,
+                               snp.id=snp_in,
+                               missing.rate = NaN) # filtering for pruned SNPs
 
 
 eig = pca.out$eigenval[!is.na(pca.out$eigenval)]
