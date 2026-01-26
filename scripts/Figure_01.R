@@ -342,7 +342,7 @@ merged_micro_morph_PCA_unique <- read.csv("analysis/micro_morph_PCA_plotting.csv
 
 none_data <- merged_micro_morph_PCA_unique[is.na(merged_micro_morph_PCA_unique$ClumppK4.0.50.cutoff), ]
 other_data <- merged_micro_morph_PCA_unique[!(is.na(merged_micro_morph_PCA_unique$ClumppK4.0.50.cutoff)), ]
-
+table(other_data$ClumppK4.0.50.cutoff)
 
 fill_colors <- c(
   "Coastal\nAtlantic" = "#4782d4",
@@ -369,15 +369,15 @@ table(other_data$sixpop)
 
 other_data$sixpop <- gsub("Coastal_Atlantic_Atlantic", "Coastal_Atlantic",other_data$sixpop)
 other_data$sixpop <- gsub("Coastal_Gulf_Gulf", "Coastal_Gulf",other_data$sixpop)
-
+other_data <- other_data[order(other_data$sixpop == "Coastal_Gulf"), ]
 # flip the x axis so it corresponds to genetics pca
 
 none_data$PC1 <- none_data$PC1*-1
 other_data$PC1 <- other_data$PC1*-1
 
 p_m_sixpop <- ggplot() +
-  geom_point(data = none_data, aes(x=PC1, y=PC2, fill=group, shape=group), color="grey",size = 2.5) +
-  geom_point(data = other_data, aes(x=PC1, y=PC2, fill=sixpop, shape=sixpop),color="black",size = 2.5) +
+  geom_point(data = none_data, aes(x=PC1, y=PC2, fill=group, shape=group), color="grey",size = 3) +
+  geom_point(data = other_data, aes(x=PC1, y=PC2, fill=sixpop, shape=sixpop),color="black",size = 3) +
   #geom_point(data=pccoord_subset_CG, aes(x=PC1, y=PC2, shape=RAD_fourpop, fill=RAD_fourpop, size="RADseq"),
   #           color="black", shape=21, fill="#e1526b") +
   #geom_point(data=pccoord_subset_CA, aes(x=PC1, y=PC2, shape=RAD_fourpop, fill=RAD_fourpop, size="RADseq"),
@@ -411,7 +411,8 @@ p_m_sixpop <- ggplot() +
   guides(fill = guide_legend(override.aes = list(shape = c(21,21,22,22,24,16))),
          shape = guide_legend(override.aes = list(fill = c("#4782d4", "#e1526b","#B4ED50", "#2E8B57", "#FFDD33", "grey"),
                                                   size=4)),
-         size = guide_legend(override.aes = list(fill = "black", color = "black", shape = 21)))
+         size = guide_legend(override.aes = list(fill = "black", color = "black", shape = 21)))+
+  scale_y_continuous(labels = function(x) sprintf("%.2f", x))
 
 p_m_sixpop
 
@@ -420,23 +421,28 @@ p_m_sixpop
 p_no_legend <- p_m_sixpop + theme(legend.position = "none")
 
 p1_no_legend <- p1 + theme(legend.position = "none")
-p_morph <- ggarrange(p1_no_legend, p_no_legend,
+
+#p_out1 <- ggarrange(p2, p3, ncol = 2, nrow = 1, labels=c("C", "D"), 
+#                    common.legend = T, legend = "none",
+#                    widths = c(0.5, 0.5))
+
+p_out1 <- ggarrange(p3,p_no_legend, ncol = 2, nrow = 1, 
+                    labels=c("C", "D"), 
+                    legend = "none",
+                    heights = c(0.5, 0.5),
+                    widths = c(0.6, 0.4))
+
+p_combine1 <- ggarrange(p1_no_legend, p2,
                      labels=c("A", "B"),
+                     legend = "none",
                      heights = c(0.5, 0.5),
                      widths = c(0.6, 0.4))
 
-p_morph
-
-p_out <- ggarrange(p1,p_out1, nrow=2, labels=c("A", "", ""), common.legend=F,
+p_combine <- ggarrange(p_combine1,p_out1, nrow=2, labels=c("", "", ""), common.legend=F,
                    heights = c(0.5, 0.5))
+p_combine
 
-p_out_morph <- ggarrange(p_morph,p_out1, nrow=2, common.legend=F,
-                   heights = c(0.5, 0.5))
-p_out_morph
-#p_out
-#widths = c(1, 0.75)
-
-ggsave(filename="figures/Fig_01-v3.pdf", p_out_morph, h=135, w=170, units= "mm")
-ggsave(filename="figures/Fig_01-v3.png", p_out_morph, h=5, w=7)
+ggsave(filename="figures/Fig_01-v4.pdf", p_combine, h=135, w=170, units= "mm")
+ggsave(filename="figures/Fig_01-v4.png", p_combine, h=5, w=7)
 
 
