@@ -125,7 +125,9 @@ ggsave("figures/manuscript/map_facet.png", p1_facet, h=9, w=7)
 # add the hybrids:
 
 pops1 <- read.table("analysis/population_assignments_hybrids_summary.txt", header=T)
-
+pops2 <- pops1[!is.na(pops1$newhybrids_category),]
+out_hyb <- df_sorted[df_sorted$Lab.ID %in%pops2$indiv,]
+nrow(out_hyb)
 
 p1_facet <- ggplot() +
   geom_sf(data = world, fill = "grey90", color = "grey70") +
@@ -135,6 +137,14 @@ p1_facet <- ggplot() +
              size = 2.5,
              alpha=1,
              color="black") +
+  geom_point(data = out_hyb, 
+             aes(x = Long, y = Lat),
+             color="purple", 
+             fill=NA,
+             shape=1,
+             size = 3.5,
+             stroke=1,
+             alpha=1) +
   facet_wrap(~sixpop, nrow=3) +
   coord_sf() +
   theme_bw() +
@@ -152,7 +162,7 @@ p1_facet <- ggplot() +
   scale_shape_manual(values=c(21,21,22,22,24,24))+
   scale_fill_manual(values=c("#4782d4", "#e1526b","#B4ED50","#2E8B57", "#FFDD33", "#C49E45")) +
   coord_sf(xlim = c(-100, -64), ylim = c(23, 42), expand = FALSE)+
-  annotation_scale()
+  annotation_scale() 
 
 
 p1_facet
