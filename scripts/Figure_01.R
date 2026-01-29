@@ -122,6 +122,45 @@ ggsave("figures/manuscript/map_facet.pdf", p1_facet, h=9, w=7)
 ggsave("figures/manuscript/map_facet.png", p1_facet, h=9, w=7)
 
 
+# add the hybrids:
+
+pops1 <- read.table("analysis/population_assignments_hybrids_summary.txt", header=T)
+
+
+p1_facet <- ggplot() +
+  geom_sf(data = world, fill = "grey90", color = "grey70") +
+  geom_sf(data = usa, fill = NA, color = "grey70") +
+  geom_point(data = df_sorted, 
+             aes(x = Long, y = Lat, fill=sixpop, shape=sixpop),
+             size = 2.5,
+             alpha=1,
+             color="black") +
+  facet_wrap(~sixpop, nrow=3) +
+  coord_sf() +
+  theme_bw() +
+  theme(
+    #panel.background = element_rect(fill = "white"),
+    panel.grid = element_blank(),
+    #axis.text = element_blank(),
+    #axis.ticks = element_blank()
+    legend.position = "top",
+    legend.title=element_blank()) +
+  xlab("Longitude")+
+  ylab("Latitude") +
+  #scale_shape_manual(values=c(21,22,23,24)) +
+  #scale_fill_manual(values=c("#56B4E9","#004488","#66A61E","#F0B800")) +
+  scale_shape_manual(values=c(21,21,22,22,24,24))+
+  scale_fill_manual(values=c("#4782d4", "#e1526b","#B4ED50","#2E8B57", "#FFDD33", "#C49E45")) +
+  coord_sf(xlim = c(-100, -64), ylim = c(23, 42), expand = FALSE)+
+  annotation_scale()
+
+
+p1_facet
+
+ggsave("figures/manuscript/map_facet_hybrids.pdf", p1_facet, h=9, w=7)
+ggsave("figures/manuscript/map_facet_hybrids.png", p1_facet, h=9, w=7)
+
+
 
 
 #-------------------------------------------------------------------------------
@@ -365,11 +404,16 @@ other_data$fourpop[other_data$ClumppK4.0.50.cutoff =="3"] <- "Coastal_Atlantic"
 other_data$fourpop[other_data$ClumppK4.0.50.cutoff =="4"] <- "Intermediate"
 
 other_data$sixpop <- paste(other_data$fourpop, other_data$region, sep= "_")
+
 table(other_data$sixpop)
 
 other_data$sixpop <- gsub("Coastal_Atlantic_Atlantic", "Coastal_Atlantic",other_data$sixpop)
 other_data$sixpop <- gsub("Coastal_Gulf_Gulf", "Coastal_Gulf",other_data$sixpop)
 other_data <- other_data[order(other_data$sixpop == "Coastal_Gulf"), ]
+write.table(other_data, file="analysis/micro_morph_toShare.txt", quote = F, row.names = F, sep="\t")
+
+other_data[other_data$sixpop == "Intermediate_Gulf",]
+
 # flip the x axis so it corresponds to genetics pca
 
 none_data$PC1 <- none_data$PC1*-1

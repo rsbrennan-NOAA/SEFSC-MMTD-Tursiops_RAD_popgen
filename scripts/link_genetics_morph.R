@@ -280,6 +280,10 @@ table(micro_matched_RAD$combined_category,
 allmicro <- read.csv("analysis/RADseqMicroData_n343_2025_NEW-MicroStructureData_n4189.csv")
 nrow(allmicro)
 # 4189
+
+table(allmicro$Source)
+sum(allmicro$Source == "stranding")
+
 allmicro <- cbind(allmicro$Lab.ID, allmicro)
 colnames(allmicro) <- c("ID.Original",colnames(allmicro)[2:ncol(allmicro)])
 
@@ -404,6 +408,7 @@ write.csv(merged_micro_morph_PCA_unique,
 
 none_data <- merged_micro_morph_PCA_unique[is.na(merged_micro_morph_PCA_unique$ClumppK4.0.50.cutoff), ]
 other_data <- merged_micro_morph_PCA_unique[!(is.na(merged_micro_morph_PCA_unique$ClumppK4.0.50.cutoff)), ]
+table(other_data$sixpop)
 
 #pccoord_subset_CG <-pccoord_subset[pccoord_subset$fourpop == "Coastal_Gulf" ,]
 #pccoord_subset_CA <-pccoord_subset[pccoord_subset$fourpop == "Coastal_Atlantic" ,]

@@ -188,6 +188,9 @@ vcf <- read.vcfR( "analysis/variants/filtered.final_ids.vcf.gz", verbose = FALSE
 vcf
 
 pops1 <- read.table("analysis/population_assignments_hybrids_summary.txt", header=T)
+head(pops1)
+
+table(pops1$newhybrids_category,pops1$sixpop)
 
 pops <- data.frame(id = pops1$indiv,
                    pop = pops1$fourpop)

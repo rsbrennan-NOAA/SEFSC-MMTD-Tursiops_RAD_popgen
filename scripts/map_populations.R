@@ -139,6 +139,7 @@ ggsave("figures/map_atlantic.png", p, h=5, w=5)
 # add the putative hybrids on to the map:
 
 out_hyb <- out %>% filter(offshore_putative_hybrids == TRUE)
+pops1 <- read.table("analysis/population_assignments_hybrids_summary.txt", header=T)
 
 p <- ggplot() +
   geom_sf(data = world, fill = "grey90", color = "grey70") +
