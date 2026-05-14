@@ -16,7 +16,6 @@ library(ggpubr)
 # Get the world map data
 world <- ne_countries(scale = "medium", returnclass = "sf")
 
-# read in locations
 dat <- read.csv("Tursiops_RADseq_Metadata_new.csv")
 
 head(dat)

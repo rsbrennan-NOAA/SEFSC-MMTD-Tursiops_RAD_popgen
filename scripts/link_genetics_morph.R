@@ -26,7 +26,7 @@ sum(!is.na(skull_ids$LabID))
 
 morph <- read.csv("analysis/morphology_list.txt", sep=" ", header=T)
 head(morph)
-
+morph[morph$lab_id == "10Tt104",]
 #4Tt328 is 4Tt184 so substitute them in the morph list:
 
 morph$lab_id[morph$lab_id == "4Tt328"] <- "4Tt184"

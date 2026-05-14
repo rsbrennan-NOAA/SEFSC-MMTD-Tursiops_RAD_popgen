@@ -49,6 +49,8 @@ nrow(all5)
 # 375 of the right species
 
 all5[order(all5$total_reads),]
+head(all5[order(all5$total_reads),], n=11)
+
 
 ggplot(all5, aes(x = total_reads, fill = as.factor(lanes))) +
   geom_histogram(position = "identity", alpha = 0.9, bins = 40) +
