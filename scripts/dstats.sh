@@ -12,7 +12,6 @@
 
 cd ~/Tursiops-RAD-popgen/analysis/pop_structure/dstats
 
-
 #Aduncus	SRR5357657
 #Aduncus	SRR5357656
 #Aduncus	SRR5357655
@@ -27,4 +26,4 @@ cut -f 2 sixpop.pop | sort| uniq |grep -v Outgroup > plot_order_sixpop.txt
 # repeat with no hybrids
 ~/bin/Dsuite/Build/Dsuite Dtrios --out-prefix fourpop_nohybs --no-f4-ratio ~/Tursiops-RAD-popgen/analysis/variants/tursiops_aduncus_LDthin.vcf.gz fourpop_nohybs_dstats.pop
 
-
+~/bin/Dsuite/Build/Dsuite Dtrios --out-prefix sixpop_nohybs --no-f4-ratio ~/Tursiops-RAD-popgen/analysis/variants/tursiops_aduncus_LDthin.vcf.gz sixpop_nohybs_dstats.pop
