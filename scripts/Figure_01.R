@@ -1,8 +1,5 @@
 #figure 1
 
-
-#A
-
 #map with populations
 
 library(ggplot2)
@@ -12,14 +9,13 @@ library(rnaturalearthdata)
 library(tidyverse)
 library(ggspatial)
 library(marmap)
-library(RColorBrewer)
+#library(RColorBrewer)
 library(ggpubr)
 
 
 # Get the world map data
 world <- ne_countries(scale = "medium", returnclass = "sf")
 
-# read in locations
 dat <- read.csv("Tursiops_RADseq_Metadata_new.csv")
 
 head(dat)
@@ -125,6 +121,55 @@ ggsave("figures/manuscript/map_facet.pdf", p1_facet, h=9, w=7)
 ggsave("figures/manuscript/map_facet.png", p1_facet, h=9, w=7)
 
 
+# add the hybrids:
+
+pops1 <- read.table("analysis/population_assignments_hybrids_summary.txt", header=T)
+pops2 <- pops1[!is.na(pops1$newhybrids_category),]
+out_hyb <- df_sorted[df_sorted$Lab.ID %in%pops2$indiv,]
+nrow(out_hyb)
+
+p1_facet <- ggplot() +
+  geom_sf(data = world, fill = "grey90", color = "grey70") +
+  geom_sf(data = usa, fill = NA, color = "grey70") +
+  geom_point(data = df_sorted, 
+             aes(x = Long, y = Lat, fill=sixpop, shape=sixpop),
+             size = 2.5,
+             alpha=1,
+             color="black") +
+  geom_point(data = out_hyb, 
+             aes(x = Long, y = Lat),
+             color="purple", 
+             fill=NA,
+             shape=1,
+             size = 3.5,
+             stroke=1,
+             alpha=1) +
+  facet_wrap(~sixpop, nrow=3) +
+  coord_sf() +
+  theme_bw() +
+  theme(
+    #panel.background = element_rect(fill = "white"),
+    panel.grid = element_blank(),
+    #axis.text = element_blank(),
+    #axis.ticks = element_blank()
+    legend.position = "top",
+    legend.title=element_blank()) +
+  xlab("Longitude")+
+  ylab("Latitude") +
+  #scale_shape_manual(values=c(21,22,23,24)) +
+  #scale_fill_manual(values=c("#56B4E9","#004488","#66A61E","#F0B800")) +
+  scale_shape_manual(values=c(21,21,22,22,24,24))+
+  scale_fill_manual(values=c("#4782d4", "#e1526b","#B4ED50","#2E8B57", "#FFDD33", "#C49E45")) +
+  coord_sf(xlim = c(-100, -64), ylim = c(23, 42), expand = FALSE)+
+  annotation_scale() 
+
+
+p1_facet
+
+ggsave("figures/manuscript/map_facet_hybrids.pdf", p1_facet, h=9, w=7)
+ggsave("figures/manuscript/map_facet_hybrids.png", p1_facet, h=9, w=7)
+
+
 
 
 #-------------------------------------------------------------------------------
@@ -148,9 +193,10 @@ filename = "analysis/variants/filtered.final_ids_LDthin"
 filename.gds = paste0(filename, ".gds")
 filename.vcf.gz = paste0(filename, ".vcf.gz")
 # Convert VCF to GDS
+# run this the first time only
 SeqArray::seqVCF2GDS(vcf.fn = filename.vcf.gz, out.fn = filename.gds, storage.option="ZIP_RA")
 
-gdsin = SeqArray::seqOpen(filename.gds)
+#gdsin = SeqArray::seqOpen(filename.gds)
 #SeqArray::seqClose(filename.gds)
 
 print(paste0("The number of SAMPLES in data: ", length(c(SeqArray::seqGetData(gdsin, "sample.id")))))
@@ -177,13 +223,14 @@ samp_in <- SeqArray::seqGetData(gdsin, "sample.id")
 sexsnp <- snp_in_all[which(SeqArray::seqGetData(gdsin, "chromosome") == "NC_047055.1")]
 length(sexsnp)
 
-snp_in <- snp_in_all[which(SeqArray::seqGetData(gdsin, "chromosome") != "NC_047055.1")]
+snp_in <- as.character(snp_in_all[which(SeqArray::seqGetData(gdsin, "chromosome") != "NC_047055.1")])
 length(snp_in)
 
 
 pca.out = SNPRelate::snpgdsPCA(autosome.only = F, gdsin, num.thread=2, 
-                               remove.monosnp = T, maf = 0.05,
-                               snp.id=snp_in) # filtering for pruned SNPs
+                               remove.monosnp = F, maf = 0,
+                               snp.id=snp_in,
+                               missing.rate = NaN) # filtering for pruned SNPs
 
 
 eig = pca.out$eigenval[!is.na(pca.out$eigenval)]
@@ -337,26 +384,118 @@ p3
 p_out1 <- ggarrange(p2, p3, ncol = 2, nrow = 1, labels=c("C", "D"), 
                     common.legend = T, legend = "none",
                     widths = c(0.5, 0.5))
+# add in morphology:
+
+merged_micro_morph_PCA_unique <- read.csv("analysis/micro_morph_PCA_plotting.csv")
+
+none_data <- merged_micro_morph_PCA_unique[is.na(merged_micro_morph_PCA_unique$ClumppK4.0.50.cutoff), ]
+other_data <- merged_micro_morph_PCA_unique[!(is.na(merged_micro_morph_PCA_unique$ClumppK4.0.50.cutoff)), ]
+table(other_data$ClumppK4.0.50.cutoff)
+
+fill_colors <- c(
+  "Coastal\nAtlantic" = "#4782d4",
+  "Coastal\nGulf" = "#e1526b",
+  "Intermediate\nAtlantic" = "#B4ED50",
+  "Intermediate\nGulf" = "#2E8B57", 
+  "Offshore\nAtlantic" = "#FFDD33", 
+  "Offshore\nGulf" = "#C49E45"
+)
+none_data$group <- "5"  
+dat <- read.csv("metadata_FINAL.csv")
+
+
+other_data$region <- "Atlantic"
+other_data$region[other_data$Long < -81] <- "Gulf"
+other_data$fourpop <- NA
+other_data$fourpop[other_data$ClumppK4.0.50.cutoff =="1"] <- "Offshore"
+other_data$fourpop[other_data$ClumppK4.0.50.cutoff =="2"] <- "Coastal_Gulf"
+other_data$fourpop[other_data$ClumppK4.0.50.cutoff =="3"] <- "Coastal_Atlantic"
+other_data$fourpop[other_data$ClumppK4.0.50.cutoff =="4"] <- "Intermediate"
+
+other_data$sixpop <- paste(other_data$fourpop, other_data$region, sep= "_")
+
+table(other_data$sixpop)
+
+other_data$sixpop <- gsub("Coastal_Atlantic_Atlantic", "Coastal_Atlantic",other_data$sixpop)
+other_data$sixpop <- gsub("Coastal_Gulf_Gulf", "Coastal_Gulf",other_data$sixpop)
+other_data <- other_data[order(other_data$sixpop == "Coastal_Gulf"), ]
+write.table(other_data, file="analysis/micro_morph_toShare.txt", quote = F, row.names = F, sep="\t")
+
+other_data[other_data$sixpop == "Intermediate_Gulf",]
+
+# flip the x axis so it corresponds to genetics pca
+
+none_data$PC1 <- none_data$PC1*-1
+other_data$PC1 <- other_data$PC1*-1
+
+p_m_sixpop <- ggplot() +
+  geom_point(data = none_data, aes(x=PC1, y=PC2, fill=group, shape=group), color="grey",size = 3) +
+  geom_point(data = other_data, aes(x=PC1, y=PC2, fill=sixpop, shape=sixpop),color="black",size = 3) +
+  #geom_point(data=pccoord_subset_CG, aes(x=PC1, y=PC2, shape=RAD_fourpop, fill=RAD_fourpop, size="RADseq"),
+  #           color="black", shape=21, fill="#e1526b") +
+  #geom_point(data=pccoord_subset_CA, aes(x=PC1, y=PC2, shape=RAD_fourpop, fill=RAD_fourpop, size="RADseq"),
+  #           color="black", shape=21, fill="#4782d4") +
+  scale_fill_manual(values = c( "Coastal_Atlantic" = "#4782d4", "Coastal_Gulf" = "#e1526b", 
+                                "Intermediate_Atlantic" = "#B4ED50", "Intermediate_Gulf" = "#2E8B57", 
+                                "Offshore_Atlantic" = "#FFDD33",
+                                "5" = "grey"),
+                    labels = c("Coastal_Atlantic" = "Coastal Atlantic", "Coastal_Gulf" = "Coastal Gulf", 
+                               "Intermediate_Atlantic" = "Intermediate Atlantic", "Intermediate_Gulf" = "Intermediate Gulf", 
+                               "Offshore_Atlantic" = "Offshore Atlantic",
+                               "5" = "Not genotyped"),
+                    breaks = c("Coastal_Atlantic", "Coastal_Gulf", "Intermediate_Atlantic", "Intermediate_Gulf",
+                               "Offshore_Atlantic", "5"),
+                    name = "Genotype group") +
+  
+  scale_shape_manual(values=c("Coastal_Atlantic"=21, "Coastal_Gulf"=21, 
+                              "Intermediate_Atlantic" = 22, "Intermediate_Gulf" = 22, 
+                              "Offshore_Atlantic" = 24,
+                              "5"=16),
+                     labels = c("Coastal_Atlantic" = "Coastal Atlantic", "Coastal_Gulf" = "Coastal Gulf", 
+                                "Intermediate_Atlantic" = "Intermediate Atlantic", "Intermediate_Gulf" = "Intermediate Gulf", 
+                                "Offshore_Atlantic" = "Offshore Atlantic",
+                                "5" = "Not genotyped"),                    
+                     breaks = c("Coastal_Atlantic", "Coastal_Gulf", "Intermediate_Atlantic", "Intermediate_Gulf",
+                                "Offshore_Atlantic", "5"),
+                     name = "Genotype group") +
+  #scale_size_manual(values = c("microsatellite" = 3, "RADseq" = 6),
+  #                  name = "Genotype method") +
+  theme_classic() +
+  guides(fill = guide_legend(override.aes = list(shape = c(21,21,22,22,24,16))),
+         shape = guide_legend(override.aes = list(fill = c("#4782d4", "#e1526b","#B4ED50", "#2E8B57", "#FFDD33", "grey"),
+                                                  size=4)),
+         size = guide_legend(override.aes = list(fill = "black", color = "black", shape = 21)))+
+  scale_y_continuous(labels = function(x) sprintf("%.2f", x))
+
+p_m_sixpop
+
+
+# now merge
 p_no_legend <- p_m_sixpop + theme(legend.position = "none")
 
 p1_no_legend <- p1 + theme(legend.position = "none")
-p_morph <- ggarrange(p1_no_legend, p_no_legend,
+
+#p_out1 <- ggarrange(p2, p3, ncol = 2, nrow = 1, labels=c("C", "D"), 
+#                    common.legend = T, legend = "none",
+#                    widths = c(0.5, 0.5))
+
+p_out1 <- ggarrange(p3,p_no_legend, ncol = 2, nrow = 1, 
+                    labels=c("C", "D"), 
+                    legend = "none",
+                    heights = c(0.5, 0.5),
+                    widths = c(0.6, 0.4))
+
+p_combine1 <- ggarrange(p1_no_legend, p2,
                      labels=c("A", "B"),
+                     legend = "none",
                      heights = c(0.5, 0.5),
                      widths = c(0.6, 0.4))
 
-p_morph
-
-p_out <- ggarrange(p1,p_out1, nrow=2, labels=c("A", "", ""), common.legend=F,
+p_combine <- ggarrange(p_combine1,p_out1, nrow=2, labels=c("", "", ""), common.legend=F,
                    heights = c(0.5, 0.5))
+p_combine
 
-p_out_morph <- ggarrange(p_morph,p_out1, nrow=2, common.legend=F,
-                   heights = c(0.5, 0.5))
-p_out_morph
-#p_out
-#widths = c(1, 0.75)
-
-ggsave(filename="figures/Fig_01-v3.pdf", p_out_morph, h=135, w=170, units= "mm")
-ggsave(filename="figures/Fig_01-v3.png", p_out_morph, h=5, w=7)
+ggsave(filename="figures/Fig_01-v4.pdf", p_combine, h=135, w=170, units= "mm")
+ggsave(filename="figures/Fig_01-v4.png", p_combine, h=5, w=7)
 
 

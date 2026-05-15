@@ -1,6 +1,6 @@
 library(tidyverse)
 
-dat <- read.csv("../Tursiops-NC-PopulationAssignment-RAD/analysis/out.imiss", 
+dat <- read.csv("analysis/out.imiss", 
                 header=T, sep="\t")
 
 hist(dat$F_MISS, breaks=40)

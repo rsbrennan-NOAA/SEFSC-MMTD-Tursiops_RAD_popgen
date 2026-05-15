@@ -174,6 +174,13 @@ merged_distances <- merged_distances %>%
   ))
 head(merged_distances)
 
+# drop the inter-pop comparison. Don't need it here.
+
+merged_distances
+
+merged_distances <- merged_distances %>%
+  filter(comparison != "inter-population")
+
 p2 <- ggplot(merged_distances, aes(x = leastcost_distance, y = pc_distance)) +
   geom_point(aes(color = comparison),alpha = 0.3) +
   geom_smooth(method = "lm", se = TRUE, linewidth=2) +
@@ -181,7 +188,7 @@ p2 <- ggplot(merged_distances, aes(x = leastcost_distance, y = pc_distance)) +
   labs(y = "Genetic Distance", 
        x = "Geographic Distance",
        title = "Isolation by distance: four populations") +
-  facet_wrap(~comparison, ncol=3) +
+  facet_wrap(~comparison, ncol=3, scales = "free_x") +
   guides(color = guide_legend(override.aes = list(alpha = 1, size=5)))
 
 p2
@@ -217,6 +224,8 @@ merged_distances <- merged_distances %>%
     TRUE ~ "inter-population"
   ))
 
+merged_distances <- merged_distances %>%
+  filter(comparison != "inter-population")
 
 p1 <- ggplot(merged_distances, aes(x = leastcost_distance, y = pc_distance)) +
   geom_point(alpha = 0.2) +
@@ -231,94 +240,15 @@ ggsave("figures/ibd_allpops.png", p1, h=5, w=7)
 
 
 p2 <- ggplot(merged_distances, aes(x = leastcost_distance, y = pc_distance)) +
-  geom_point(aes(color = comparison),alpha = 0.3) +
-  geom_smooth(method = "lm", se = TRUE, linewidth=2) +
+  geom_point(alpha = 0.3) +
+  geom_smooth(method = "lm", se = TRUE, linewidth=1) +
   theme_bw(base_size = 14) +
   labs(y = "Genetic Distance", 
-       x = "Geographic Distance",
-       title = "Isolation by distance: Six populations") +
+       x = "Geographic Distance") +
   facet_wrap(~comparison, ncol=3) +
   guides(color = guide_legend(override.aes = list(alpha = 1, size=5)))
 
 p2
 ggsave("figures/ibd_sixpops.png", p2, h=7, w=9)
 
-
-#-----------------------------------------
-#-----------------------------------------
-#-----------------------------------------
-#-----------------------------------------
-# split by Gulf and Atlantic:
-merged_distances <- merged_distances %>%
-  mutate(comparison_ocean = case_when(
-    str_detect(population_1, "Gulf") & str_detect(population_2, "Gulf") ~ "Gulf",
-    str_detect(population_1, "Atlantic") & str_detect(population_2, "Atlantic") ~ "Atlantic",
-    TRUE ~ "inter-ocean"
-  ))
-
-p2 <- ggplot(merged_distances, aes(x = leastcost_distance, y = pc_distance)) +
-  geom_point(aes(color = comparison),alpha = 0.3) +
-  geom_smooth(method = "lm", se = TRUE, linewidth=2) +
-  theme_bw(base_size = 14) +
-  labs(y = "Genetic Distance", 
-       x = "Geographic Distance",
-       title = "Isolation by distance: within region") +
-  facet_wrap(~comparison_ocean, ncol=2) +
-  guides(color = guide_legend(override.aes = list(alpha = 1, size=5)))
-
-p2
-ggsave("figures/ibd_withinregion.png", p2, h=5, w=9)
-
-
-#-------------------------
-# split by coastal, intermediate, offshore
-
-merged_distances <- merged_distances %>%
-  mutate(comparison_depth = case_when(
-    str_detect(population_1, "Coastal") & str_detect(population_2, "Coastal") ~ "Coastal",
-    str_detect(population_1, "Intermediate") & str_detect(population_2, "Intermediate") ~ "Intermediate",
-    str_detect(population_1, "Offshore") & str_detect(population_2, "Offshore") ~ "Offshore",
-    TRUE ~ "inter-depth"
-  ))
-
-p3 <- ggplot(merged_distances, aes(x = leastcost_distance, y = pc_distance)) +
-  geom_point(aes(color = comparison),alpha = 0.3) +
-  geom_smooth(method = "lm", se = TRUE, linewidth=2) +
-  theme_bw(base_size = 14) +
-  labs(y = "Genetic Distance", 
-       x = "Geographic Distance",
-       title = "Isolation by distance: within depth") +
-  facet_wrap(~comparison_depth, ncol=2)+
-  guides(color = guide_legend(override.aes = list(alpha = 1, size=5)))
-
-p3
-ggsave("figures/ibd_withindepth.png", p3, h=5, w=7)
-
-
-#-------------------------
-
-# only keep inter pop comparisons:
-
-merged_distances <- merged_distances %>%
-  mutate(comparison_depth = case_when(
-    str_detect(population_1, "Coastal") & str_detect(population_2, "Coastal") ~ "Coastal",
-    str_detect(population_1, "Intermediate") & str_detect(population_2, "Intermediate") ~ "Intermediate",
-    str_detect(population_1, "Offshore") & str_detect(population_2, "Offshore") ~ "Offshore",
-    TRUE ~ "inter-depth"
-  ))
-
-merged_distances_dropped <- merged_distances[which(merged_distances$comparison == "inter-population"),]
-
-p3 <- ggplot(merged_distances_dropped, aes(x = leastcost_distance, y = pc_distance)) +
-  geom_point(aes(color = comparison),alpha = 0.3) +
-  geom_smooth(method = "lm", se = TRUE, linewidth=2) +
-  theme_bw(base_size = 14) +
-  labs(y = "Genetic Distance", 
-       x = "Geographic Distance",
-       title = "Isolation by distance: Only inter-population") +
-  facet_wrap(~comparison_depth, ncol=2)+
-  guides(color = guide_legend(override.aes = list(alpha = 1, size=5)))
-
-p3
-ggsave("figures/ibd_withindepth_interOnly.png", p3, h=5, w=7)
 
