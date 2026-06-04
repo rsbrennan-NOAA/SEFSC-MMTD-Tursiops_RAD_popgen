@@ -8,15 +8,19 @@ library(tidyverse)
 # then make sure the morphology ones from ana are in there.
 # use this table to get the base microsat list: https://docs.google.com/spreadsheets/d/1M-0P6VRTiMthxtVIjww3YzKK-o4VTK6nbPbpP3MiMg0/edit?gid=60770286#gid=60770286
 
-# we think there are 47 radseq ones missing from the micro data. 
-  # check that my number agrees
-
-# do we really need to re-run what we've already done.
-
-# DO the microsat assignments agree with the RAD asisngments with k=4
-# add haplotype infor to the 
-
 # end should be a big table with the microsat loci, if RAD, if morphology
+
+library(tidyverse)
+
+#full-skull data set
+tur.ATL <- read_csv("wNA-Skulls_dataset_final_2025.csv")
+colnames(tur.ATL) <- tolower(colnames(tur.ATL))
+
+tur.ATL <- tur.ATL %>% 
+  mutate(
+    id = museumid
+  )
+
 
 skull_ids <-read.csv("analysis/skull_labID.csv", header=T)
 nrow(skull_ids)
@@ -42,8 +46,38 @@ dat$id <- gsub("b$", "", dat$id)
 
 dat[(dat$id %in% all_morph_ids),]
 
-# read in pca coords:
-pccoord <- read.csv("analysis/TUR-ATL-PCAcoordinates.txt", sep="\t")
+
+# run the PCA for morphology
+# written by Ana Costa, 2026-05-28
+
+tur <- tur.ATL %>% 
+  select(id, a1:crca) 
+
+colnames(tur)
+
+skull_pca <-na.omit(tur)
+#skull_pca2 <-scale(skull_pca[,2:26]+1)
+skull_pca2 <-(skull_pca[,2:26])
+
+skull.pca<-prcomp(skull_pca2, center=TRUE, scale=TRUE)
+print(skull.pca)
+
+summary(skull.pca)
+
+plot(skull.pca, type='l')
+
+pcaout <- as.data.frame(skull.pca$x)
+
+plot(pcaout$PC1*-1, pcaout$PC2)
+
+as.character(round(pccoord$PC1,5)) == as.character(round(pcaout$PC1, 5))
+head(pccoord$PC1)
+head(pcaout$PC1)
+pcaout$sample_name <- tur.ATL$museumid
+pccoord <- pcaout
+# check that my new values and the previous values agree.
+# previous PCA
+#pccoord <- read.csv("analysis/TUR-ATL-PCAcoordinates.txt", sep="\t")
 nrow(pccoord)
 #180
 
@@ -208,6 +242,9 @@ matched_df[!is.na(matched_df$RAD_ID), ]
 # 2 coastal gulf, 3 coastal atlantic
 
 
+
+
+#---------------------------------------------------------------------------------------
 # add the micro assignments from nikki:
 # basically, figure out generally if the RAD and micro assignments agree
 
@@ -249,7 +286,7 @@ table(micro_matched_RAD$fourpop.y,
 
 # what is the accuracy:
 343-2-8-1-6
-326/346
+326/nrow(micro_matched_RAD)
 
 
 
@@ -325,8 +362,15 @@ head(allmicro_expanded)
 nrow(allmicro_expanded)
 # 4530 indivs
 
-#----------------------------------------------------
-#----------------------------------------------------
+
+
+
+
+
+#---------------------------------------------------------------------------------------
+#---------------------------------------------------------------------------------------
+#---------------------------------------------------------------------------------------
+
 # merge with morphology data
 matched_df <-cbind(matched_df$Lab_ID, matched_df)
 colnames(matched_df) <- c("ID.Original",colnames(matched_df)[2:ncol(matched_df)])
@@ -403,8 +447,33 @@ merged_micro_morph_PCA_unique$ClumppK4.0.50.cutoff[tmp_overlap]
 
 new_morph$Lab.ID %in% merged_micro_morph_PCA_unique$Lab.ID
 
-write.csv(merged_micro_morph_PCA_unique, 
-            file="analysis/micro_morph_PCA_plotting.csv")
+# ---------------------------------------------------------------------------------
+#now need to merge with the raw morph data. 
+tur.ATL
+
+merged_micro_morph_PCA_unique
+
+out1 <- merged_micro_morph_PCA_unique[,1:grep("PC3",colnames(merged_micro_morph_PCA_unique))-1]
+
+out1 <- out1 |> select(-starts_with("ClumppK2"), -starts_with("ClumppK3"),
+                       -DNA_Extraction, 
+                       -any_of(c("K2K1", "K2K2", "K3_K1", "K3_K2", "K3_K3", "K4_K1", "K4_K2", "K4_K3", "K4_K4",
+                                 "Lat", "Long", "n4068.Structure.Run",
+                                 "New.Ana.Morph","New.for.Structure","Sample.1",
+                                 "ClumppK4.0.80.cutoff", "ClumppK4.0.70.cutoff",
+                                 "RADSeq.", "newhybrids_category",)))
+
+out2 <- out1 |> full_join(tur.ATL, by = c("morph_Field_ID" = "museumid"))
+out2 <- out2 |> 
+  rename(PC1_morphology = PC1, PC2_morphology = PC2) |> 
+  relocate(PC1_morphology, PC2_morphology, .after = last_col())
+
+
+#merge(merged_micro_morph_PCA_unique)
+
+# write the final table out. 
+write.csv(out2, 
+            file="analysis/micro_morph_PCA_plotting.csv", row.names=F)
 
 none_data <- merged_micro_morph_PCA_unique[is.na(merged_micro_morph_PCA_unique$ClumppK4.0.50.cutoff), ]
 other_data <- merged_micro_morph_PCA_unique[!(is.na(merged_micro_morph_PCA_unique$ClumppK4.0.50.cutoff)), ]

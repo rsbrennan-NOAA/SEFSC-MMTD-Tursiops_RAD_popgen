@@ -238,10 +238,21 @@ p1
 
 ggsave("figures/ibd_allpops.png", p1, h=5, w=7)
 
+library(ggpmisc)
 
 p2 <- ggplot(merged_distances, aes(x = leastcost_distance, y = pc_distance)) +
   geom_point(alpha = 0.3) +
-  geom_smooth(method = "lm", se = TRUE, linewidth=1) +
+  geom_smooth(method = "lm", se = TRUE, linewidth=1,color="firebrick",  fill="dodgerblue2", alpha = 0.8) +
+  stat_poly_eq(
+    aes(label = paste(after_stat(rr.label), after_stat(p.value.label), sep = "*\", \"*")),
+    formula = y ~ x,
+    parse = TRUE,
+    size = 5,
+    label.x = "right",
+    label.y = "top",
+    geom = "label_npc",
+    fill = alpha("white", 0.7)
+  ) +
   theme_bw(base_size = 14) +
   labs(y = "Genetic Distance", 
        x = "Geographic Distance") +
@@ -251,4 +262,8 @@ p2 <- ggplot(merged_distances, aes(x = leastcost_distance, y = pc_distance)) +
 p2
 ggsave("figures/ibd_sixpops.png", p2, h=7, w=9)
 
+coastal_atlantic <- merged_distances |> 
+  filter(comparison == "Coastal_Atlantic")
 
+fit <- lm(pc_distance ~ leastcost_distance, data = coastal_atlantic)
+summary(fit)

@@ -391,6 +391,8 @@ merged_micro_morph_PCA_unique <- read.csv("analysis/micro_morph_PCA_plotting.csv
 none_data <- merged_micro_morph_PCA_unique[is.na(merged_micro_morph_PCA_unique$ClumppK4.0.50.cutoff), ]
 other_data <- merged_micro_morph_PCA_unique[!(is.na(merged_micro_morph_PCA_unique$ClumppK4.0.50.cutoff)), ]
 table(other_data$ClumppK4.0.50.cutoff)
+#  1  2  3  4 
+# 19  7 46  9 
 
 fill_colors <- c(
   "Coastal\nAtlantic" = "#4782d4",
@@ -419,9 +421,33 @@ table(other_data$sixpop)
 other_data$sixpop <- gsub("Coastal_Atlantic_Atlantic", "Coastal_Atlantic",other_data$sixpop)
 other_data$sixpop <- gsub("Coastal_Gulf_Gulf", "Coastal_Gulf",other_data$sixpop)
 other_data <- other_data[order(other_data$sixpop == "Coastal_Gulf"), ]
-write.table(other_data, file="analysis/micro_morph_toShare.txt", quote = F, row.names = F, sep="\t")
 
+none_data$sixpop <- NA
+
+none_data2 <- none_data |> 
+  rename(region = group) 
+
+allout <- rbind(other_data, none_data2)
+
+allout  <- allout |> 
+  rename(microsatellite_population = fourpop) 
+
+# add collection date and lat long
+
+morph <- read.csv("analysis/morphology_list.txt", sep=" ", header=T)
+
+allout <- morph |> 
+  select(Field_id, Collection_date, Lat, Long, Sex) |> 
+  right_join(allout, by = c("Field_id" = "morph_Field_ID"))
+
+write.table(allout, file="analysis/micro_morph_toShare2.txt", quote = F, row.names = F, sep="\t")
+
+other_data  <- other_data |> 
+  rename(PC1 = PC1_morphology, PC2 = PC2_morphology)
 other_data[other_data$sixpop == "Intermediate_Gulf",]
+
+none_data <- none_data|> 
+  rename(PC1 = PC1_morphology, PC2 = PC2_morphology)
 
 # flip the x axis so it corresponds to genetics pca
 

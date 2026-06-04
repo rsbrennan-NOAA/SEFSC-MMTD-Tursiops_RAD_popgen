@@ -75,12 +75,3 @@ dstat_six$p.value_multTesting <- p.adjust(dstat_six$p.value,method="bonferroni")
 dstat_six[dstat_six$p.value_multTesting < 0.05,]
 
 sheet_url <- gs4_create("dstat_sixpop_nohybs", sheets = list(data = dstat_six))
-
-
-
-
-
-
-
-
-
