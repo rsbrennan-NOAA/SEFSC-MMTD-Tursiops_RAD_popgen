@@ -56,6 +56,7 @@ Map with population assignments, from population structure analyses below: `map_
 Fig. 1: `Figure_01.R`  
 Fig. 2: `Figure_02.R`  
 Fig. 3: `Figure_03.R`  
+Fig. 4: `Figure_04.R`
 
 #### Supplemental figures
 

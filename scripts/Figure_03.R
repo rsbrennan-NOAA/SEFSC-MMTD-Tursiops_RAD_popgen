@@ -108,6 +108,266 @@ ggsave(filename="figures/mtTree.png", p3, h=5, w=7)
 
 
 
+
+####------------------------------------------------------------------
+####------------------------------------------------------------------
+####------------------------------------------------------------------
+# with caraballo samps
+
+
+
+pops <- read.csv("metadata_FINAL.csv", header=T)
+sum(table(pops$newhybrids_category))
+table(pops$newhybrids_category)
+
+length(names(table(pops$mt_haplotype)))
+tree <- read.tree(file="./analysis/mt_trees/RunCAR_missing.treefile")
+#tree <- read.tree(file="./analysis/trees/Run8.treefile")
+pops$hybs <- ifelse(is.na(pops$newhybrids_category), "", "Hybrid - ")
+pops$fourpop_hybs <- paste0(pops$hybs,pops$fourpop)
+#pops$fourpop_hybs <- gsub("NA", "", pops$fourpop_hybs)
+haplotype_counts <- pops %>%
+  count(mt_haplotype, fourpop_hybs, name = "n")
+
+haplotype_counts$fourpop_hybs <- factor(
+  haplotype_counts$fourpop_hybs,
+  levels = c("Coastal_Atlantic", "Coastal_Gulf", "Intermediate", "Offshore", "Hybrid - Intermediate", "Hybrid - Offshore")
+)
+
+# add in the carribean samples to haplotype_counts
+# Create the base tree plot
+
+chap <- read.csv("analysis/mt_trees/carribean_hap_counts.csv")
+chap_counts <- chap |> 
+  transmute(
+    mt_haplotype = str_extract(label, "^[^_]+"),
+    fourpop_hybs = "Carribean",
+    n = n
+  )
+
+haplotype_counts <- bind_rows(haplotype_counts, chap_counts)
+
+
+p <- ggtree(tree)
+as.data.frame(p$data[grep("CAR", p$data$label),])
+haplotype_counts
+dat_lab <- p$data
+#p$data <- p$data |> 
+#  separate(label, into = c("label", "label_other"), sep = "_", extra = "merge", remove=F)
+
+p$data <- p$data |> 
+  mutate(
+    label_other = str_extract(label, "(?<=_).*"),
+    label       = str_extract(label, "^[^_]+")
+  )
+
+
+plot_data <- p$data %>%
+  filter(!is.na(label) & !isTip) %>%
+  # split by /
+  separate(label, into = c("alrt", "bootstrap"), sep = "/", remove = FALSE) %>%
+  mutate(bootstrap = as.numeric(bootstrap))
+
+plot_data <- p$data %>%
+  filter(!is.na(label) & !isTip) %>%
+  # split by /
+  mutate(bootstrap = label)
+
+# remove nodes of collapsed outgroups:
+#plot_data <- plot_data[!plot_data$node %in% seq(84,92,1),]
+
+
+p2 <- p +
+  geom_tiplab(
+    aes(label = ""), # empty text
+    align = TRUE,
+    linetype = "dashed",
+    linesize = 0.05,
+    offset = 0.001,
+    color="grey45"
+  ) +
+  
+  # add barplot of haplotype freqs
+  geom_fruit(
+    data = haplotype_counts,
+    geom = geom_col,
+    mapping = aes(
+      y = mt_haplotype,
+      x = n,
+      fill = fourpop_hybs
+      #fill = sixpop
+    ),
+    offset = 0.01,
+    pwidth = 0.4,
+    axis.params = list(axis = "x", text.size = 3)
+  )  +
+  # set colors
+  scale_fill_manual(
+    name = "Population",
+    values = c("purple","#4782d4", "#e1526b", "grey70", "black", "#61BA5C", "#E2BF3C")
+  ) +
+  #geom_nodepoint(data = plot_data, 
+  #               aes(subset = bootstrap > 70, color = bootstrap), 
+  #              #aes( color = bootstrap), 
+  #               size = 3.5, alpha = 1) +
+  geom_nodelab(data = plot_data, 
+               # aes(subset = bootstrap > 70, label = bootstrap), 
+               aes(label = bootstrap), 
+               #aes( color = bootstrap), 
+               size = 3, alpha = 1,
+               nudge_x = -.0035, nudge_y = 1.1) +
+  scale_color_gradient(
+    name = "Bootstrap (%)",
+    low = "red",
+    high = "green"
+  )+
+  theme_tree() 
+#geom_text2(aes(label = node, subset = !isTip), hjust = -0.3, size = 3) 
+#geom_tiplab(size = 1)
+
+p2
+
+
+p4 <- collapse(p2,node = 103,mode = "max",fill="transparent",
+         color="black",size=0.1)
+
+ggsave(p4, filename="figures/carribean_tree_missing_counts.pdf", h=6, w=7)
+ggsave(p4, filename="figures/carribean_tree_missing_counts.png", h=6, w=7)
+
+#add labels for clarity:
+
+p3 <- p +
+  geom_tiplab(
+    aes(label = paste(label, label_other, sep="_")),
+    align = TRUE,
+    linetype = "dashed",
+    linesize = 0.05,
+    offset = 0.001,
+    color="grey45"
+  ) + hexpand(.3, direction = 1)
+
+
+ggsave(p3, filename="figures/carribean_tree_missing_withlabs.pdf", h=15, w=17)
+ggsave(p3, filename="figures/carribean_tree_missing_withlabs.png", h=6, w=7)
+  
+
+
+
+##-------------------------
+# truncated data
+
+tree <- read.tree(file="./analysis/mt_trees/RunCAR_trunc.treefile")
+#tree <- read.tree(file="./analysis/trees/Run8.treefile")
+pops$hybs <- ifelse(is.na(pops$newhybrids_category), "", "Hybrid - ")
+pops$fourpop_hybs <- paste0(pops$hybs,pops$fourpop)
+#pops$fourpop_hybs <- gsub("NA", "", pops$fourpop_hybs)
+haplotype_counts <- pops %>%
+  count(mt_haplotype, fourpop_hybs, name = "n")
+
+haplotype_counts$fourpop_hybs <- factor(
+  haplotype_counts$fourpop_hybs,
+  levels = c("Coastal_Atlantic", "Coastal_Gulf", "Intermediate", "Offshore", "Hybrid - Intermediate", "Hybrid - Offshore")
+)
+
+# add in the carribean samples to haplotype_counts
+# Create the base tree plot
+p <- ggtree(tree)
+p$data[grep("CAR", p$data$label),]
+haplotype_counts
+dat_lab <- p$data
+p$data <- p$data |> 
+  separate(label, into = c("label", "label_other"), sep = "_", extra = "merge", remove=F)
+
+car_counts <- p$data |> 
+  mutate(
+    n_label       = str_count(label, "CAR"),
+    n_label_other = str_count(label_other, "CAR") |> replace_na(0),
+    n             = n_label + n_label_other
+  ) |> 
+  filter(n > 0)
+
+car_counts <- car_counts |> 
+  transmute(mt_haplotype = label, fourpop_hybs = "Carribean", n = n)
+haplotype_counts <- bind_rows(haplotype_counts, car_counts)
+
+plot_data <- p$data %>%
+  filter(!is.na(label) & !isTip) %>%
+  # split by /
+  separate(label, into = c("alrt", "bootstrap"), sep = "/", remove = FALSE) %>%
+  mutate(bootstrap = as.numeric(bootstrap))
+
+plot_data <- p$data %>%
+  filter(!is.na(label) & !isTip) %>%
+  # split by /
+  mutate(bootstrap = label)
+
+# remove nodes of collapsed outgroups:
+#plot_data <- plot_data[!plot_data$node %in% seq(84,92,1),]
+
+
+p2 <- p +
+  geom_tiplab(
+    aes(label = ""), # empty text
+    align = TRUE,
+    linetype = "dashed",
+    linesize = 0.05,
+    offset = 0.001,
+    color="grey45"
+  ) +
+  
+  # add barplot of haplotype freqs
+  geom_fruit(
+    data = haplotype_counts,
+    geom = geom_col,
+    mapping = aes(
+      y = mt_haplotype,
+      x = n,
+      fill = fourpop_hybs
+      #fill = sixpop
+    ),
+    offset = 0.01,
+    pwidth = 0.4,
+    axis.params = list(axis = "x", text.size = 3)
+  )  +
+  # set colors
+  scale_fill_manual(
+    name = "Population",
+    values = c("purple","#4782d4", "#e1526b", "grey45", "black", "#61BA5C", "#E2BF3C")
+  ) +
+  #geom_nodepoint(data = plot_data, 
+  #               aes(subset = bootstrap > 70, color = bootstrap), 
+  #              #aes( color = bootstrap), 
+  #               size = 3.5, alpha = 1) +
+  geom_nodelab(data = plot_data, 
+               # aes(subset = bootstrap > 70, label = bootstrap), 
+               aes(label = bootstrap), 
+               #aes( color = bootstrap), 
+               size = 3, alpha = 1,
+               nudge_x = -.0035, nudge_y = 1.1) +
+  scale_color_gradient(
+    name = "Bootstrap (%)",
+    low = "red",
+    high = "green"
+  )+
+  theme_tree() +
+  ggtitle("truncated data")
+#geom_text2(aes(label = node, subset = !isTip), hjust = -0.3, size = 3) 
+#geom_tiplab(size = 1)
+
+p2
+
+ggsave(p2, filename="figures/carribean_tree_truncated.pdf", h=6, w=7)
+ggsave(p2, filename="figures/carribean_tree_truncated.png", h=6, w=7)
+
+
+
+
+
+
+
+
+
+
 #---------------------------------------------------
 # plot RADtree:
 grouping <- read_csv("analysis/trees/RADseq_mtDNA_labels.csv")

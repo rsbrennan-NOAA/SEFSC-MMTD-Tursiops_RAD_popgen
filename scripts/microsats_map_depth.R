@@ -101,22 +101,6 @@ dat1 <- read.csv("analysis/microsat_depths.csv")
 
 all <- merge(dat1, micro_data, by="Lab.ID")
 
-
-p1 <- ggplot() +
-  geom_sf(data = world, fill = "grey90", color = "grey70") +
-  geom_sf(data = usa, fill = NA, color = "grey70") +
-  geom_point(data = all, 
-             aes(x = Long, y = Lat, color=ClumppK4.0.50.cutoff, shape=ClumppK4.0.50.cutoff),
-             size = 2.5,
-             alpha=1) +
-  coord_sf(xlim = c(-100, -64), ylim = c(23, 42), expand = FALSE)+
-  #scale_shape_manual(values=c(21,21,22,22,24,24))+
-  #scale_fill_manual(values=fill_colors) +
-  annotation_scale()
-
-p1
-
-
 all$population <- NA
 all$population[all$ClumppK4.0.50.cutoff == "1"] <- "Offshore"
 all$population[all$ClumppK4.0.50.cutoff == "2"] <- "Coastal_Gulf"
@@ -309,3 +293,7 @@ p1_facet
 
 ggsave("figures/manuscript/map_micros_facet.pdf", p1_facet, h=9, w=7)
 ggsave("figures/manuscript/map_micros_facet.png", p1_facet, h=9, w=7)
+
+
+
+write.table(df, file="microsat_forUpload.csv", row.names = F, quote = F,sep=",")

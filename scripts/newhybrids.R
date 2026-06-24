@@ -419,7 +419,7 @@ nrow(low_conf_offshore)
 # the other 6 are hybs, but considered low confidence. add these in
 allNewHybs <- (c(highconf$Lab.ID, low_conf_offshore$Lab.ID))
 length(allNewHybs)
-#24
+#26
 
 for(i in 1:nrow(low_conf_offshore)){
   pops$newhybrids_category[pops$indiv == low_conf_offshore$Lab.ID[i]] <- low_conf_offshore$highest_category[i]
